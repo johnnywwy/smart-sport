@@ -1,0 +1,1681 @@
+<title>智慧体育云平台架构图</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;900&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* 布局：单栏评审文档；每节一个图，主图为分层架构（HTML 网格绘制），流程类用 mermaid */
+:root{
+  --bg:#f6f8fb; --paper:#ffffff; --ink:#132033; --muted:#5a6a80; --line:#d8e0ea;
+  --accent:#1d5bd8; --accent-soft:#e6eefc;
+  --l-client:#eef4ff; --l-edge:#f0f6f4; --l-app:#f4f1fb; --l-infra:#fdf5ea; --l-data:#eef3f8;
+  --chip:#eaf0f7; --ok:#1c7c54; --warn:#b26a00;
+  --f-body:"Noto Sans SC","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0f1520; --paper:#151d2a; --ink:#e4ebf5; --muted:#93a3b8; --line:#2a3647;
+  --accent:#6e9dff; --accent-soft:#1c2a45;
+  --l-client:#172238; --l-edge:#14251f; --l-app:#1e1a2e; --l-infra:#2a2216; --l-data:#16212e;
+  --chip:#202b3b; --ok:#4cc38a; --warn:#e0a040; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1520; --paper:#151d2a; --ink:#e4ebf5; --muted:#93a3b8; --line:#2a3647;
+  --accent:#6e9dff; --accent-soft:#1c2a45;
+  --l-client:#172238; --l-edge:#14251f; --l-app:#1e1a2e; --l-infra:#2a2216; --l-data:#16212e;
+  --chip:#202b3b; --ok:#4cc38a; --warn:#e0a040; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.65}
+.wrap{max-width:1120px;margin:0 auto;padding-block:40px 80px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:44px}
+header h1{font-size:clamp(26px,4vw,36px);font-weight:900;margin:0;text-wrap:balance;letter-spacing:.01em}
+header p{color:var(--muted);margin:8px 0 0;max-width:68ch}
+.meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.meta span{font-family:var(--f-mono);font-size:12px;background:var(--chip);padding:3px 10px;border-radius:4px;color:var(--muted)}
+section{display:flex;flex-direction:column;gap:14px}
+h2{font-size:21px;margin:0;display:flex;align-items:baseline;gap:10px;text-wrap:balance}
+h2 small{font-family:var(--f-mono);font-size:12px;color:var(--accent);font-weight:500;letter-spacing:.06em}
+.lead{color:var(--muted);margin:0;max-width:72ch}
+.panel{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:20px;min-width:0}
+.scroll{overflow-x:auto}
+code,.mono{font-family:var(--f-mono);font-size:.86em}
+
+/* 技术栈 */
+.stack{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px}
+.stack .col h3{margin:0 0 8px;font-size:13px;letter-spacing:.08em;color:var(--muted);font-weight:700}
+.stack ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.stack li{display:flex;justify-content:space-between;gap:10px;border-bottom:1px dashed var(--line);padding-bottom:5px}
+.stack li b{font-weight:500}
+.stack li span{font-family:var(--f-mono);font-size:12px;color:var(--muted);text-align:right}
+.stack li.new b::after{content:"新";font-size:10px;color:var(--accent);border:1px solid var(--accent);border-radius:3px;padding:0 3px;margin-left:6px;vertical-align:2px}
+
+/* 分层架构主图 */
+.layers{display:flex;flex-direction:column;gap:8px;min-width:880px}
+.layer{display:grid;grid-template-columns:118px 1fr;border-radius:8px;overflow:hidden;border:1px solid var(--line)}
+.layer>.tag{padding:14px 12px;font-weight:700;font-size:14px;display:flex;flex-direction:column;justify-content:center;gap:2px;border-right:1px solid var(--line)}
+.layer>.tag small{font-family:var(--f-mono);font-weight:400;font-size:11px;color:var(--muted)}
+.layer>.body{padding:12px;display:flex;flex-wrap:wrap;gap:10px;align-items:stretch}
+.client{background:var(--l-client)} .edge{background:var(--l-edge)} .app{background:var(--l-app)} .infra{background:var(--l-infra)} .data{background:var(--l-data)}
+.box{background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:8px 12px;font-size:13px;min-width:0;flex:1 1 150px}
+.box b{display:block;font-size:14px}
+.box em{font-style:normal;color:var(--muted);font-size:12px}
+.box.key{border-color:var(--accent);box-shadow:inset 3px 0 0 var(--accent)}
+.group{flex:1 1 100%;display:flex;flex-direction:column;gap:8px}
+.group>.gt{font-size:12px;color:var(--muted);letter-spacing:.06em}
+.row{display:flex;flex-wrap:wrap;gap:8px}
+.row .box{flex:1 1 120px}
+.pipe{display:flex;gap:0;flex:1 1 100%;flex-wrap:wrap}
+.pipe .box{border-radius:0;flex:1 1 120px;position:relative}
+.pipe .box:first-child{border-radius:6px 0 0 6px}
+.pipe .box:last-child{border-radius:0 6px 6px 0}
+.pipe .box+.box{border-left:none}
+.arrow{text-align:center;color:var(--muted);font-family:var(--f-mono);font-size:12px;line-height:1}
+.legend{display:flex;flex-wrap:wrap;gap:16px;font-size:12px;color:var(--muted);margin-top:10px}
+.legend i{display:inline-block;width:14px;height:10px;border:1px solid var(--accent);box-shadow:inset 3px 0 0 var(--accent);vertical-align:-1px;margin-right:4px;background:var(--paper)}
+
+/* 目录树 */
+.tree{font-family:var(--f-mono);font-size:13px;line-height:1.75;white-space:pre;margin:0;color:var(--ink)}
+.tree .c{color:var(--muted)}
+.tree .k{color:var(--accent)}
+
+/* 租户图 */
+.tenant{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+.db{border:1px solid var(--line);border-radius:8px;padding:14px;background:var(--paper);display:flex;flex-direction:column;gap:8px}
+.db h4{margin:0;font-size:14px;display:flex;justify-content:space-between;gap:8px}
+.db h4 code{color:var(--accent)}
+.db ul{margin:0;padding-left:18px;font-size:13px;color:var(--muted)}
+.db.ds{border-style:dashed}
+
+/* 表 */
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:12px;color:var(--muted);font-weight:700;letter-spacing:.04em}
+td code{white-space:nowrap}
+
+pre.mermaid{margin:0;background:transparent;text-align:center}
+.note{font-size:13px;color:var(--muted);border-left:3px solid var(--warn);padding:6px 12px;background:var(--paper);border-radius:0 6px 6px 0}
+footer{color:var(--muted);font-size:13px}
+
+/* 后台窗口示意 */
+.win{border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--paper);min-width:0}
+.win-bar{display:flex;align-items:center;gap:6px;padding:8px 12px;border-bottom:1px solid var(--line);background:var(--chip);font-size:12px;color:var(--muted)}
+.win-bar i{width:10px;height:10px;border-radius:50%;background:var(--line);display:inline-block}
+.win-bar span{margin-left:8px}
+.win-body{display:grid;grid-template-columns:190px 1fr;min-width:0}
+.win-side{border-right:1px solid var(--line);padding:10px;display:flex;flex-direction:column;gap:4px;font-size:13px}
+.ws-grp{font-size:11px;color:var(--muted);letter-spacing:.06em;margin-top:6px}
+.ws-item{padding:6px 8px;border-radius:6px;display:flex;justify-content:space-between;align-items:center;gap:6px}
+.ws-item.on{background:var(--accent-soft);color:var(--accent);font-weight:700}
+.ws-badge{font-size:10px;padding:0 6px;border-radius:999px;border:1px solid var(--line);color:var(--muted);font-weight:400;white-space:nowrap}
+.ws-badge.cus{border-color:var(--warn);color:var(--warn)}
+.win-main{padding:14px 16px;display:flex;flex-direction:column;gap:12px;min-width:0;overflow-x:auto}
+.wm-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap}
+.wm-head b{display:block;font-size:16px}
+.wm-head small{color:var(--muted);font-size:12px}
+.wm-btns{display:flex;gap:6px;flex-wrap:wrap}
+.btn{font-size:12px;padding:5px 12px;border-radius:8px;border:1px solid var(--line);white-space:nowrap}
+.btn.pri{background:var(--accent);border-color:var(--accent);color:var(--paper)}
+.wm-scope{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;font-size:13px;background:var(--chip);border-radius:8px;padding:8px 12px}
+.wm-scope span{color:var(--muted)}
+.wm-scope em{font-style:normal;background:var(--paper);border:1px solid var(--line);border-radius:999px;padding:1px 10px;font-size:12px}
+.wm-scope small{color:var(--ok);font-size:12px;margin-left:auto}
+table.perm{min-width:520px}
+table.perm td:not(:first-child),table.perm th:not(:first-child){text-align:center}
+table.perm td:last-child,table.perm th:last-child{text-align:left}
+table.perm s{display:inline-block;width:14px;height:14px;border-radius:50%;border:2px solid var(--line);vertical-align:middle}
+table.perm s.on{border-color:var(--accent);background:radial-gradient(circle,var(--accent) 0 3.5px,transparent 4px)}
+.chg{font-size:11px;color:var(--warn);white-space:nowrap}
+tr.ext td{color:var(--muted)}
+
+/* D3 编辑界面示意 */
+.ws-item.tr1{padding-left:20px}
+.ws-item.tr2{padding-left:34px}
+.ws-item.warn{color:var(--warn)}
+.ws-add{font-size:12px;color:var(--accent);padding:6px 8px}
+.tabs{display:flex;gap:16px;border-bottom:1px solid var(--line);font-size:13px}
+.tabs span{padding:4px 0 8px;color:var(--muted)}
+.tabs span.on{color:var(--accent);border-bottom:2px solid var(--accent);font-weight:700}
+table.mini{font-size:13px;min-width:460px}
+table.mini td,table.mini th{padding:6px 8px}
+table.mini a{color:var(--accent);text-decoration:underline dotted}
+.tag{display:inline-block;font-size:11px;background:var(--chip);border-radius:999px;padding:1px 8px;margin-right:4px}
+s.cb{display:inline-block;width:13px;height:13px;border:1.5px solid var(--line);border-radius:3px;vertical-align:-2px;margin-right:6px}
+s.cb.on{background:var(--accent);border-color:var(--accent)}
+s.cb.dis{opacity:.45}
+s.cb.half{background:linear-gradient(var(--accent),var(--accent)) center/7px 2px no-repeat;border-color:var(--accent)}
+.bulk{font-size:12px;color:var(--muted);display:flex;flex-wrap:wrap;gap:6px;align-items:center;background:var(--accent-soft);padding:6px 10px;border-radius:8px}
+.wm-scope .btn{margin-left:4px}
+.pick-wrap{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:12px}
+.pick{display:grid;grid-template-columns:1.3fr 1fr;min-width:0}
+.pick-l{padding:12px;display:flex;flex-direction:column;gap:10px;border-right:1px solid var(--line);min-width:0}
+.pick-r{padding:12px;display:flex;flex-direction:column;gap:8px;font-size:13px;min-width:0}
+.pick-r small,.hint{color:var(--muted);font-size:11.5px}
+.tree{font-size:13px;display:flex;flex-direction:column;gap:5px}
+.tree .t1{padding-left:20px}
+.tree small{color:var(--muted);font-family:var(--f-mono);margin-left:4px}
+.chips{display:flex;flex-wrap:wrap;gap:4px}
+.chip{font-size:12px;border:1px solid var(--accent);color:var(--accent);border-radius:999px;padding:1px 8px}
+.sum strong{font-size:20px;color:var(--ink)}
+.grades{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.g{font-size:12px;text-align:center;padding:6px 4px;border:1px solid var(--line);border-radius:6px}
+.g.on{border-color:var(--accent);background:var(--accent-soft);color:var(--accent);font-weight:700}
+.drawer{padding:14px 16px;display:grid;grid-template-columns:1fr 1fr;gap:12px;min-width:0}
+.field{display:flex;flex-direction:column;gap:4px;font-size:13px}
+.field label{font-size:12px;color:var(--muted)}
+.input{border:1px solid var(--line);border-radius:8px;padding:6px 10px;min-height:34px;display:flex;flex-wrap:wrap;gap:4px;align-items:center}
+.explain{grid-column:2;grid-row:1 / span 3;background:var(--chip);border-radius:8px;padding:12px;font-size:13px;display:flex;flex-direction:column;gap:6px;align-items:flex-start}
+.explain ol{margin:0;padding-left:18px;color:var(--muted)}
+.explain em{font-style:normal;color:var(--ink);font-weight:700}
+.drawer .field{grid-column:1}
+@media (max-width:640px){.pick{grid-template-columns:1fr}.pick-l{border-right:none;border-bottom:1px solid var(--line)}.drawer{grid-template-columns:1fr}.explain{grid-column:1;grid-row:auto}}
+
+/* 表结构卡片 */
+.tables{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px}
+.tcard{background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:12px 14px;min-width:0}
+.tcard h4{margin:0 0 8px;font-family:var(--f-mono);font-size:14px;color:var(--accent);display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.tcard h4 span{font-family:var(--f-body);font-size:12px;color:var(--muted);font-weight:500}
+.tcard dl{margin:0;display:flex;flex-direction:column;font-size:12.5px}
+.tcard dt{font-family:var(--f-mono);font-size:12px;color:var(--ink);overflow-wrap:anywhere;padding-top:6px;border-top:1px dashed var(--line);margin-top:6px}
+.tcard dt:first-child{border-top:none;margin-top:0;padding-top:0}
+.tcard dd{margin:2px 0 0;color:var(--muted);overflow-wrap:anywhere}
+.tcard dd:empty{display:none}
+.tcard.tfuture{border-style:dashed}
+pre.mermaid{overflow-x:auto}
+@media (max-width:640px){.win-body{grid-template-columns:1fr}.win-side{border-right:none;border-bottom:1px solid var(--line)}}
+
+/* 选择组织、门户、工作区示意 */
+.org-pick{padding:14px 16px;display:flex;flex-direction:column;gap:8px}
+.og-grp{font-size:12px;color:var(--muted);letter-spacing:.06em;margin-top:4px}
+.og-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px}
+.og{border:1px solid var(--line);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:2px;font-size:13px}
+.og small{color:var(--muted);font-size:12px}
+.og.on{border-color:var(--accent);box-shadow:inset 3px 0 0 var(--accent)}
+.og.off{opacity:.5}
+.portal{padding:16px;display:flex;flex-direction:column;gap:12px}
+.pt-top{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.pt-top b{font-size:17px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px}
+.kpi{border:1px solid var(--line);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:2px}
+.kpi small{color:var(--muted);font-size:12px}
+.kpi b{font-size:24px;font-variant-numeric:tabular-nums}
+.kpi em{font-style:normal;font-size:11.5px;color:var(--muted)}
+.kpi em.up{color:var(--ok)}
+.kpi em.warn{color:var(--warn)}
+.kpi svg{width:100%;height:24px}
+.kpi polyline{fill:none;stroke:var(--accent);stroke-width:1.6}
+.pt-sec{font-size:13px;font-weight:700}
+.apps{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px}
+.appc{border:1px solid var(--line);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:4px;font-size:13px;background:var(--paper)}
+.appc i{font-style:normal;width:32px;height:32px;border-radius:9px;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;font-weight:700}
+.appc small{color:var(--muted);font-size:12px}
+.pt-two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.pt-li{font-size:12.5px;color:var(--muted);padding:4px 0;border-bottom:1px dashed var(--line)}
+.ws{display:grid;grid-template-columns:180px 1fr;min-width:0}
+.ws-side{border-right:1px solid var(--line);padding:10px;display:flex;flex-direction:column;gap:2px;font-size:13px}
+.ws-app{font-weight:700;padding:6px 8px 10px}
+.ws-m{padding:6px 10px;border-radius:8px}
+.ws-m.on{background:var(--accent-soft);color:var(--accent);font-weight:700}
+.ws-fold{margin-top:auto;font-size:12px;color:var(--muted);padding:8px 10px}
+.ws-main{padding:12px 16px;display:flex;flex-direction:column;gap:10px;min-width:0;overflow-x:auto}
+.ws-top{display:flex;flex-wrap:wrap;gap:14px;font-size:12px;color:var(--muted);border-bottom:1px solid var(--line);padding-bottom:8px}
+.ws-crumb{font-size:12px;color:var(--muted)}
+.ws-tools{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.ws-search{margin-left:auto;font-size:12px;color:var(--muted);border:1px solid var(--line);border-radius:8px;padding:4px 10px}
+td.muted{color:var(--muted)}
+@media (max-width:640px){.ws{grid-template-columns:1fr}.ws-side{border-right:none;border-bottom:1px solid var(--line)}.pt-two{grid-template-columns:1fr}}
+
+/* 手机示意 */
+.phones{display:flex;flex-wrap:wrap;gap:24px;justify-content:center}
+.phone{--ph-bg:#f2f4f8;--ph-card:#ffffff;--ph-ink:#111827;--ph-mut:#6b7280;--ph-pri:#006fee;--ph-pri-soft:#e6f1fe;
+  margin:0;width:300px;max-width:100%;border:10px solid #1f2733;border-radius:36px;background:var(--ph-bg);color:var(--ph-ink);overflow:hidden;display:flex;flex-direction:column;box-shadow:0 12px 30px rgba(20,30,50,.18)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .phone{--ph-bg:#0b0d12;--ph-card:#18181b;--ph-ink:#ecedee;--ph-mut:#a1a1aa;--ph-pri:#338ef7;--ph-pri-soft:#10253e}}
+:root[data-theme="dark"] .phone{--ph-bg:#0b0d12;--ph-card:#18181b;--ph-ink:#ecedee;--ph-mut:#a1a1aa;--ph-pri:#338ef7;--ph-pri-soft:#10253e}
+.ph-bar{display:flex;justify-content:space-between;align-items:center;padding:16px 16px 8px;font-weight:700;font-size:17px}
+.ph-chip{font-size:11px;font-weight:500;background:var(--ph-pri-soft);color:var(--ph-pri);padding:3px 9px;border-radius:999px}
+.ph-body{padding:4px 12px 12px;display:flex;flex-direction:column;gap:10px;min-height:380px}
+.ph-card{background:var(--ph-card);border-radius:14px;padding:12px 14px;display:flex;flex-direction:column;gap:6px;font-size:13px}
+.ph-card small{color:var(--ph-mut);font-size:12px}
+.ph-hero{background:var(--ph-pri);color:#fff}
+.ph-hero small,.ph-hero span{color:rgba(255,255,255,.85);font-size:12px}
+.ph-hero b{font-size:24px;line-height:1.2}
+.ph-hero em{font-style:normal;font-size:13px;background:rgba(255,255,255,.22);padding:1px 8px;border-radius:999px;vertical-align:4px}
+.ph-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.ph-act{background:var(--ph-card);border-radius:14px;padding:10px 4px;text-align:center;font-size:11.5px;display:flex;flex-direction:column;gap:4px;align-items:center}
+.ph-act i{font-style:normal;width:30px;height:30px;border-radius:10px;background:var(--ph-pri-soft);color:var(--ph-pri);display:grid;place-items:center;font-size:15px;font-weight:700}
+.ph-row{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.ph-tag{font-size:11px;color:var(--ph-pri);background:var(--ph-pri-soft);padding:1px 8px;border-radius:999px}
+.ph-meter{height:6px;border-radius:999px;background:var(--ph-pri-soft);overflow:hidden}
+.ph-meter span{display:block;height:100%;background:var(--ph-pri);border-radius:999px}
+.ph-list .ph-row{border-bottom:1px solid var(--ph-pri-soft);padding-block:4px}
+.ph-list .ph-row:last-child{border-bottom:none}
+.ph-list .ph-row span{color:var(--ph-mut)}
+.ph-tabs{display:grid;grid-template-columns:repeat(4,1fr);background:var(--ph-card);border-top:1px solid var(--ph-pri-soft);padding:10px 0 14px;font-size:11.5px;text-align:center;color:var(--ph-mut)}
+.ph-tabs .on{color:var(--ph-pri);font-weight:700}
+@media (max-width:640px){.layer{grid-template-columns:90px 1fr}}
+</style>
+
+<div class="wrap">
+<header>
+  <h1>智慧体育云平台 · 项目架构图</h1>
+  <p>地基层评审稿：多身份切换、动态菜单、功能与数据权限、一校一 schema、学年学期，以及支撑上层业务的工程与部署结构。确认后再输出 ARCHITECTURE.md、SPEC.md 与 TASKS.md。</p>
+  <div class="meta"><span>v0.20 · 与文档 v1.0 同步 · 选择组织 → 门户 · HeroUI Pro 外壳</span><span>2026-11-09</span><span>NestJS 12 · Zod 4 · React 19 · HeroUI 3 · Tailwind 4 · PostgreSQL 17</span></div>
+</header>
+
+<section>
+  <h2><small>A</small>技术栈</h2>
+  <p class="lead">按 2026 年下半年的主流版本选型，小版本在搭建时锁定。标“新”的是相比上一版文档改动的部分。</p>
+  <div class="panel stack">
+    <div class="col"><h3>后端</h3><ul>
+      <li class="new"><b>NestJS 12</b><span>全 ESM · Node ≥ 20.19</span></li>
+      <li class="new"><b>Zod 4</b><span>Standard Schema 路由校验</span></li>
+      <li><b>Drizzle ORM</b><span>pgSchema 动态租户表</span></li>
+      <li><b>nestjs-cls</b><span>请求上下文</span></li>
+      <li class="new"><b>@nestjs/observe + OTel</b><span>链路与指标</span></li>
+      <li class="new"><b>BullMQ</b><span>租户迁移 / 汇总任务</span></li>
+      <li class="new"><b>jose</b><span>JWT access + refresh</span></li>
+      <li class="new"><b>UUID v7</b><span>全部主键 · 时间有序</span></li>
+      <li class="new"><b>pino</b><span>结构化日志</span></li>
+    </ul></div>
+    <div class="col"><h3>前端</h3><ul>
+      <li class="new"><b>React 19</b><span>Vite 7</span></li>
+      <li class="new"><b>HeroUI 3</b><span>React Aria · 复合组件</span></li>
+      <li class="new"><b>HeroUI Pro</b><span>AppLayout · Sidebar · KPI（需授权）</span></li>
+      <li class="new"><b>Tailwind CSS 4</b><span>CSS-first 主题</span></li>
+      <li class="new"><b>React Router 7</b><span>按菜单动态路由</span></li>
+      <li><b>TanStack Query 5</b><span>服务端状态</span></li>
+      <li><b>zustand 5</b><span>会话 / 当前学校 / 学年</span></li>
+      <li class="new"><b>react-hook-form + Zod</b><span>表单复用契约 schema</span></li>
+      <li class="new"><b>ECharts 6</b><span>BI 大屏</span></li>
+      <li class="new"><b>移动端 H5</b><span>HeroUI 3 移动布局 · PWA</span></li>
+    </ul></div>
+    <div class="col"><h3>数据与工程</h3><ul>
+      <li class="new"><b>PostgreSQL 17</b><span>public / school_* / analytics</span></li>
+      <li class="new"><b>Redis 8</b><span>身份缓存 · 失效广播 · 队列</span></li>
+      <li class="new"><b>MinIO (S3)</b><span>导入文件 / 照片</span></li>
+      <li class="new"><b>pnpm 10 + Turborepo</b><span>monorepo 构建编排</span></li>
+      <li class="new"><b>Vitest · Playwright</b><span>单测 / E2E</span></li>
+      <li class="new"><b>Testcontainers</b><span>真实 PG 集成测试</span></li>
+      <li class="new"><b>Biome 2</b><span>lint + format</span></li>
+      <li class="new"><b>git cz</b><span>commitizen + cz-git · commitlint · husky</span></li>
+      <li><b>Docker Compose</b><span>开发与私有化部署</span></li>
+    </ul></div>
+  </div>
+</section>
+
+<section>
+  <h2><small>B</small>总体分层架构</h2>
+  <p class="lead">从上到下是一次请求经过的层次。蓝色描边的是地基层本期要实现的核心组件，其余为上层业务或后续里程碑。</p>
+  <div class="panel scroll">
+    <div class="layers">
+      <div class="layer client"><div class="tag">客户端<small>Client</small></div><div class="body">
+        <div class="group"><div class="gt">用户端（浏览器）</div>
+          <div class="row">
+            <div class="box key" style="flex:3 1 320px"><b>Web 应用（管理端 + BI 大屏）</b><em>同一个 React 19 应用 · AppLayout 管理页面 · ScreenLayout 全屏大屏 · 共用登录、身份切换、权限与数据范围</em></div>
+            <div class="box" style="flex:2 1 260px"><b>移动端 H5（教师端 + 学生端，M2）</b><em>同一个移动应用 · 底部 Tab · 按身份显示 · 微信 / 钉钉内打开 · PWA</em></div>
+          </div></div>
+      </div></div>
+      <div class="arrow">▼ HTTPS</div>
+      <div class="layer edge"><div class="tag">接入层<small>Edge</small></div><div class="body">
+        <div class="box key"><b>Nginx</b><em>TLS · 静态资源 · /api 反代 · gzip</em></div>
+        <div class="box"><b>限流 / WAF</b><em>登录接口限频 · IP 黑名单</em></div>
+      </div></div>
+      <div class="arrow">▼</div>
+      <div class="layer app"><div class="tag">应用层<small>NestJS 12</small></div><div class="body">
+        <div class="group"><div class="gt">横切管道（每个请求依次经过）</div>
+          <div class="pipe">
+            <div class="box key"><b>CLS 上下文</b><em>requestId · 身份 · 学校</em></div>
+            <div class="box key"><b>AuthGuard</b><em>JWT → 身份上下文</em></div>
+            <div class="box key"><b>PermissionGuard</b><em>权限码</em></div>
+            <div class="box key"><b>SchoolAccessGuard</b><em>数据范围 · 代理商授权</em></div>
+            <div class="box key"><b>Zod 校验</b><em>契约 schema</em></div>
+            <div class="box key"><b>响应 / 异常 / 审计</b><em>统一格式</em></div>
+          </div></div>
+        <div class="group"><div class="gt">平台域（public schema）</div>
+          <div class="row">
+            <div class="box key"><b>auth</b><em>登录 · 邮箱验证码 · 锁定 · 会话与吊销</em></div>
+            <div class="box key"><b>identity</b><em>上下文 · 数据范围 · 脱敏</em></div>
+            <div class="box key"><b>menu</b><em>菜单树 · 按钮</em></div>
+            <div class="box key"><b>role</b><em>基础角色 · 模块档位 · 授权上限</em></div>
+            <div class="box key"><b>user</b><em>账号 · 身份 · 分级管理</em></div>
+            <div class="box key"><b>org</b><em>机构 · 部门 · 区划 · 学校档案</em></div>
+            <div class="box key"><b>academic</b><em>学年学期 · 教学周 · 学年切换</em></div>
+            <div class="box key"><b>dict</b><em>数据字典 · 系统参数</em></div>
+            <div class="box key"><b>audit</b><em>登录日志 · 操作日志</em></div>
+          </div></div>
+        <div class="group"><div class="gt">租户域（学校 schema）</div>
+          <div class="row">
+            <div class="box key"><b>school-base</b><em>班级 · 学生 · 学籍</em></div>
+            <div class="box key"><b>teacher</b><em>教师 · 任课</em></div>
+            <div class="box key"><b>agent-grant</b><em>代理商授权</em></div>
+            <div class="box key"><b>tenant</b><em>开通 · 迁移 · 停用 · 导出 · 销毁</em></div>
+            <div class="box key"><b>subscription</b><em>服务期 · 模块授权 · 到期提醒</em></div>
+          </div></div>
+        <div class="group"><div class="gt">通用能力（所有业务共用）</div>
+          <div class="row">
+            <div class="box key"><b>import-export</b><em>模板 · 校验 · 错误行 · 水印</em></div>
+            <div class="box key"><b>task</b><em>任务中心 · 进度 · 结果下载</em></div>
+            <div class="box key"><b>file</b><em>上传下载 · 临时链接 · 按学校隔离</em></div>
+            <div class="box key"><b>notify</b><em>站内消息 · 邮件</em></div>
+            <div class="box key"><b>outbox</b><em>领域事件 · 可靠投递</em></div>
+            <div class="box key"><b>recycle</b><em>软删除 · 回收站恢复</em></div>
+          </div></div>
+        <div class="group"><div class="gt">移动端聚合接口（/api/m，M2，复用同一套鉴权与数据范围）</div>
+          <div class="row">
+            <div class="box"><b>teacher-app</b><em>教师工作台 · 今日课程 · 班级 · 体测录入</em></div>
+            <div class="box"><b>student-app</b><em>学生个人中心 · 我的成绩 · 运动打卡</em></div>
+          </div></div>
+        <div class="group"><div class="gt">后台任务</div>
+          <div class="row">
+            <div class="box key"><b>worker</b><em>BullMQ：租户迁移 · 导入导出 · 学年切换 · outbox 投递 · 邮件发送</em></div>
+          </div></div>
+        <div class="group"><div class="gt">上层业务（不在地基范围，见附录 A）</div>
+          <div class="row">
+            <div class="box"><b>跳绳</b><em>按 I8 接入</em></div>
+            <div class="box"><b>跑步</b><em>按 I8 接入</em></div>
+            <div class="box"><b>赛事</b><em>M3</em></div>
+            <div class="box"><b>中考体育</b><em>M3</em></div>
+            <div class="box"><b>体测</b><em>M3</em></div>
+            <div class="box"><b>课堂</b><em>M3</em></div>
+            <div class="box"><b>BI 大屏</b><em>M4</em></div>
+          </div></div>
+      </div></div>
+      <div class="arrow">▼</div>
+      <div class="layer infra"><div class="tag">基础设施<small>Infra</small></div><div class="body">
+        <div class="box key"><b>TenantService</b><em>学校 → schema + 数据源，开通与迁移</em></div>
+        <div class="box key"><b>DataSourceRegistry</b><em>多数据源连接池</em></div>
+        <div class="box key"><b>身份缓存</b><em>Redis · pub/sub 失效</em></div>
+        <div class="box"><b>文件存储</b><em>S3 接口（MinIO）</em></div>
+        <div class="box"><b>可观测</b><em>@nestjs/observe · OTel · pino</em></div>
+      </div></div>
+      <div class="arrow">▼</div>
+      <div class="layer data"><div class="tag">数据层<small>Data</small></div><div class="body">
+        <div class="box key"><b>public</b><em>账号 · 身份 · 菜单 · 角色 · 机构 · 学年 · 授权</em></div>
+        <div class="box key"><b>school_学校A … school_学校N</b><em>每校独立 schema</em></div>
+        <div class="box"><b>区域级 schema（预留）</b><em>赛事、中考等上层业务按需新增</em></div>
+        <div class="box"><b>analytics</b><em>跨校汇总指标</em></div>
+        <div class="box"><b>独立数据源（可选）</b><em>大客户学校单独 PG 实例</em></div>
+        <div class="box key"><b>Redis 8</b><em>缓存 · 队列</em></div>
+      </div></div>
+    </div>
+    <div class="legend"><span><i></i>本期地基层实现</span><span>其余为后续里程碑（M3 上层业务，M4 BI 与数据源迁移）</span></div>
+  </div>
+</section>
+
+<section>
+  <h2><small>C</small>Monorepo 工程结构</h2>
+  <p class="lead">契约包 <code>packages/contracts</code> 是前后端唯一的数据约定：Zod schema 同时用于后端路由校验、前端表单校验和 TS 类型推导。</p>
+  <div class="panel scroll"><pre class="tree">sports-cloud/
+├─ <span class="k">apps/</span>
+│  ├─ <span class="k">server/</span>                 <span class="c"># NestJS 12 API（ESM）</span>
+│  │  └─ src/
+│  │     ├─ core/              <span class="c"># 横切：guards · decorators · cls · filters · observe</span>
+│  │     ├─ infra/             <span class="c"># database · tenant · redis · queue · storage</span>
+│  │     │  └─ database/
+│  │     │     ├─ schema/      <span class="c"># public.ts · tenant.ts（按 schema 名生成）</span>
+│  │     │     └─ migrations/  <span class="c"># public/ · tenant/（__SCHEMA__ 占位）</span>
+│  │     └─ modules/
+│  │        ├─ platform/       <span class="c"># auth identity menu role user org academic audit</span>
+│  │        ├─ school/         <span class="c"># 租户域：班级 学生 教师 代理商授权</span>
+│  │        ├─ foundation/     <span class="c"># 通用能力：导入导出 · 任务中心 · 文件 · 消息 · outbox · 回收站</span>
+│  │        └─ sports/         <span class="c"># 运动业务模块：rope/ 跳绳 · running/ 跑步 …（按 I8 接入，地基阶段不建）</span>
+│  ├─ <span class="k">worker/</span>                 <span class="c"># BullMQ 消费者：租户迁移 · 导入导出 · 学年切换 · outbox 投递</span>
+│  ├─ <span class="k">mobile/</span>                 <span class="c"># H5：教师端 + 学生端 · HeroUI 3 移动布局 · PWA</span>
+│  │  └─ src/
+│  │     ├─ layouts/TabLayout  <span class="c"># 顶部标题栏 + 底部 Tab，适配安全区</span>
+│  │     ├─ features/teacher/  <span class="c"># 工作台 · 班级 · 体测录入 · 运动作业</span>
+│  │     └─ features/student/  <span class="c"># 首页 · 运动打卡 · 我的成绩 · 我的</span>
+│  └─ <span class="k">web/</span>                    <span class="c"># React 19 + HeroUI 3 + Tailwind 4 · 管理端与 BI 大屏同一应用</span>
+│     └─ src/
+│        ├─ app/               <span class="c"># providers · router（菜单生成路由）</span>
+│        ├─ layouts/           <span class="c"># AppLayout 管理端（侧栏 + 顶栏）· ScreenLayout 大屏（全屏、等比缩放）</span>
+│        ├─ features/          <span class="c"># system/ school/ ops/ teacher/ bureau/ bi/（大屏，懒加载 ECharts）</span>
+│        ├─ shared/            <span class="c"># api 客户端 · stores · hooks · &lt;Can&gt; 权限组件</span>
+│        └─ pages/registry.ts  <span class="c"># 菜单 component key → 懒加载页面</span>
+├─ <span class="k">packages/</span>
+│  ├─ <span class="k">contracts/</span>              <span class="c"># Zod schema · 枚举 · 权限码 · API 类型</span>
+│  ├─ <span class="k">domain/</span>                 <span class="c"># 纯函数：年级计算 · 权限匹配 · 菜单树</span>
+│  └─ <span class="k">config/</span>                 <span class="c"># tsconfig · biome · vitest 预设</span>
+├─ deploy/                     <span class="c"># docker-compose.yml · nginx.conf · Dockerfile</span>
+├─ docs/                       <span class="c"># ARCHITECTURE.md · SPEC.md · TASKS.md</span>
+└─ turbo.json · pnpm-workspace.yaml · commitlint.config.ts · .husky/</pre></div>
+  <div class="panel scroll">
+    <table>
+      <thead><tr><th>工程约定</th><th>做法</th></tr></thead>
+      <tbody>
+        <tr><td>主键</td><td>全部表统一 UUID v7，由应用生成（<code>uuid</code> 包的 <code>v7()</code>，Drizzle 用 <code>$defaultFn</code>）。时间有序，B-tree 索引写入比 v4 更集中；不对外暴露自增序号</td></tr>
+        <tr><td>学校库命名</td><td><code>school_</code> + 学校 UUID 去掉横线（32 位小写十六进制），共 39 个字符，低于 PostgreSQL 63 字符上限，无需加引号；拼接前用 <code>^school_[0-9a-f]{32}$</code> 校验</td></tr>
+        <tr><td>提交</td><td>统一用 <code>git cz</code>（commitizen + cz-git 中文交互），commitlint 在 commit-msg 钩子里校验，husky 管理钩子；格式 <code>type(scope): 说明</code></td></tr>
+        <tr><td>type</td><td>feat · fix · docs · style · refactor · perf · test · build · ci · chore · revert</td></tr>
+        <tr><td>scope</td><td>server · web · mobile · worker · contracts · domain · db · deploy · docs</td></tr>
+        <tr><td>提交前检查</td><td>pre-commit 只对暂存文件跑 Biome；pre-push 跑类型检查和受影响包的单测（Turborepo 过滤）</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section>
+  <h2><small>D</small>身份模型</h2>
+  <p class="lead">一个账号对应多个身份，一个身份对应一个机构和多个角色。角色决定能用哪些功能，以及在身份类型允许的范围内能看哪些数据（见 D2）。</p>
+  <div class="panel scroll"><pre class="mermaid">
+flowchart LR
+  U["账号 user<br/>张三"] --> I1["身份：公司 · 研发部"]
+  U --> I2["身份：浙江省教育厅"]
+  U --> I3["身份：西湖一小 · 学校管理员"]
+  U --> I4["身份：某代理商"]
+  I1 --> R1["角色：研发人员<br/>本机构全部 = 全部学校"]
+  I2 --> R2["角色：局管理员<br/>本机构全部 = 辖区"]
+  I3 --> R3["角色：学校管理员<br/>本机构全部 = 本校"]
+  I4 --> R4["角色：代理商运营<br/>本部门 = 部门负责的学校"]
+  R1 & R2 & R3 & R4 --> M["菜单 / 按钮<br/>权限码"]
+  </pre></div>
+  <div class="panel scroll">
+    <table>
+      <thead><tr><th>身份类型</th><th>机构</th><th>外边界（最多能看到）</th><th>在边界内如何细分</th><th>典型菜单</th></tr></thead>
+      <tbody>
+        <tr><td>公司</td><td>company</td><td>全部学校</td><td>部门负责的学校 / 区域，本人额外负责</td><td>系统管理、学校运营、学校管理、数据大屏</td></tr>
+        <tr><td>教育局（省/市/区）</td><td>bureau</td><td>辖区内的学校</td><td>部门（科室）负责的区县 / 学校</td><td>赛事发布、数据大屏、学校列表</td></tr>
+        <tr><td>代理商</td><td>agent</td><td>学校授权且有效的学校，操作 ≤ 授权</td><td>部门负责的学校，本人额外负责</td><td>学校列表、班级、学生</td></tr>
+        <tr><td>学校管理员</td><td>school</td><td>本校</td><td>部门负责的学段 / 年级 / 学院</td><td>学校管理全部、代理商授权</td></tr>
+        <tr><td>教师</td><td>school</td><td>本校</td><td>部门（年级组）负责的年级，或本人任教班级</td><td>后台：我的班级、班级学生；移动端：工作台、班级、体测录入</td></tr>
+        <tr><td>学生</td><td>school</td><td>本人（固定）</td><td>—</td><td>仅移动端：运动打卡、我的成绩</td></tr>
+        <tr><td>家长（预留）</td><td>school</td><td>已绑定的孩子（固定）</td><td>—</td><td>仅移动端，后续开发</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section>
+  <h2><small>D2</small>角色与权限配置</h2>
+  <p class="lead">目标是让管理员不用懂权限码也能配好角色：平台内置一套开箱即用的基础角色，绝大多数人直接选用；需要微调时“基于基础角色另存”，只改不同的几项。</p>
+
+  <h3 style="margin:4px 0 0;font-size:16px">三条易用原则</h3>
+  <div class="panel scroll">
+    <table>
+      <thead><tr><th>原则</th><th>做法</th><th>管理员看到的</th></tr></thead>
+      <tbody>
+        <tr><td>默认就能用</td><td>每种身份内置基础角色；建身份时按部门或身份类型自动带上默认角色</td><td>新建一个研发部员工，自动是“研发人员”，不用再配</td></tr>
+        <tr><td>按功能配，不按权限码配</td><td>把菜单和按钮打包成“功能模块”，每个模块四档：无 / 查看 / 编辑 / 管理；每档对应一组按钮动作，需要时可展开到单个动作</td><td>一张表格，每行一个功能，点选档位；“高级”里可单独勾选动作</td></tr>
+        <tr><td>改动可追溯、能还原</td><td>自定义角色只记录与基础角色不同的部分；基础角色随版本升级，自定义角色自动继承新功能</td><td>改过的格子标“已调整”，一键“恢复为基础角色”</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 style="margin:4px 0 0;font-size:16px">内置基础角色</h3>
+  <div class="panel scroll">
+    <table>
+      <thead><tr><th>身份类型</th><th>基础角色</th><th>默认数据范围</th><th>主要功能</th><th>默认分配</th></tr></thead>
+      <tbody>
+        <tr><td rowspan="6">公司</td><td>超级管理员</td><td>全部学校</td><td>全部功能</td><td>手动指定</td></tr>
+        <tr><td>研发人员</td><td>全部学校</td><td>系统管理、学校运营、学校数据（查看）、大屏</td><td>研发部</td></tr>
+        <tr><td>销售</td><td>本部门及以下</td><td>学校列表、开通进度、大屏</td><td>销售部</td></tr>
+        <tr><td>技术服务</td><td>本部门及以下</td><td>学校运营、班级/学生/教师（编辑）、设备状态</td><td>技术服务部</td></tr>
+        <tr><td>生产</td><td>本部门及以下</td><td>学校列表、设备台账</td><td>生产部</td></tr>
+        <tr><td>只读审计</td><td>全部学校</td><td>所有功能仅查看、审计日志</td><td>手动指定</td></tr>
+        <tr><td rowspan="3">教育局</td><td>局管理员</td><td>本机构全部（辖区）</td><td>赛事、考试、大屏、本局账号管理</td><td>新建教育局时第一个账号</td></tr>
+        <tr><td>业务科员</td><td>本机构全部（辖区）</td><td>赛事发布、考试组织、学校列表</td><td>默认</td></tr>
+        <tr><td>领导查看</td><td>本机构全部（辖区）</td><td>大屏与统计报表，仅查看</td><td>手动指定</td></tr>
+        <tr><td rowspan="2">代理商</td><td>代理商管理员</td><td>本机构全部（授权学校）</td><td>本代理商员工、部门、协助运营</td><td>新建代理商时第一个账号</td></tr>
+        <tr><td>代理商运营</td><td>本机构全部（授权学校）</td><td>班级、学生（以学校授权为上限）</td><td>默认；建了部门后可改为“本部门”</td></tr>
+        <tr><td rowspan="2">学校</td><td>学校管理员</td><td>本机构全部（本校）</td><td>学校管理全部、代理商授权、本校角色与部门</td><td>开通学校时第一个账号</td></tr>
+        <tr><td>体育组长</td><td>本机构全部（本校）</td><td>全校体育数据、教师任课安排，无学校设置</td><td>手动指定</td></tr>
+        <tr><td rowspan="3">教师</td><td>体育教师</td><td>本人负责（任教班级）</td><td>班级、体测录入、运动作业</td><td>新建教师时</td></tr>
+        <tr><td>班主任</td><td>本人负责（任教班级）</td><td>本班学生、成绩查看</td><td>设为班主任时自动叠加</td></tr>
+        <tr><td>年级组长</td><td>本部门（年级组负责的年级）</td><td>本年级各班体育数据</td><td>手动指定</td></tr>
+        <tr><td>学生</td><td>学生</td><td>仅本人</td><td>运动打卡、我的成绩</td><td>生成学生账号时</td></tr>
+        <tr><td>家长（预留）</td><td>家长</td><td>已绑定的孩子</td><td>孩子的成绩与运动情况（后续）</td><td>绑定孩子时</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 style="margin:4px 0 0;font-size:16px">数据范围：所有身份统一四个选项</h3>
+  <div class="panel scroll"><pre class="mermaid">
+flowchart TB
+  B["机构外边界<br/>公司：全部学校 · 教育局：辖区 · 代理商：授权学校 · 学校/教师：本校"] --> O{"角色选的数据范围"}
+  O -- "本机构全部" --> R["外边界内全部"]
+  O -- "本部门及以下" --> D1["本部门 + 所有下级部门负责的范围"]
+  O -- "本部门" --> D2["仅本部门负责的范围"]
+  O -- "本人负责" --> P["仅本人负责的范围"]
+  D1 & D2 & P --> PLUS["再加上本人额外负责的范围"]
+  R & PLUS --> CAP["与外边界取交集<br/>得到最终可见数据"]
+  </pre></div>
+  <div class="panel scroll">
+    <table>
+      <thead><tr><th>身份类型</th><th>外边界（本机构全部）</th><th>部门负责的单位</th><th>本人负责</th></tr></thead>
+      <tbody>
+        <tr><td>公司</td><td>全部学校</td><td>学校、区域（新学校按区域自动纳入）</td><td>额外负责的学校、区域</td></tr>
+        <tr><td>教育局</td><td>辖区内学校</td><td>下级区县、学校（如“基教科只管城区”）</td><td>额外负责的区县、学校</td></tr>
+        <tr><td>代理商</td><td>学校授权的学校</td><td>学校（只能从授权学校中选）</td><td>额外负责的学校</td></tr>
+        <tr><td>学校管理员</td><td>本校</td><td>学段、年级、学院（大学）</td><td>额外负责的年级</td></tr>
+        <tr><td>教师</td><td>本校</td><td>年级组、教研组对应的年级</td><td>本学年任教的行政班 + 本学期任教的教学班（自动）</td></tr>
+        <tr><td>学生</td><td colspan="3">固定为本人，不可选</td></tr>
+        <tr><td>家长（预留）</td><td colspan="3">固定为已绑定的孩子，不可选</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="note">所有机构都能自建树形部门。部门“负责的单位”随机构类型变化：公司、代理商的部门负责学校，教育局的科室负责区县或学校，学校的年级组、学院负责年级或学院。四个选项在所有身份下含义一致，管理员只需学一次。没有建部门的机构，内置角色默认“本机构全部”，开箱即用。</p>
+  <p class="note">多个角色时按<b>权限码</b>分别取范围：某权限码由哪些角色授予，就取这些角色中最宽的范围。例：角色 A（全校，学生查看）+ 角色 B（本部门初三，学生编辑）→ 查看全校、编辑只限初三；列表每行返回 allowedActions，前端按行显示按钮。做法与微软 Dynamics 365 按权限设置访问级别一致。</p>
+  <p class="note">配置页会实时显示“按当前设置，该角色可以访问 23 所学校 / 6 个班级”，并提供“预览菜单”：以该角色视角看一遍侧栏与按钮，确认无误再保存。</p>
+
+  <h3 style="margin:4px 0 0;font-size:16px">配置界面示意</h3>
+  <div class="win" aria-label="角色配置界面示意">
+    <div class="win-bar"><i></i><i></i><i></i><span>系统管理 › 角色管理</span></div>
+    <div class="win-body">
+      <aside class="win-side">
+        <div class="ws-grp">学校</div>
+        <div class="ws-item">学校管理员 <span class="ws-badge">内置</span></div>
+        <div class="ws-item">体育组长 <span class="ws-badge">内置</span></div>
+        <div class="ws-item on">初三年级组长 <span class="ws-badge cus">自定义</span></div>
+        <div class="ws-grp">教师</div>
+        <div class="ws-item">体育教师 <span class="ws-badge">内置</span></div>
+        <div class="ws-item">班主任 <span class="ws-badge">内置</span></div>
+      </aside>
+      <div class="win-main">
+        <div class="wm-head">
+          <div><b>初三年级组长</b><small>基于“体育组长” · 西湖一小 · 3 人使用</small></div>
+          <div class="wm-btns"><span class="btn ghost">预览菜单</span><span class="btn ghost">恢复为基础角色</span><span class="btn pri">保存</span></div>
+        </div>
+        <div class="wm-scope"><span>数据范围</span><b>指定学段或年级 ▾</b><em>初中 · 九年级</em><small>可访问 6 个班级 · 271 名学生</small></div>
+        <table class="perm">
+          <thead><tr><th>功能模块</th><th>无</th><th>查看</th><th>编辑</th><th>管理</th><th></th></tr></thead>
+          <tbody>
+            <tr><td>班级管理</td><td><s></s></td><td><s class="on"></s></td><td><s></s></td><td><s></s></td><td><span class="chg">已调整（原：编辑）</span></td></tr>
+            <tr><td>学生管理</td><td><s></s></td><td><s></s></td><td><s class="on"></s></td><td><s></s></td><td></td></tr>
+            <tr><td>体测数据</td><td><s></s></td><td><s></s></td><td><s></s></td><td><s class="on"></s></td><td></td></tr>
+            <tr><td>教师任课</td><td><s class="on"></s></td><td><s></s></td><td><s></s></td><td><s></s></td><td><span class="chg">已调整（原：编辑）</span></td></tr>
+            <tr><td>运动作业</td><td><s></s></td><td><s class="on"></s></td><td><s></s></td><td><s></s></td><td></td></tr>
+            <tr><td>学校设置</td><td><s class="on"></s></td><td><s></s></td><td><s></s></td><td><s></s></td><td></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <p class="note">示意中的学校、人数为虚构数据。</p>
+
+  <h3 style="margin:4px 0 0;font-size:16px">按钮动作与四档的对应</h3>
+  <div class="panel scroll">
+    <table>
+      <thead><tr><th>动作</th><th>权限码后缀</th><th>查看</th><th>编辑</th><th>管理</th><th>说明</th></tr></thead>
+      <tbody>
+        <tr><td>查</td><td><code>view</code></td><td>✓</td><td>✓</td><td>✓</td><td>列表、详情、搜索</td></tr>
+        <tr><td>增</td><td><code>create</code></td><td></td><td>✓</td><td>✓</td><td></td></tr>
+        <tr><td>改</td><td><code>update</code></td><td></td><td>✓</td><td>✓</td><td></td></tr>
+        <tr><td>删</td><td><code>delete</code></td><td></td><td></td><td>✓</td><td>默认软删除，可在回收站恢复</td></tr>
+        <tr><td>导入</td><td><code>import</code></td><td></td><td></td><td>✓</td><td>含下载模板、导入结果与错误行下载</td></tr>
+        <tr><td>导出</td><td><code>export</code></td><td></td><td></td><td>✓</td><td>涉及学生个人信息，导出写审计日志并加水印</td></tr>
+        <tr class="ext"><td>审核</td><td><code>approve</code></td><td></td><td></td><td>✓</td><td>建议扩展：成绩修正、赛事报名、账号申请</td></tr>
+        <tr class="ext"><td>发布</td><td><code>publish</code></td><td></td><td></td><td>✓</td><td>建议扩展：赛事、考试成绩、通知</td></tr>
+        <tr class="ext"><td>分配</td><td><code>assign</code></td><td></td><td></td><td>✓</td><td>建议扩展：分配角色、任课、负责学校、代理商授权</td></tr>
+        <tr class="ext"><td>启用停用</td><td><code>toggle</code></td><td></td><td>✓</td><td>✓</td><td>建议扩展：账号、学校、设备</td></tr>
+        <tr class="ext"><td>打印</td><td><code>print</code></td><td>✓</td><td>✓</td><td>✓</td><td>建议扩展：准考证、成绩单</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="note">权限码格式为 <code>模块:资源:动作</code>，例如 <code>school:student:export</code>。每个功能模块只声明自己用到的动作，例如“学年学期”没有导入导出。灰色行是建议扩展的动作，待确认。</p>
+
+  <h3 style="margin:4px 0 0;font-size:16px">权限如何计算</h3>
+  <div class="panel scroll"><pre class="mermaid">
+flowchart TB
+  BR["基础角色<br/>平台内置，随版本升级"] --> CR["自定义角色<br/>只存与基础角色不同的模块档位"]
+  CR --> G["每个模块的最终档位"]
+  BR --> G
+  G --> MOD["功能模块定义（代码中）<br/>模块 × 档位 → 菜单、按钮、权限码"]
+  MOD --> P["身份的权限码集合<br/>多个角色取并集"]
+  P --> MENU["侧栏菜单与按钮"]
+  P --> API["接口 PermissionGuard"]
+  DS["数据范围<br/>角色选项 + 身份上分配的区域/学校"] --> SG["SchoolAccessGuard 与查询过滤"]
+  </pre></div>
+  <p class="note">功能模块与档位在 <code>packages/contracts</code> 中用代码定义并随版本发布，前后端共用。新功能上线时只需把它归入某个模块的某个档位，所有基础角色和自定义角色自动生效，不用逐个角色去勾。</p>
+</section>
+
+<section>
+  <h2><small>D3</small>部门与数据范围的编辑界面</h2>
+  <p class="lead">一个页面、一个范围选择器、一个人员抽屉。管理员在“组织架构”页完成部门、成员、负责范围的全部操作，每一步都实时显示“结果能看到多少”。</p>
+
+  <h3 style="margin:4px 0 0;font-size:16px">① 组织架构页：左树右详情</h3>
+  <div class="win" aria-label="组织架构页示意">
+    <div class="win-bar"><i></i><i></i><i></i><span>系统管理 › 组织架构</span></div>
+    <div class="win-body">
+      <aside class="win-side">
+        <div class="ws-grp">部门（可拖动调整上下级）</div>
+        <div class="ws-item">公司 <span class="ws-badge">36 人</span></div>
+        <div class="ws-item tr1">研发部 <span class="ws-badge">8</span></div>
+        <div class="ws-item tr1">销售部 <span class="ws-badge">12</span></div>
+        <div class="ws-item tr2 on">浙江销售组 <span class="ws-badge">5</span></div>
+        <div class="ws-item tr2">江苏销售组 <span class="ws-badge">4</span></div>
+        <div class="ws-item tr1">技术服务部 <span class="ws-badge">9</span></div>
+        <div class="ws-item tr1">生产部 <span class="ws-badge">4</span></div>
+        <div class="ws-item warn">⚠ 未分配部门 <span class="ws-badge cus">3</span></div>
+        <div class="ws-add">＋ 新建部门</div>
+      </aside>
+      <div class="win-main">
+        <div class="wm-head">
+          <div><b>浙江销售组</b><small>上级：销售部 · 5 人</small></div>
+          <div class="wm-btns"><span class="btn ghost">重命名</span><span class="btn ghost">新建子部门</span></div>
+        </div>
+        <div class="wm-scope"><span>负责范围</span><em>浙江省</em><small>共 312 所学校 · 新开通的自动纳入</small><span class="btn ghost">编辑范围</span></div>
+        <div class="tabs"><span class="on">成员 5</span><span>负责范围</span></div>
+        <table class="mini">
+          <thead><tr><th><s class="cb"></s></th><th>姓名</th><th>角色</th><th>数据范围</th><th>实际可见</th></tr></thead>
+          <tbody>
+            <tr><td><s class="cb on"></s></td><td>李销售</td><td><span class="tag">销售</span></td><td>本部门</td><td><a>312 所</a></td></tr>
+            <tr><td><s class="cb on"></s></td><td>孙销售</td><td><span class="tag">销售</span></td><td>本人负责</td><td><a>6 所</a></td></tr>
+            <tr><td><s class="cb"></s></td><td>周助理</td><td><span class="tag">销售</span><span class="tag">只读审计</span></td><td>本部门</td><td><a>312 所</a></td></tr>
+          </tbody>
+        </table>
+        <div class="bulk">已选 2 人：<span class="btn ghost">移到部门…</span><span class="btn ghost">设置角色…</span><span class="btn ghost">移出部门</span></div>
+      </div>
+    </div>
+  </div>
+
+  <h3 style="margin:4px 0 0;font-size:16px">② 范围选择器：同一个组件，按机构类型换“单位”</h3>
+  <div class="pick-wrap">
+    <div class="win" aria-label="公司或代理商的范围选择器示意">
+      <div class="win-bar"><i></i><i></i><i></i><span>编辑负责范围 · 浙江销售组（公司）</span></div>
+      <div class="pick">
+        <div class="pick-l">
+          <div class="tabs"><span class="on">按区域</span><span>按学校</span></div>
+          <div class="tree">
+            <div><s class="cb on"></s>浙江省 <small>312</small></div>
+            <div class="t1"><s class="cb on dis"></s>杭州市 <small>98</small></div>
+            <div class="t1"><s class="cb on dis"></s>宁波市 <small>64</small></div>
+            <div><s class="cb half"></s>江苏省 <small>280</small></div>
+            <div class="t1"><s class="cb"></s>南京市 <small>71</small></div>
+            <div class="t1"><s class="cb"></s>苏州市 <small>66</small></div>
+          </div>
+          <small class="hint">勾选上级区域即包含全部下级；“按学校”页签可搜索并单独勾选学校</small>
+        </div>
+        <div class="pick-r">
+          <b>已选</b>
+          <div class="chips"><span class="chip">浙江省 ×</span></div>
+          <div class="sum">合计 <strong>312</strong> 所学校</div>
+          <small>其中 2 所同时由“杭州服务站”负责</small>
+          <div class="wm-btns"><span class="btn ghost">取消</span><span class="btn pri">保存</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="win" aria-label="学校的范围选择器示意">
+      <div class="win-bar"><i></i><i></i><i></i><span>编辑负责范围 · 低年级组（学校）</span></div>
+      <div class="pick">
+        <div class="pick-l">
+          <div class="tabs"><span class="on">按年级</span></div>
+          <div class="grades">
+            <span class="g on">11 一年级</span><span class="g on">12 二年级</span><span class="g on">13 三年级</span>
+            <span class="g">14 四年级</span><span class="g">15 五年级</span><span class="g">16 六年级</span>
+          </div>
+          <small class="hint">大学显示“按学院”；一校多学段时按学段分行</small>
+        </div>
+        <div class="pick-r">
+          <b>已选</b>
+          <div class="chips"><span class="chip">11</span><span class="chip">12</span><span class="chip">13</span></div>
+          <div class="sum">合计 <strong>9</strong> 个班 · 402 名学生</div>
+          <div class="wm-btns"><span class="btn ghost">取消</span><span class="btn pri">保存</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <h3 style="margin:4px 0 0;font-size:16px">③ 人员抽屉：改部门、角色、额外负责，并解释“为什么能看到”</h3>
+  <div class="win drawer-demo" aria-label="人员抽屉示意">
+    <div class="win-bar"><i></i><i></i><i></i><span>赵工程师 · 技术服务部 / 杭州服务站</span></div>
+    <div class="drawer">
+      <div class="field"><label>部门</label><div class="input">技术服务部 / 杭州服务站 ▾</div></div>
+      <div class="field"><label>角色</label><div class="input"><span class="tag">技术服务</span> ＋</div></div>
+      <div class="field"><label>本人额外负责</label><div class="input"><span class="chip">绍兴某校 ×</span> ＋ 添加</div></div>
+      <div class="explain">
+        <b>实际可见 99 所学校</b>
+        <ol>
+          <li>角色“技术服务”的数据范围：<em>本部门</em></li>
+          <li>部门“杭州服务站”负责：<em>杭州市</em> → 98 所</li>
+          <li>加上本人额外负责：<em>绍兴某校</em> → 1 所</li>
+          <li>外边界（公司：全部学校）内 ✓</li>
+        </ol>
+        <span class="btn ghost">以 TA 的视角预览</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel scroll">
+    <table>
+      <thead><tr><th>设计要点</th><th>做法</th></tr></thead>
+      <tbody>
+        <tr><td>一个地方完成</td><td>部门、成员、负责范围都在“组织架构”页；数据范围选项在角色页，只选一次</td></tr>
+        <tr><td>同一个范围选择器</td><td>前端一个 <code>ScopePicker</code> 组件，按机构类型切换单位：公司（区域 / 学校）、教育局（区县 / 学校）、代理商（授权学校）、学校（年级 / 学院）；可选项由后端按外边界返回，选不到边界外的东西</td></tr>
+        <tr><td>结果实时可见</td><td>树节点显示人数，范围显示学校数，成员行显示“实际可见”，选择器右侧显示合计；都来自同一个预览接口</td></tr>
+        <tr><td>批量而不是逐个</td><td>成员多选后批量移部门、设角色；部门可拖动调整上下级</td></tr>
+        <tr><td>可解释</td><td>人员抽屉逐条列出“角色范围 → 部门范围 → 本人额外 → 外边界”，并可“以 TA 的视角预览”菜单和数据</td></tr>
+        <tr><td>防误操作</td><td>“未分配部门”常驻在树底部；角色是“本部门”但人未分配部门时整行标红；删除部门前要求先移走成员</td></tr>
+        <tr><td>不弹多层窗</td><td>编辑都在右侧抽屉中完成，最多一层，返回不丢上下文</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="note">组件实现：HeroUI 3 的 Tabs、Table、Checkbox、Chip、Drawer、Select；部门树和区域树用 React Aria 的 Tree（HeroUI 3 基于 React Aria），支持键盘操作与拖动。界面中的人名、学校数量为示意数据。</p>
+</section>
+
+<section>
+  <h2><small>E</small>登录与身份切换时序</h2>
+  <div class="panel scroll"><pre class="mermaid">
+sequenceDiagram
+  autonumber
+  participant FE as Web 前端
+  participant API as auth 模块
+  participant IC as identity 上下文
+  participant R as Redis
+  FE->>API: POST /auth/login 用户名 + 密码
+  API->>IC: 取上次身份，否则第一个身份
+  IC->>R: 读缓存，未命中则查库并写入
+  API-->>FE: accessToken + refreshToken + me
+  FE->>API: GET /menus/current
+  API-->>FE: 当前身份菜单树
+  Note over FE: 右上角选择另一个身份
+  FE->>API: POST /auth/switch-identity
+  API->>API: 校验身份属于本人且有效，写审计
+  API-->>FE: 新 token + 新 me
+  Note over FE: 替换 token，清空 Query 缓存，重置当前学校，重拉菜单，回到工作台
+  </pre></div>
+  <p class="note">JWT 只携带 userId、当前身份 id、tokenVersion。权限、菜单、数据范围都由服务端按身份实时计算并缓存，调整角色后无需重新登录即可生效。</p>
+</section>
+
+<section>
+  <h2><small>F</small>请求鉴权与数据权限决策</h2>
+  <div class="panel scroll"><pre class="mermaid">
+flowchart TD
+  A["请求 /api/v1/schools/:schoolId/students"] --> B{"AuthGuard<br/>token 有效且 tokenVersion 一致"}
+  B -- 否 --> X1["401 请重新登录"]
+  B -- 是 --> C{"PermissionGuard<br/>拥有 school:student:list"}
+  C -- 否 --> X2["403 缺少权限"]
+  C -- 是 --> D{"SchoolAccessGuard<br/>schoolId 在数据范围内"}
+  D -- 否 --> X3["403 无权访问该学校"]
+  D -- 是 --> E{"当前身份是代理商"}
+  E -- 是 --> F{"权限码在学校授权内"}
+  F -- 否 --> X4["403 学校未授权该操作"]
+  F -- 是 --> G["TenantService.forSchool<br/>取得 school_xxx 表对象"]
+  E -- 否 --> G
+  G --> H{"数据范围细到年级或班级"}
+  H -- 是 --> I["追加过滤：部门负责的年级 / 本人任教班级"]
+  H -- 否 --> J["执行查询"]
+  I --> J
+  </pre></div>
+</section>
+
+<section>
+  <h2><small>G</small>数据与租户架构</h2>
+  <p class="lead">平台数据与学校数据物理分开。学校数据只能通过 TenantService 访问，SQL 一律带 schema 前缀，不切换 search_path。</p>
+  <div class="panel tenant">
+    <div class="db"><h4>平台库 <code>public</code></h4><ul>
+      <li>users · identities · identity_roles</li>
+      <li>orgs · departments · regions(path)</li>
+      <li>roles · menus · role_menus</li>
+      <li>school_tenants（schema 名 · 数据源 · 版本）</li>
+      <li>agent_school_grants · department_scopes · identity_scopes</li>
+      <li>academic_years · semesters</li>
+      <li>audit_logs · _migrations</li>
+    </ul></div>
+    <div class="db"><h4>学校库 <code>school_&lt;学校id&gt;</code></h4><ul>
+      <li>classes（学段 · 入学年份 · 班号）</li>
+      <li>students（当前班级）</li>
+      <li>student_enrollments（学年 × 班级）</li>
+      <li>teacher_classes（学年 × 任课）</li>
+      <li>上层业务表：体测、课堂、报名……</li>
+      <li>只存平台 id，不建跨 schema 外键</li>
+    </ul></div>
+    <div class="db"><h4>分析库 <code>analytics</code></h4><ul>
+      <li>由 worker 汇总写入</li>
+      <li>带 school_id · region_path · 学年</li>
+      <li>教育局大屏只查这里</li>
+      <li>禁止请求时遍历学校 schema</li>
+    </ul></div>
+    <div class="db ds"><h4>区域级库（预留）</h4><ul>
+      <li>数据归教育局的上层业务，如赛事、中考</li>
+      <li>地基只约定规则，不建表</li>
+      <li>与学校库之间只做单向复制，经 outbox 事件触发</li>
+    </ul></div>
+    <div class="db ds"><h4>独立数据源 <code>ds_xxx</code></h4><ul>
+      <li>school_tenants.datasource 指向它</li>
+      <li>大客户或私有化学校整校迁出</li>
+      <li>业务代码不变</li>
+      <li>可 pg_dump -n 单校导出与销毁</li>
+    </ul></div>
+  </div>
+  <div class="panel scroll"><pre class="mermaid">
+flowchart LR
+  O["新建学校"] --> T1["写入 school_tenants<br/>状态 provisioning"]
+  T1 --> T2["事务：CREATE SCHEMA school_xxx<br/>执行全部学校迁移"]
+  T2 -- 成功 --> T3["状态 active<br/>记录 schema_version"]
+  T2 -- 失败 --> T4["状态 failed<br/>可重试"]
+  V["发布新版本"] --> W["worker：public 迁移"] --> W2["逐校增量迁移<br/>advisory lock，分批并发"]
+  </pre></div>
+</section>
+
+<section>
+  <h2><small>H</small>数据库设计</h2>
+  <p class="lead">按 schema 分组列出表结构。所有表主键统一用 UUID v7（应用生成）；跨 schema 只存对方的 id，不建外键，学校库可以整体迁到独立实例。字段只列关键项，公共字段（created_at、updated_at、created_by、updated_by、deleted_at、version）每张业务表都有，不再重复。</p>
+
+  <h3 style="margin:4px 0 0;font-size:16px">H1 · 平台库 public：身份与权限</h3>
+  <div class="panel scroll"><pre class="mermaid">
+flowchart TB
+  U["users 账号"] --> I["identities 身份"]
+  O["orgs 机构"] --> I
+  DP["departments 部门"] --> I
+  I --> IR["identity_roles"]
+  IR --> R["roles 角色"]
+  R --> RG["role_grants 模块档位"]
+  R -. "基于" .-> R0["内置角色"]
+  I --> SA["staff_*_assignments 负责学校/区域"]
+  </pre></div>
+  <div class="tables">
+    <div class="tcard"><h4>users <span>账号</span></h4><dl>
+      <dt>username / phone / email</dt><dd>均唯一；email 用于邮箱验证码</dd>
+      <dt>password_hash</dt><dd>argon2id</dd>
+      <dt>must_change_password</dt><dd>首次登录、重置后强制改密</dd>
+      <dt>failed_attempts / locked_until</dt><dd>连续失败锁定</dd>
+      <dt>last_identity_id</dt><dd>下次登录默认进入的身份</dd>
+      <dt>token_version</dt><dd>+1 即全部会话失效</dd>
+    </dl></div>
+    <div class="tcard"><h4>identities <span>身份</span></h4><dl>
+      <dt>user_id → users</dt><dd></dd>
+      <dt>type</dt><dd>company · bureau · agent · school · teacher · student · parent（预留）</dd>
+      <dt>org_id → orgs</dt><dd>教师、学生指向学校</dd>
+      <dt>department_id → departments</dt><dd>可空</dd>
+      <dt>ref_id</dt><dd>学生身份指向学校库中的学生 id</dd>
+      <dt>唯一</dt><dd>(user_id, org_id, type)</dd>
+    </dl></div>
+    <div class="tcard"><h4>roles <span>角色</span></h4><dl>
+      <dt>kind</dt><dd>preset 内置 · custom 自定义</dd>
+      <dt>base_role_id → roles</dt><dd>自定义角色基于哪个内置角色</dd>
+      <dt>identity_type</dt><dd>角色适用的身份类型</dd>
+      <dt>org_id</dt><dd>空为平台内置；有值为机构自定义</dd>
+      <dt>code</dt><dd>内置角色由代码声明；自定义角色由系统生成，管理员只填名称</dd>
+      <dt>data_scope</dt><dd>all 本机构全部 · dept_and_below · dept · personal；学生固定 self，家长固定 child</dd>
+    </dl></div>
+    <div class="tcard"><h4>role_grants <span>功能模块档位</span></h4><dl>
+      <dt>主键</dt><dd>(role_id, app_code, feature_code)</dd>
+      <dt>level</dt><dd>none · view · edit · manage · custom</dd>
+      <dt>actions</dt><dd>level 为 custom 时勾选的具体动作</dd>
+      <dt>说明</dt><dd>内置角色档位随代码发布；自定义角色只存与内置角色不同的行</dd>
+    </dl></div>
+    <div class="tcard"><h4>menus <span>菜单与按钮</span></h4><dl>
+      <dt>parent_id → menus</dt><dd></dd>
+      <dt>type</dt><dd>dir · menu · button · tab</dd>
+      <dt>client</dt><dd>admin 后台 · mobile 移动端</dd>
+      <dt>path / component</dt><dd>路由与前端注册 key</dd>
+      <dt>permission</dt><dd>权限码，菜单不直接绑角色</dd>
+      <dt>来源</dt><dd>代码声明，部署时同步；后台只能改名称、排序、图标、显隐（见 I13）</dd>
+      <dt>app_code</dt><dd>所属应用；可见的身份类型定义在应用上</dd>
+    </dl></div>
+    <div class="tcard"><h4>关联表</h4><dl>
+      <dt>identity_roles</dt><dd>(identity_id, role_id)</dd>
+      <dt>agent_school_grants</dt><dd>学校授权代理商：权限上限、有效期、撤销时间</dd>
+    </dl></div>
+    <div class="tcard"><h4>department_scopes <span>部门负责的范围</span></h4><dl>
+      <dt>主键</dt><dd>(department_id, scope_type, scope_value)</dd>
+      <dt>scope_type</dt><dd>school 学校 · region 区域 · grade 年级 · college 学院</dd>
+      <dt>可用类型</dt><dd>公司：学校、区域；教育局：区域、学校；代理商：学校；学校：年级、学院</dd>
+      <dt>约束</dt><dd>只能在本机构外边界内选择</dd>
+    </dl></div>
+    <div class="tcard"><h4>identity_scopes <span>本人额外负责的范围</span></h4><dl>
+      <dt>主键</dt><dd>(identity_id, scope_type, scope_value)</dd>
+      <dt>用于</dt><dd>部门之外的个别例外，如临时帮其他部门跟进</dd>
+      <dt>说明</dt><dd>教师的任教班级来自任课关系，不在这里配置</dd>
+    </dl></div>
+  </div>
+
+  <h3 style="margin:4px 0 0;font-size:16px">H2 · 平台库 public：机构与学年</h3>
+  <div class="tables">
+    <div class="tcard"><h4>orgs <span>机构</span></h4><dl>
+      <dt>type</dt><dd>company · bureau · agent · school</dd>
+      <dt>code</dt><dd>唯一</dd>
+      <dt>region_code → regions</dt><dd>教育局为管辖区划，学校为所在区划</dd>
+      <dt>status</dt><dd>启用 · 停用</dd>
+    </dl></div>
+    <div class="tcard"><h4>school_profiles <span>学校档案</span></h4><dl>
+      <dt>school_id → orgs</dt><dd>主键</dd>
+      <dt>school_code</dt><dd>教育部学校标识码，唯一</dd>
+      <dt>stages</dt><dd>学段数组：1 小学 · 2 初中 · 3 高中 · 4 大学</dd>
+      <dt>stage_years</dt><dd>各学段年限，如 {"1":6,"2":3,"3":3,"4":4}，见 I1</dd>
+      <dt>nature</dt><dd>公办 · 民办</dd>
+    </dl></div>
+    <div class="tcard"><h4>regions <span>行政区划</span></h4><dl>
+      <dt>code</dt><dd>国标区划码，主键</dd>
+      <dt>level</dt><dd>1 省 · 2 市 · 3 区县</dd>
+      <dt>parent_code → regions</dt><dd></dd>
+      <dt>path</dt><dd>330000.330100.330106，前缀匹配辖区</dd>
+    </dl></div>
+    <div class="tcard"><h4>departments <span>部门</span></h4><dl>
+      <dt>org_id → orgs</dt><dd>每个机构都可以自建部门</dd>
+      <dt>parent_id / path</dt><dd>树形，层级不限；path 存祖先路径，用于“本部门及以下”</dd>
+      <dt>name / code</dt><dd>只填名称，code 由系统生成；公司预置研发部、销售部、生产部、技术服务部，其他机构自行创建，如“运营一部”“体育组”</dd>
+      <dt>谁维护</dt><dd>本机构管理员</dd>
+      <dt>成员</dt><dd>identities.department_id，一个身份属于一个部门</dd>
+    </dl></div>
+    <div class="tcard"><h4>school_tenants <span>学校租户</span></h4><dl>
+      <dt>school_id → orgs</dt><dd>主键</dd>
+      <dt>schema_name</dt><dd>school_ + 32 位十六进制</dd>
+      <dt>datasource</dt><dd>default 或独立实例</dd>
+      <dt>schema_version / status</dt><dd>迁移进度、开通状态</dd>
+    </dl></div>
+    <div class="tcard"><h4>school_subscriptions <span>学校服务</span></h4><dl>
+      <dt>school_id → orgs</dt><dd></dd>
+      <dt>contract_no</dt><dd>合同编号，试用为空</dd>
+      <dt>service_start / service_end</dt><dd>服务期</dd>
+      <dt>status</dt><dd>试用 · 服务中 · 宽限期 · 停用</dd>
+      <dt>sales_identity_id</dt><dd>负责销售</dd>
+    </dl></div>
+    <div class="tcard"><h4>school_modules <span>模块授权</span></h4><dl>
+      <dt>主键</dt><dd>(school_id, module_code)</dd>
+      <dt>start_date / end_date</dt><dd>模块有效期</dd>
+      <dt>source</dt><dd>合同 · 试用 · 赠送</dd>
+    </dl></div>
+    <div class="tcard"><h4>guardian_links <span>家长绑定（预留）</span></h4><dl>
+      <dt>user_id</dt><dd>家长账号</dd>
+      <dt>student_index_id → student_index</dt><dd>挂在学生索引上，转学后跟随</dd>
+      <dt>relation</dt><dd>父亲 · 母亲 · 其他监护人</dd>
+      <dt>verified_at / revoked_at</dt><dd>校验时间、解除时间</dd>
+    </dl></div>
+    <div class="tcard"><h4>student_index <span>学生索引（查重与转学）</span></h4><dl>
+      <dt>id_hash</dt><dd>证件类型 + 号码的 HMAC 哈希，不存明文</dd>
+      <dt>school_id / student_id</dt><dd>该生在哪所学校、学校库中的 id</dd>
+      <dt>user_id</dt><dd>学生账号，转学升学时保留</dd>
+      <dt>status</dt><dd>在读 · 转出 · 毕业</dd>
+      <dt>约束</dt><dd>同一 id_hash 同时只能有一条“在读”</dd>
+    </dl></div>
+    <div class="tcard"><h4>academic_years · semesters <span>学年学期</span></h4><dl>
+      <dt>academic_years</dt><dd>name（2026-2027学年）、起止日期、is_current 唯一</dd>
+      <dt>semesters</dt><dd>academic_year_id、term 1 或 2、起止日期、is_current 唯一</dd>
+    </dl></div>
+  </div>
+
+  <h3 style="margin:4px 0 0;font-size:16px">H3 · 学校库 school_&lt;学校id&gt;（每校一套）</h3>
+  <div class="tables">
+    <div class="tcard"><h4>classes <span>行政班</span></h4><dl>
+      <dt>stage</dt><dd>1 小学 · 2 初中 · 3 高中 · 4 大学</dd>
+      <dt>college_id / major_id</dt><dd>仅大学使用，其他学段为空</dd>
+      <dt>entry_year</dt><dd>入学年份，年级编码由此计算</dd>
+      <dt>class_no</dt><dd>班号</dd>
+      <dt>唯一</dt><dd>(stage, entry_year, class_no)</dd>
+    </dl></div>
+    <div class="tcard"><h4>students <span>学生</span></h4><dl>
+      <dt>student_no</dt><dd>学号，唯一</dd>
+      <dt>name / gender / birthday</dt><dd></dd>
+      <dt>id_type / id_card_enc / id_card_hash</dt><dd>证件类型；加密存储；哈希用于本校查找和平台查重</dd>
+      <dt>class_id → classes</dt><dd>当前行政班</dd>
+      <dt>status</dt><dd>在读 · 转出 · 毕业 · 休学</dd>
+    </dl></div>
+    <div class="tcard"><h4>teaching_classes <span>教学班</span></h4><dl>
+      <dt>academic_year_id / semester_id</dt><dd>教学班按学期开设</dd>
+      <dt>name / sport_item</dt><dd>如“篮球专项 2 班”</dd>
+      <dt>teaching_class_students</dt><dd>(teaching_class_id, student_id)，学生可来自不同行政班</dd>
+      <dt>适用</dt><dd>大学选课、高中走班、初中小学体育分项教学；学校不用时可不建</dd>
+    </dl></div>
+    <div class="tcard"><h4>colleges · majors <span>大学院系</span></h4><dl>
+      <dt>colleges</dt><dd>学院</dd>
+      <dt>majors</dt><dd>专业，college_id → colleges</dd>
+      <dt>说明</dt><dd>仅大学使用：学院 → 专业 → 行政班</dd>
+    </dl></div>
+    <div class="tcard"><h4>student_enrollments <span>学年学籍</span></h4><dl>
+      <dt>主键</dt><dd>(student_id, academic_year_id)</dd>
+      <dt>class_id → classes</dt><dd>该学年所在班级</dd>
+      <dt>说明</dt><dd>分班、转班、留级只写这里</dd>
+    </dl></div>
+    <div class="tcard"><h4>teacher_classes <span>任课</span></h4><dl>
+      <dt>user_id</dt><dd>平台账号 id（不建跨库外键）</dd>
+      <dt>class_kind / class_id</dt><dd>行政班或教学班，及对应 id</dd>
+      <dt>academic_year_id</dt><dd>平台学年 id</dd>
+      <dt>subject / is_head</dt><dd>默认体育；是否班主任</dd>
+    </dl></div>
+    <div class="tcard tfuture"><h4>运动业务表 <span>后续模块</span></h4><dl>
+      <dt>跳绳、跑步、体测……</dt><dd>各业务模块以自己的迁移在学校库中加表，统一带 student_id、academic_year_id、semester_id、item_code</dd>
+    </dl></div>
+  </div>
+
+  <h3 style="margin:4px 0 0;font-size:16px">H4 · 平台库 public：运动项目库（为跳绳、跑步等模块准备）</h3>
+  <div class="tables">
+    <div class="tcard"><h4>sport_items <span>运动项目</span></h4><dl>
+      <dt>code</dt><dd>主键，如 rope_skip_1min · run_50m · run_800m · run_1000m</dd>
+      <dt>name / category</dt><dd>耐力 · 速度 · 力量 · 柔韧 · 技能</dd>
+      <dt>unit / precision</dt><dd>次 · 秒 · 米 · 厘米；小数位</dd>
+      <dt>better</dt><dd>higher 越大越好 · lower 越小越好</dd>
+      <dt>applicable</dt><dd>适用年级编码、性别</dd>
+      <dt>module_code</dt><dd>归属的业务模块，如 rope、running</dd>
+    </dl></div>
+    <div class="tcard"><h4>scoring_standards <span>评分标准</span></h4><dl>
+      <dt>name / version</dt><dd>如《国家学生体质健康标准》2014 修订版</dd>
+      <dt>region_code</dt><dd>空为全国；有值为地方标准</dd>
+      <dt>effective_from</dt><dd>生效日期，旧成绩按当时标准</dd>
+    </dl></div>
+    <div class="tcard"><h4>scoring_rules <span>评分细则</span></h4><dl>
+      <dt>standard_id · item_code</dt><dd></dd>
+      <dt>grade_code · gender</dt><dd>如 13、男</dd>
+      <dt>raw_min / raw_max → score</dt><dd>原始成绩区间对应得分</dd>
+      <dt>level</dt><dd>优秀 · 良好 · 及格 · 不及格</dd>
+    </dl></div>
+  </div>
+  <p class="note">项目库和评分标准是平台级基础数据，跳绳、跑步、体测、中考都共用，避免每个模块各定义一套项目编码和换算规则。评分计算放在 <code>packages/domain</code> 作为纯函数，前后端一致。</p>
+
+  <h3 style="margin:4px 0 0;font-size:16px">H5 · 平台库 public：通用能力</h3>
+  <div class="tables">
+    <div class="tcard"><h4>dict_types · dict_items <span>数据字典</span></h4><dl>
+      <dt>dict_types</dt><dd>code（gender · nation · stage · grade …）、name、is_system</dd>
+      <dt>dict_items</dt><dd>type_code、value（如 11）、label（如 一年级）、sort、enabled</dd>
+    </dl></div>
+    <div class="tcard"><h4>number_rules <span>编号规则</span></h4><dl>
+      <dt>type</dt><dd>如 subscription · task · todo</dd>
+      <dt>prefix / digits</dt><dd>如 KT、6 位流水</dd>
+      <dt>year / current_value</dt><dd>按年重置；取号用行锁保证不重号</dd>
+    </dl></div>
+    <div class="tcard"><h4>sys_params <span>系统参数</span></h4><dl>
+      <dt>key</dt><dd>如 password.min_length</dd>
+      <dt>value</dt><dd>jsonb</dd>
+    </dl></div>
+    <div class="tcard"><h4>user_sessions <span>登录会话</span></h4><dl>
+      <dt>user_id · identity_id</dt><dd></dd>
+      <dt>client</dt><dd>admin · mobile</dd>
+      <dt>refresh_token_hash</dt><dd>每次刷新轮换</dd>
+      <dt>expires_at / revoked_at</dt><dd>过期、吊销</dd>
+    </dl></div>
+    <div class="tcard"><h4>login_logs · audit_logs <span>日志</span></h4><dl>
+      <dt>login_logs</dt><dd>用户、结果、IP、时间</dd>
+      <dt>audit_logs</dt><dd>身份、学校、动作、变更内容；保留不少于 6 个月</dd>
+    </dl></div>
+    <div class="tcard"><h4>tasks · files <span>任务与文件</span></h4><dl>
+      <dt>tasks</dt><dd>类型（导入 · 导出 · 开通 · 学年切换）、状态、进度、结果文件、成功失败数</dd>
+      <dt>files</dt><dd>object_key 按学校分目录、文件名、大小、过期时间</dd>
+    </dl></div>
+    <div class="tcard"><h4>todos <span>待办</span></h4><dl>
+      <dt>type</dt><dd>transfer_confirm 转学确认 · subscription_review 开通审核 …</dd>
+      <dt>assignee_org_id / permission</dt><dd>分发到哪个机构、需要什么权限才能处理</dd>
+      <dt>status</dt><dd>待处理 · 已同意 · 已拒绝 · 已撤回</dd>
+      <dt>ref_id / payload</dt><dd>关联的业务记录</dd>
+      <dt>handled_by / comment</dt><dd>处理人与意见</dd>
+    </dl></div>
+    <div class="tcard"><h4>notifications · outbox_events <span>消息与事件</span></h4><dl>
+      <dt>notifications</dt><dd>接收人、客户端、标题、已读时间</dd>
+      <dt>outbox_events</dt><dd>topic（如 school.student.created）、school_id、payload、投递时间</dd>
+    </dl></div>
+  </div>
+  <p class="note">邮箱验证码和登录失败计数放在 Redis，不入库。</p>
+</section>
+
+<section>
+  <h2><small>I</small>地基补充设计</h2>
+  <p class="lead">审视后补齐的地基能力：学校档案与年级编码、分级管理、账号安全、学年切换、通用能力、敏感信息与合规、接口规范。</p>
+
+  <h3 style="margin:4px 0 0;font-size:16px">I1 · 学校档案与年级编码</h3>
+  <div class="panel scroll">
+    <table>
+      <thead><tr><th>学段</th><th>学段编码</th><th>默认年限</th><th>年级编码</th><th>可配置年限</th></tr></thead>
+      <tbody>
+        <tr><td>小学</td><td><code>1</code></td><td>6</td><td><code>11</code> 一年级 … <code>16</code> 六年级</td><td>5 或 6</td></tr>
+        <tr><td>初中</td><td><code>2</code></td><td>3</td><td><code>21</code> 初一（七年级）… <code>23</code> 初三</td><td>3 或 4</td></tr>
+        <tr><td>高中</td><td><code>3</code></td><td>3</td><td><code>31</code> 高一 … <code>33</code> 高三</td><td>3</td></tr>
+        <tr><td>大学</td><td><code>4</code></td><td>4</td><td><code>41</code> 大一 … <code>44</code> 大四</td><td>3 · 4 · 5（专科 3 年，医学等 5 年）</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="panel scroll">
+    <table>
+      <thead><tr><th>规则</th><th>说明</th></tr></thead>
+      <tbody>
+        <tr><td>年级编码</td><td>学段编码 × 10 + 年级序号；年级序号 = 学年起始年 − 入学年份 + 1。例：2024 级小学在 2026-2027 学年是 <code>13</code> 三年级</td></tr>
+        <tr><td>班级显示编号</td><td>年级编码 + 两位班号，如 <code>1301</code> 表示三年级(1)班。每学年自动变化，只用于显示和导入匹配，不作主键</td></tr>
+        <tr><td>一校多学段</td><td>学校档案的 <code>stages</code> 存多个学段：九年一贯制 [1,2]，完全中学 [2,3]，十二年一贯制 [1,2,3]</td></tr>
+        <tr><td>学制</td><td>每所学校在档案 <code>stage_years</code> 中按学段配置年限，默认 小学 6 · 初中 3 · 高中 3 · 大学 4；年级编码上限 = 学段编码 × 10 + 该学段年限。学制不同的学校同用一套编码规则</td></tr>
+        <tr><td>字典</td><td>学段、年级编码进数据字典，前后端和导入模板统一使用</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 style="margin:4px 0 0;font-size:16px">I2 · 分级管理</h3>
+  <div class="panel scroll">
+    <table>
+      <thead><tr><th>谁</th><th>能管理谁</th><th>上限</th></tr></thead>
+      <tbody>
+        <tr><td>公司超管</td><td>所有机构的所有人员</td><td>—</td></tr>
+        <tr><td>教育局管理员</td><td>本局人员；可为下级教育局开通第一个管理员</td><td>分配的角色不高于自己</td></tr>
+        <tr><td>代理商管理员</td><td>本代理商员工</td><td>不高于自己，且仍受学校授权限制</td></tr>
+        <tr><td>学校管理员</td><td>本校教师、学生账号；本校自定义角色</td><td>不高于自己</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="panel scroll">
+    <table>
+      <thead><tr><th>部门示例：代理商 A</th><th>人员（角色的数据范围）</th><th>能看的学校</th></tr></thead>
+      <tbody>
+        <tr><td>代理商 A</td><td>张总（全部授权学校）</td><td>学校授权给 A 的全部 5 所</td></tr>
+        <tr><td>└ 华东大区</td><td>周经理（本部门及以下）</td><td>一部 + 二部的全部：甲、乙、丙、丁、戊</td></tr>
+        <tr><td>　 ├ 运营一部（负责甲、乙）</td><td>李一（本部门）+ 本人额外负责丙</td><td>甲、乙、丙</td></tr>
+        <tr><td>　 └ 运营二部（负责丙、丁、戊）</td><td>赵三（本部门）</td><td>丙、丁、戊</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="panel scroll">
+    <table>
+      <thead><tr><th>部门示例：公司</th><th>人员 · 角色（数据范围）</th><th>能看的学校</th></tr></thead>
+      <tbody>
+        <tr><td>公司</td><td>张工 · 研发人员（本机构全部）</td><td>全部学校</td></tr>
+        <tr><td>├ 销售部</td><td>刘总监 · 销售（本部门及以下）</td><td>浙江组 + 江苏组负责的全部</td></tr>
+        <tr><td>│ ├ 浙江销售组（负责区域：浙江省）</td><td>李销售 · 销售（本部门）</td><td>浙江省全部学校，新开通的自动纳入</td></tr>
+        <tr><td>│ └ 江苏销售组（负责区域：南京市、苏州市）</td><td>王销售 · 销售（本人负责）</td><td>只看本人额外负责的 8 所（自己签约的学校）</td></tr>
+        <tr><td>├ 技术服务部</td><td>—</td><td>—</td></tr>
+        <tr><td>│ └ 杭州服务站（负责区域：杭州市）</td><td>赵工程师 · 技术服务（本部门）+ 本人额外负责绍兴某校</td><td>杭州市全部学校 + 绍兴某校</td></tr>
+        <tr><td>└ 生产部</td><td>钱主管 · 生产（本机构全部）</td><td>全部学校（只读设备台账）</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="panel scroll">
+    <table>
+      <thead><tr><th>部门示例：西湖一小</th><th>人员（角色的数据范围）</th><th>能看的数据</th></tr></thead>
+      <tbody>
+        <tr><td>西湖一小</td><td>校长（本机构全部）</td><td>全校</td></tr>
+        <tr><td>└ 体育组</td><td>王组长（本部门及以下）</td><td>一至六年级（下级年级组合计）</td></tr>
+        <tr><td>　├ 低年级组（负责 11、12、13）</td><td>陈老师（本部门）</td><td>一至三年级各班</td></tr>
+        <tr><td>　└ 高年级组（负责 14、15、16）</td><td>刘老师（本人负责）</td><td>只看自己任教的 2 个班</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="note">部门规则：每个机构的管理员都可以自建部门树，层级不限；一个身份属于一个部门；“本部门及以下”包含所有下级部门负责的范围；“本人额外负责”在任何选项上叠加；学校撤销对 A 的授权后，该校立即从 A 的所有部门和个人范围中失效。示例中的人名、学校名为虚构。</p>
+  <p class="note">分工原则：部门决定“看哪些学校”，角色决定“能做什么”。人员调部门只改部门，角色不变；部门新接学校只在部门上勾选，部门内所有人自动生效；角色数量不随部门增加。</p>
+  <p class="note">“不高于自己”的判定：要分配的角色，每个功能模块的档位都不能超过操作人的档位，数据范围也不能更宽。此外：不能修改自己的角色；每个机构至少保留一名管理员；内置角色不可删除。</p>
+
+  <h3 style="margin:4px 0 0;font-size:16px">I3 · 账号安全</h3>
+  <div class="panel scroll">
+    <table>
+      <thead><tr><th>项</th><th>做法</th></tr></thead>
+      <tbody>
+        <tr><td>登录</td><td>用户名 / 手机号 / 邮箱 + 密码；连续失败 5 次出图形验证码，10 次锁定 30 分钟</td></tr>
+        <tr><td>邮箱验证码</td><td>用于忘记密码、绑定邮箱、敏感操作二次确认。6 位数字，5 分钟有效，60 秒后可重发，同一邮箱每天有上限；存 Redis；通过 SMTP 发送。短信验证码暂不做，接口预留</td></tr>
+        <tr><td>密码策略</td><td>生产环境至少 8 位且含字母和数字；首次登录和管理员重置后强制改密；可配置定期修改（等保）</td></tr>
+        <tr><td>开发环境密码</td><td>种子账号和新建账号默认密码统一为 <code>123456</code>，只在 development / test 环境生效；生产环境不允许该默认值，新建账号生成随机初始密码并强制首次修改</td></tr>
+        <tr><td>Token</td><td>access token 30 分钟 + refresh token 7 天；refresh token 哈希后存 user_sessions，每次刷新轮换；改密、停用、踢下线时吊销</td></tr>
+        <tr><td>客户端区分</td><td>token 带 client（admin / mobile），后台接口拒绝 mobile token，反之亦然</td></tr>
+        <tr><td>会话管理</td><td>用户可查看自己的在线设备并下线；管理员可强制下线</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 style="margin:4px 0 0;font-size:16px">I4 · 学年切换（每年暑假执行）</h3>
+  <div class="panel scroll"><pre class="mermaid">
+flowchart TB
+  A["公司创建新学年"] --> B["预检查<br/>各校未分班学生 · 班级缺任课"]
+  B --> C["生成学年学籍<br/>年级编码自动 +1"]
+  C --> D["毕业年级<br/>学生标记毕业 · 账号停用 · 班级归档"]
+  D --> E["复制任课关系<br/>学校可再调整"]
+  E --> F["设为当前学年"]
+  F --> G["各校确认<br/>新生入学另行导入"]
+  </pre></div>
+  <p class="note">按学校拆成任务，在任务中心执行和查看进度；单校失败可重跑，不影响其他学校。</p>
+
+  <h3 style="margin:4px 0 0;font-size:16px">I5 · 通用能力</h3>
+  <div class="panel scroll">
+    <table>
+      <thead><tr><th>能力</th><th>做法</th></tr></thead>
+      <tbody>
+        <tr><td>导入</td><td>下载模板 → 上传 → 按 Zod 逐行校验 → 预览（成功 / 失败行）→ 确认导入 → 失败行可下载修改后重传。在 worker 异步执行</td></tr>
+        <tr><td>导出</td><td>按当前筛选条件异步生成，文件加水印（导出人、时间），写审计日志，24 小时后自动清理</td></tr>
+        <tr><td>任务中心</td><td>导入、导出、开通学校、学年切换统一进“我的任务”，显示进度、结果和下载链接</td></tr>
+        <tr><td>文件</td><td>S3 接口（MinIO），按学校分目录，只通过带有效期的临时链接下载</td></tr>
+        <tr><td>数据字典 / 系统参数</td><td>性别、民族、学段、年级编码等进字典；密码策略、学生账号规则等进系统参数，后台可改</td></tr>
+        <tr><td>站内消息</td><td>任务完成、账号变动等系统通知，后台和移动端共用；邮件作为第二通道</td></tr>
+        <tr><td>outbox 事件</td><td>业务写库时在同一事务写一条事件，worker 可靠投递。以后的跨校汇总、上层业务联动都基于它</td></tr>
+        <tr><td>回收站</td><td>删除即软删除，30 天内可恢复，之后由任务清理</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 style="margin:4px 0 0;font-size:16px">I6 · 敏感信息与合规</h3>
+  <div class="panel scroll">
+    <table>
+      <thead><tr><th>项</th><th>做法</th></tr></thead>
+      <tbody>
+        <tr><td>脱敏显示</td><td>身份证 <code>330***********1234</code>、手机号 <code>138****5678</code>、邮箱 <code>z***@qq.com</code>；需要“查看敏感信息”权限才显示全部，每次查看写审计</td></tr>
+        <tr><td>加密存储</td><td>敏感字段 AES-GCM 加密，密钥不进代码库；另存哈希用于精确查找</td></tr>
+        <tr><td>日志留存</td><td>登录日志、操作日志保留不少于 6 个月</td></tr>
+        <tr><td>未成年人信息</td><td>只采集必要字段；学生端不展示其他学生的个人信息</td></tr>
+        <tr><td>传输</td><td>全站 HTTPS；接口限流；登录接口单独限频</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 style="margin:4px 0 0;font-size:16px">I7 · 接口与工程规范</h3>
+  <div class="panel scroll">
+    <table>
+      <thead><tr><th>项</th><th>约定</th></tr></thead>
+      <tbody>
+        <tr><td>响应</td><td><code>{ code, message, data, traceId }</code>，成功时 code 为 0</td></tr>
+        <tr><td>错误码</td><td>5 位数字，按模块分段：10xxx 认证，11xxx 权限，12xxx 用户与机构，20xxx 学校基础数据，30xxx 通用能力。错误码表在 contracts 中维护，前端据此提示</td></tr>
+        <tr><td>分页 / 排序 / 筛选</td><td><code>page</code>、<code>pageSize</code>（最大 100）、<code>sort=字段:asc</code>；筛选参数由各接口的 Zod schema 定义</td></tr>
+        <tr><td>接口文档</td><td>由 Zod schema 自动生成 OpenAPI</td></tr>
+        <tr><td>时间</td><td>数据库一律 timestamptz；学年、学期、服务到期日等日期按 Asia/Shanghai 计算和显示</td></tr>
+        <tr><td>浏览器基线</td><td>只支持新版浏览器：Chrome / Edge 111+、Firefox 128+、Safari 16.4+（HeroUI 3 与 Tailwind 4 的要求）；360 等国产浏览器需使用极速模式且内核满足上述版本。版本不足时显示“请升级浏览器”提示页，不做旧浏览器兼容</td></tr>
+        <tr><td>环境</td><td>development / test / production 三套配置；CI 依次跑 Biome、类型检查、单测、真实 PostgreSQL 集成测试、租户隔离测试，再构建镜像</td></tr>
+        <tr><td>租户隔离测试</td><td>自动化验证：A 校身份访问 B 校接口必须 403；教师不能看非任教班级；学生不能看他人</td></tr>
+        <tr><td>种子数据</td><td>演示公司、教育局、代理商、3 所学校、各身份演示账号（开发密码 123456）</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 style="margin:4px 0 0;font-size:16px">I8 · 行政班与教学班</h3>
+  <div class="panel scroll">
+    <table>
+      <thead><tr><th>项</th><th>行政班</th><th>教学班</th></tr></thead>
+      <tbody>
+        <tr><td>含义</td><td>学生固定归属的班级，管学籍</td><td>上课时临时组成的班，学生可来自多个行政班</td></tr>
+        <tr><td>适用学段</td><td>全部</td><td>全部可用：大学选课、高中走班、初中小学体育分项教学；不用的学校不建</td></tr>
+        <tr><td>周期</td><td>跨学年，年级编码自动变化</td><td>按学期开设，学期结束归档</td></tr>
+        <tr><td>教师数据范围</td><td colspan="2">“任教班级”= 本学年任教的行政班 + 本学期任教的教学班，学生取两者并集</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="note">大学额外有“学院 → 专业 → 行政班”层级（只在大学使用）。学校管理员的“指定学段或年级”数据范围，在大学里扩展为“指定学院”。</p>
+
+  <h3 style="margin:4px 0 0;font-size:16px">I9 · 学生查重与转学（身份证）</h3>
+  <div class="panel scroll"><pre class="mermaid">
+flowchart TB
+  A["新学校录入学生<br/>填身份证号"] --> B{"平台按身份证哈希<br/>查学生索引"}
+  B -- "无记录" --> C["新建学生<br/>生成账号"]
+  B -- "原学校已毕业" --> D["升学：直接关联<br/>沿用原账号"]
+  B -- "原学校在读" --> E["发起转学申请"]
+  E --> F{"原学校确认转出"}
+  F -- "同意" --> G["原校学生改为转出<br/>账号身份改挂新学校"]
+  F -- "拒绝" --> X["不能建档<br/>提示联系原学校"]
+  D & G --> H["历史数据留在原学校库<br/>新学校只看授权的成长摘要"]
+  </pre></div>
+  <p class="note">只有身份证查重：没有身份证的学生（如外籍、港澳台）按“证件类型 + 证件号”同样哈希。索引只存哈希，不存明文，平台和教育局也不能从索引反查身份证号。</p>
+
+  <h3 style="margin:4px 0 0;font-size:16px">I10 · 学校服务开通与模块授权</h3>
+  <p class="lead">公司按学校销售服务，跳绳、跑步等模块按学校开通。服务状态和已开通模块直接参与权限计算，不需要每个业务模块自己判断。</p>
+  <div class="panel scroll"><pre class="mermaid">
+flowchart TB
+  T["试用<br/>默认 30 天"] -->|"签约"| A["服务中"]
+  A -->|"到期前 90 / 30 / 7 天"| N["提醒负责销售<br/>站内消息 + 邮件"]
+  A -->|"到期"| G["宽限期 · 只读<br/>默认 30 天"]
+  G -->|"续约"| A
+  G -->|"宽限期结束"| S["停用<br/>数据保留，只能导出"]
+  S -->|"续约"| A
+  S -->|"学校申请"| D["导出交付后销毁"]
+  </pre></div>
+  <div class="panel scroll">
+    <table>
+      <thead><tr><th>规则</th><th>做法</th></tr></thead>
+      <tbody>
+        <tr><td>模块授权</td><td>每所学校记录已开通模块及各自有效期；基础模块（班级、学生、教师）随服务开通，运动模块单独开通</td></tr>
+        <tr><td>权限生效</td><td>计算权限时，与学校已开通模块求交集：未开通模块的菜单和接口，对该校的学校、教师、学生、家长身份不可见；公司和代理商进入该校时同样受限</td></tr>
+        <tr><td>只读</td><td>宽限期内拦截增、改、删、导入动作，保留查、导出</td></tr>
+        <tr><td>停用</td><td>该校身份只能登录后导出数据；平台侧数据保留，不删除</td></tr>
+        <tr><td>谁来操作</td><td>公司“学校服务”功能模块：销售可编辑（开通、续约申请），管理档可审核与停用；每次变更写审计</td></tr>
+        <tr><td>销售工作台</td><td>按到期时间列出负责的学校，标出试用、即将到期、宽限期</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 style="margin:4px 0 0;font-size:16px">I11 · 家长身份（预留，功能后做）</h3>
+  <div class="panel scroll">
+    <table>
+      <thead><tr><th>项</th><th>约定</th></tr></thead>
+      <tbody>
+        <tr><td>身份类型</td><td><code>parent</code>，机构为孩子所在学校；孩子在两所学校，就有两个家长身份，用现有的身份切换</td></tr>
+        <tr><td>数据范围</td><td><code>child</code>：只看已绑定的孩子；同校多个孩子在身份内切换</td></tr>
+        <tr><td>绑定</td><td>学校生成邀请码，或家长输入孩子姓名 + 身份证后 6 位校验；学校可解除绑定</td></tr>
+        <tr><td>转学升学</td><td>绑定关系挂在学生索引上，孩子换学校后自动迁到新学校的家长身份</td></tr>
+        <tr><td>客户端</td><td>仅移动端，后续在 H5 中加家长 Tab</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="note">地基只建身份类型、数据范围和绑定表，不做家长端页面。</p>
+
+  <h3 style="margin:4px 0 0;font-size:16px">I12 · 业务模块接入规范（跳绳、跑步等）</h3>
+  <p class="lead">以后的每个运动模块都按同一个“模块清单”接入地基，地基不需要为某个模块改代码。</p>
+  <div class="panel scroll">
+    <table>
+      <thead><tr><th>模块需要声明</th><th>放在哪里</th><th>以跳绳模块为例</th></tr></thead>
+      <tbody>
+        <tr><td>模块编码与名称</td><td>contracts</td><td><code>rope</code> 跳绳</td></tr>
+        <tr><td>功能模块、可用动作、四档映射</td><td>contracts</td><td>跳绳训练：查 · 增 · 改 · 删 · 导入 · 导出</td></tr>
+        <tr><td>菜单（后台 / 移动端）</td><td>种子迁移</td><td>后台“跳绳成绩”；移动端学生“跳绳打卡”</td></tr>
+        <tr><td>内置角色的默认档位</td><td>contracts</td><td>体育教师：编辑；学生：本人查看</td></tr>
+        <tr><td>学校库表</td><td>模块自己的学校迁移</td><td>rope_records（学生、学年、学期、项目、次数、来源）</td></tr>
+        <tr><td>使用的运动项目</td><td>项目库</td><td><code>rope_skip_1min</code> 1 分钟跳绳</td></tr>
+        <tr><td>导入导出模板</td><td>contracts（Zod）</td><td>班级跳绳成绩导入模板</td></tr>
+        <tr><td>发出的事件</td><td>outbox topic</td><td><code>rope.record.created</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="note">代码位置：后端 <code>apps/server/src/modules/sports/&lt;模块&gt;</code>，后台页面 <code>apps/web/src/features/sports/&lt;模块&gt;</code>，移动端页面 <code>apps/mobile/src/features/sports/&lt;模块&gt;</code>。模块可以按学校开通或关闭（学校档案中记录已开通模块）。</p>
+
+  <h3 style="margin:4px 0 0;font-size:16px">I13 · 菜单以代码为准</h3>
+  <div class="panel scroll">
+    <table>
+      <thead><tr><th>项</th><th>做法</th></tr></thead>
+      <tbody>
+        <tr><td>来源</td><td>菜单、按钮、权限码、功能模块与四档映射，都由各业务模块在 contracts 中声明，随代码发布</td></tr>
+        <tr><td>同步</td><td>每次部署由迁移任务自动同步到 menus 表：新增的插入，删除的下线，已有的更新路由与权限码</td></tr>
+        <tr><td>后台能改什么</td><td>只能改显示名称、排序、图标、是否显示；不能新建菜单或权限码，避免与代码不一致</td></tr>
+        <tr><td>后台改过的显示项</td><td>单独保存，部署同步时不覆盖</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 style="margin:4px 0 0;font-size:16px">I14 · 系统初始化与学校开通向导</h3>
+  <div class="pick-wrap">
+    <div class="panel scroll"><pre class="mermaid">
+flowchart TB
+  S0["首次部署：初始化命令"] --> S1["创建第一个超级管理员"]
+  S1 --> S2["导入全国行政区划"]
+  S2 --> S3["导入数据字典<br/>运动项目库、国家评分标准"]
+  S3 --> S4["创建当前学年与学期"]
+  S4 --> S5["同步菜单与内置角色"]
+    </pre></div>
+    <div class="panel scroll"><pre class="mermaid">
+flowchart TB
+  W1["① 学校信息<br/>名称、标识码、区划"] --> W2["② 学校档案<br/>学段、学制年限、公办民办"]
+  W2 --> W3["③ 服务与模块<br/>试用或合同、服务期、开通模块"]
+  W3 --> W4["④ 开通独立数据库<br/>后台任务，显示进度"]
+  W4 --> W5["⑤ 第一个学校管理员<br/>开发环境密码 123456"]
+  W5 --> W6["⑥ 可选：导入班级与学生"]
+    </pre></div>
+  </div>
+  <p class="note">初始化是一条可重复执行的命令，已有的数据跳过，不会重复导入。开通向导每一步可保存草稿，第 ④ 步失败可单独重试。</p>
+
+  <h3 style="margin:4px 0 0;font-size:16px">I15 · 简易待办中心</h3>
+  <div class="panel scroll">
+    <table>
+      <thead><tr><th>项</th><th>做法</th></tr></thead>
+      <tbody>
+        <tr><td>待办来源</td><td>学生转学确认（原学校）、学校服务开通与续约审核（公司），后续业务模块可以发起同类待办</td></tr>
+        <tr><td>处理方式</td><td>同意 / 拒绝 + 处理意见；处理结果通知发起人；写审计</td></tr>
+        <tr><td>谁能看到</td><td>按“处理人身份 + 机构”分发；同机构有该权限的人都能处理，一人处理后其他人看到已处理</td></tr>
+        <tr><td>入口</td><td>顶栏铃铛显示待办数量；“我的待办”列表分待处理 / 已处理 / 我发起的</td></tr>
+        <tr><td>不做</td><td>可配置的多级审批流，需要时在上层业务中再扩展</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 style="margin:4px 0 0;font-size:16px">I16 · 各身份的工作台首页</h3>
+  <div class="panel scroll">
+    <table>
+      <thead><tr><th>身份</th><th>首页内容</th></tr></thead>
+      <tbody>
+        <tr><td>公司</td><td>负责的学校数、试用中 / 即将到期 / 宽限期的学校、待审核的开通申请</td></tr>
+        <tr><td>教育局</td><td>辖区学校数、已开通平台的学校数、各区县开通情况</td></tr>
+        <tr><td>代理商</td><td>授权学校列表与到期时间、本部门负责的学校</td></tr>
+        <tr><td>学校管理员</td><td>班级数、学生数、教师数，本学年状态（是否已完成学年切换），待确认的转学</td></tr>
+        <tr><td>教师（后台）</td><td>任教班级与学生数</td></tr>
+        <tr><td>所有身份</td><td>待办数量、常用入口、当前学年学期</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="note">首页卡片也按功能模块与数据范围过滤：看不到的模块不显示对应卡片，数字只统计自己可见范围内的数据。</p>
+
+  <h3 style="margin:4px 0 0;font-size:16px">I17 · 编码与 ID 规范</h3>
+  <div class="panel scroll">
+    <table>
+      <thead><tr><th>类别</th><th>例子</th><th>谁生成</th><th>前端能否输入</th><th>前端是否显示</th></tr></thead>
+      <tbody>
+        <tr><td>技术 ID</td><td>UUID v7 主键、schema 名</td><td>系统</td><td>否</td><td>否（只在接口和路由中使用）</td></tr>
+        <tr><td>系统编码</td><td>角色编码、部门编码、权限码、功能模块编码、字典值</td><td>系统或代码声明</td><td>否，新建时只填名称</td><td>否，一律显示名称</td></tr>
+        <tr><td>系统编号</td><td>开通申请号、任务编号、待办编号</td><td>编号规则自动生成，如 <code>KT-2026-000123</code></td><td>否</td><td>是，可搜索、可复制</td></tr>
+        <tr><td>业务编号</td><td>学号、学校标识码、合同编号、证件号</td><td>来自现实世界</td><td>是（录入或导入）</td><td>是；证件号按脱敏规则显示</td></tr>
+        <tr><td>业务编码的显示</td><td>年级编码 13、学段编码 1、区划码</td><td>系统</td><td>导入模板可用名称或编码</td><td>界面显示名称，如“三年级”“浙江省”</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="note">排查问题时，研发身份可在详情页“更多”菜单中复制技术 ID，其他身份看不到此入口。编号规则统一由 number_rules 维护：前缀、年份、流水位数，按类型和年份递增且不重号。</p>
+
+  <h3 style="margin:4px 0 0;font-size:16px">I18 · 企业级基线</h3>
+  <div class="panel scroll">
+    <table>
+      <thead><tr><th>级别</th><th>内容</th><th>做法</th></tr></thead>
+      <tbody>
+        <tr><td rowspan="6">P0</td><td>防并发覆盖</td><td>业务表带 <code>version</code> 列；保存时带上版本号，不一致返回 409，前端提示“数据已被他人修改，请刷新后再改”</td></tr>
+        <tr><td>防重复提交</td><td>新增、导入、开通等接口要求 <code>Idempotency-Key</code> 请求头，Redis 记录 24 小时，重复请求直接返回首次结果；前端按钮提交中禁用</td></tr>
+        <tr><td>发布不停机</td><td>数据库变更按“先加后删”分两次发布（先加列兼容新旧代码，下个版本再删旧列）；server 滚动更新、优雅停机；前端构建带版本号，检测到新版本提示“系统已更新，请刷新”</td></tr>
+        <tr><td>跨库一致性</td><td>同一数据源内的平台库与学校库写入放在一个事务；跨数据源时先写本地并记录 outbox 事件，由 worker 补齐另一侧，失败自动重试并告警</td></tr>
+        <tr><td>安全基线</td><td>Nginx 安全响应头（CSP、HSTS、X-Frame-Options 等）；上传校验类型、大小与文件头；CI 扫描依赖漏洞与镜像漏洞；密码哈希使用 argon2id</td></tr>
+        <tr><td>密钥管理与轮换</td><td>密钥不进代码库，由部署环境注入；加密字段带密钥版本号，新数据用新密钥，旧数据仍可解密，后台任务逐步重加密</td></tr>
+        <tr><td rowspan="6">P1</td><td>字段级变更历史</td><td>审计日志记录变更前后的字段值，详情页可查看“谁、何时、把什么改成了什么”</td></tr>
+        <tr><td>功能开关与灰度</td><td>按全局、按学校、按机构开启新功能，可一键关闭；与按合同开通的模块授权相互独立</td></tr>
+        <tr><td>运维面板</td><td>研发可查看任务队列、各学校数据库迁移状态、失败任务并重试</td></tr>
+        <tr><td>前端错误上报</td><td>页面报错、接口异常自动上报到自建错误收集服务，附带版本号与身份类型（不含个人信息）</td></tr>
+        <tr><td>接口版本</td><td>统一前缀 <code>/api/v1</code>；不兼容改动发布 v2，新旧并存一个过渡期</td></tr>
+        <tr><td>数据保留与清理</td><td>统一保留期：操作日志 ≥ 6 个月，回收站 30 天，导出文件 24 小时，已处理待办 1 年；定时任务自动清理</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+
+<section>
+  <h2><small>J</small>前端架构</h2>
+  <p class="lead">登录 → 选择组织 → 模块门户 → 应用工作区。门户与工作区使用 HeroUI Pro 的 AppLayout、可折叠 Sidebar 与 KPI 指标卡（需采购授权）。</p>
+  <div class="panel scroll"><pre class="mermaid">
+flowchart LR
+  L["登录<br/>账号 + 密码"] --> C{"需要改密"}
+  C -- 是 --> CP["强制改密"]
+  C -- 否 --> N{"身份数量"}
+  CP --> N
+  N -- "1 个" --> P["模块门户"]
+  N -- "多个" --> S["选择组织<br/>每次显示，上次使用置顶"]
+  S --> P
+  P --> A["应用工作区"]
+  A -- "应用切换器" --> P
+  A -- "切换身份" --> P
+  </pre></div>
+
+  <h3 style="margin:4px 0 0;font-size:16px">选择组织</h3>
+  <div class="win" aria-label="选择组织页示意">
+    <div class="win-bar"><i></i><i></i><i></i><span>选择要进入的组织</span></div>
+    <div class="org-pick">
+      <div class="og-grp">公司</div>
+      <div class="og-row"><div class="og on"><b>智体科技 · 研发部</b><small>公司员工 · 上次使用</small></div></div>
+      <div class="og-grp">教育局</div>
+      <div class="og-row"><div class="og"><b>浙江省教育厅</b><small>教育局</small></div></div>
+      <div class="og-grp">代理商</div>
+      <div class="og-row"><div class="og"><b>某体育服务代理商</b><small>代理商 · 运营一部</small></div></div>
+      <div class="og-grp">学校</div>
+      <div class="og-row"><div class="og"><b>西湖第一小学</b><small>学校管理员</small></div><div class="og off"><b>西湖第一小学</b><small>学生 · 后台暂不支持</small></div></div>
+    </div>
+  </div>
+
+  <h3 style="margin:4px 0 0;font-size:16px">模块门户（HeroUI Pro AppLayout + KPIGroup）</h3>
+  <div class="win" aria-label="模块门户示意">
+    <div class="win-bar"><i></i><i></i><i></i><span>智慧体育云 · 浙江销售组 · 销售</span></div>
+    <div class="portal">
+      <div class="pt-top"><b>早上好，李销售</b><span class="tag">2026-2027学年 第一学期</span></div>
+      <div class="kpis">
+        <div class="kpi"><small>负责学校</small><b>312</b><em class="up">较上周 +4</em><svg viewBox="0 0 100 24" preserveAspectRatio="none" aria-hidden="true"><polyline points="0,20 15,18 30,17 45,14 60,12 75,10 100,6" /></svg></div>
+        <div class="kpi"><small>试用中</small><b>12</b><em>较上周 +1</em><svg viewBox="0 0 100 24" preserveAspectRatio="none" aria-hidden="true"><polyline points="0,14 20,13 40,15 60,12 80,12 100,11" /></svg></div>
+        <div class="kpi"><small>30 天内到期</small><b>7</b><em class="warn">需跟进</em><svg viewBox="0 0 100 24" preserveAspectRatio="none" aria-hidden="true"><polyline points="0,18 20,16 40,15 60,12 80,9 100,8" /></svg></div>
+        <div class="kpi"><small>待审核申请</small><b>3</b><em>今日新增 1</em><svg viewBox="0 0 100 24" preserveAspectRatio="none" aria-hidden="true"><polyline points="0,16 25,16 50,12 75,14 100,10" /></svg></div>
+      </div>
+      <div class="pt-sec">我的应用</div>
+      <div class="apps">
+        <div class="appc"><i>校</i><b>学校运营</b><small>查看负责学校、进入学校</small></div>
+        <div class="appc"><i>机</i><b>机构管理</b><small>学校开通、服务与应用</small></div>
+        <div class="appc"><i>组</i><b>组织与权限</b><small>部门、成员、角色</small></div>
+      </div>
+      <div class="pt-two">
+        <div><div class="pt-sec">待办</div><div class="pt-li">KT-2026-000045 · 西湖一小续约审核</div><div class="pt-li">KT-2026-000046 · 上城实验开通审核</div></div>
+        <div><div class="pt-sec">最近访问</div><div class="pt-li">学校运营 › 学校列表</div><div class="pt-li">机构管理 › 服务与应用</div></div>
+      </div>
+    </div>
+  </div>
+
+  <h3 style="margin:4px 0 0;font-size:16px">应用工作区（HeroUI Pro AppLayout + Sidebar）</h3>
+  <div class="win" aria-label="应用工作区示意">
+    <div class="win-bar"><i></i><i></i><i></i><span>学校基础数据 · 西湖第一小学</span></div>
+    <div class="ws">
+      <aside class="ws-side">
+        <div class="ws-app">▦ 学校基础数据</div>
+        <div class="ws-m">学校档案</div>
+        <div class="ws-m on">学生管理</div>
+        <div class="ws-m">行政班</div>
+        <div class="ws-m">教学班</div>
+        <div class="ws-m">教师与任课</div>
+        <div class="ws-m">学年切换</div>
+        <div class="ws-m">转学</div>
+        <div class="ws-m">代理商授权</div>
+        <div class="ws-fold">« 收起为图标栏</div>
+      </aside>
+      <div class="ws-main">
+        <div class="ws-top"><span>学年 2026-2027 ▾</span><span>当前学校：西湖第一小学</span><span>任务 1</span><span>待办 2</span><span>切换身份 ▾</span></div>
+        <div class="ws-crumb">学校基础数据 › 学生管理</div>
+        <div class="ws-tools"><span class="btn pri">新增</span><span class="btn ghost">导入</span><span class="btn ghost">导出</span><span class="ws-search">搜索姓名、学号</span></div>
+        <table class="mini">
+          <thead><tr><th>学号</th><th>姓名</th><th>班级</th><th>证件号</th><th>操作</th></tr></thead>
+          <tbody>
+            <tr><td>2024010101</td><td>王小明</td><td>三年级(1)班</td><td>330***********1234</td><td><a>编辑</a></td></tr>
+            <tr><td>2021020301</td><td>陈小红</td><td>初一(3)班</td><td>330***********5678</td><td class="muted">—</td></tr>
+          </tbody>
+        </table>
+        <small class="hint">第二行没有“编辑”：该行不在当前身份“编辑学生”的数据范围内（按行 allowedActions 显示）。示例数据为虚构。</small>
+      </div>
+    </div>
+  </div>
+
+  <h3 style="margin:4px 0 0;font-size:16px">前端分层</h3>
+  <div class="panel scroll"><pre class="mermaid">
+flowchart TB
+  subgraph Shell["HeroUI Pro AppLayout"]
+    TB["顶栏：应用切换 · 学年学期 · 当前学校 · 任务 · 待办 · 身份切换 · 用户"]
+    SB["Sidebar：当前应用菜单，展开 / 图标栏"]
+  end
+  subgraph Screen["ScreenLayout · BI 大屏"]
+    SC1["全屏 · 1920×1080 等比缩放 · 深色主题"]
+    SC2["10–15 秒轮询 · 显示数据更新时间 · token 自动续期"]
+  end
+  RG --> Screen
+  S1["session store<br/>token · me · 当前学校 · 学年"] --> TB
+  Q["TanStack Query<br/>key 含 identityId + schoolId"] --> SB
+  MENU["/menus/current?app="] --> RG["路由生成<br/>component key 查 registry"]
+  RG --> P["features 页面"]
+  P --> F["表单：react-hook-form + contracts 中的 Zod schema"]
+  P --> C["Can 组件与按行 allowedActions 显示按钮"]
+  P --> API["api 客户端：带 token，解包响应，401 跳登录"]
+  </pre></div>
+</section>
+
+<section>
+  <h2><small>K</small>移动端：教师端 + 学生端（M2，不在地基 M1）</h2>
+  <p class="lead">一个 H5 应用，登录后按当前身份显示教师或学生的界面。不是后台：没有侧栏和表格，用底部 Tab、卡片和大按钮，单手可操作。教师兼家长这类多身份账号，在“我的”里切换身份。</p>
+  <div class="phones">
+    <figure class="phone" aria-label="教师端首页示意">
+      <div class="ph-bar"><span>工作台</span><span class="ph-chip">西湖一小 · 体育教师</span></div>
+      <div class="ph-body">
+        <div class="ph-card ph-hero"><small>今天 · 第一学期 第 11 周</small><b>3 节体育课</b><span>下一节 10:20 三年级(1)班 · 操场 A</span></div>
+        <div class="ph-grid">
+          <div class="ph-act"><i>✓</i>课堂点名</div>
+          <div class="ph-act"><i>＋</i>体测录入</div>
+          <div class="ph-act"><i>↗</i>运动作业</div>
+          <div class="ph-act"><i>≡</i>班级成绩</div>
+        </div>
+        <div class="ph-card"><div class="ph-row"><b>三年级(1)班</b><span class="ph-tag">班主任</span></div><div class="ph-meter"><span style="width:82%"></span></div><small>体测完成 37 / 45 人</small></div>
+        <div class="ph-card"><div class="ph-row"><b>三年级(2)班</b></div><div class="ph-meter"><span style="width:51%"></span></div><small>体测完成 23 / 45 人</small></div>
+      </div>
+      <nav class="ph-tabs"><span class="on">工作台</span><span>班级</span><span>消息</span><span>我的</span></nav>
+    </figure>
+    <figure class="phone" aria-label="学生端首页示意">
+      <div class="ph-bar"><span>首页</span><span class="ph-chip">三年级(1)班 · 王小明</span></div>
+      <div class="ph-body">
+        <div class="ph-card ph-hero"><small>2026-2027学年 体测总分</small><b>86.5 <em>良好</em></b><span>比上学期提高 4.0 分</span></div>
+        <div class="ph-card"><div class="ph-row"><b>本周运动打卡</b><span>4 / 5 天</span></div><div class="ph-meter"><span style="width:80%"></span></div><small>今日任务：1 分钟跳绳 × 3 组</small></div>
+        <div class="ph-card ph-list">
+          <div class="ph-row"><span>1 分钟跳绳</span><b>142 次</b></div>
+          <div class="ph-row"><span>50 米跑</span><b>9.1 秒</b></div>
+          <div class="ph-row"><span>坐位体前屈</span><b>12.4 厘米</b></div>
+        </div>
+      </div>
+      <nav class="ph-tabs"><span class="on">首页</span><span>运动</span><span>成绩</span><span>我的</span></nav>
+    </figure>
+  </div>
+  <p class="note">以上是界面示意，只用来说明形态。实际界面用 HeroUI 3 的 Card、Tabs、Button、Progress 等组件实现，示例数据为虚构。</p>
+  <div class="panel scroll"><pre class="mermaid">
+flowchart LR
+  L["登录<br/>账号密码，后续支持微信"] --> ID{"当前身份"}
+  ID -- "teacher" --> T["教师端 Tab<br/>工作台 · 班级 · 消息 · 我的"]
+  ID -- "student" --> S["学生端 Tab<br/>首页 · 运动 · 成绩 · 我的"]
+  ID -- "其他身份" --> X["提示使用电脑端后台"]
+  T & S --> MENU["/menus/current?client=mobile<br/>Tab 与入口也由菜单配置"]
+  T & S --> API["/api/m/* 聚合接口<br/>同一套鉴权、权限码与数据范围"]
+  </pre></div>
+  <div class="panel scroll">
+    <table>
+      <thead><tr><th>设计点</th><th>做法</th></tr></thead>
+      <tbody>
+        <tr><td>和后台的关系</td><td>独立应用 <code>apps/mobile</code>，共用契约包、登录、身份和权限；后台 <code>apps/web</code> 不做手机适配</td></tr>
+        <tr><td>菜单配置</td><td>菜单表加 <code>client</code> 字段（admin / mobile），移动端 Tab 和首页入口也能在后台按身份配置</td></tr>
+        <tr><td>学生账号</td><td>学校录入学生时自动生成账号（学校代码 + 学号），首次登录强制改密；学生身份的 <code>ref_id</code> 指向学校库中的学生</td></tr>
+        <tr><td>学生数据范围</td><td>新增 <code>self</code>：只能读写本人数据，接口不接受任意学生 id</td></tr>
+        <tr><td>接口</td><td><code>/api/m/*</code> 按页面聚合，一屏一次请求，减少移动网络下的往返</td></tr>
+        <tr><td>运行环境</td><td>手机浏览器、微信、钉钉内打开；支持加到主屏幕（PWA）；适配刘海屏安全区</td></tr>
+        <tr><td>后续</td><td>家长身份、微信登录、消息推送；需要原生能力时再用 HeroUI Native 做 App，接口不变</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section>
+  <h2><small>L</small>部署架构</h2>
+  <div class="panel scroll"><pre class="mermaid">
+flowchart LR
+  U["电脑浏览器<br/>后台 + 大屏"] -->|"443"| N["web<br/>Nginx：/ 后台 SPA · /m 移动端 H5"]
+  MB["手机 / 微信 / 钉钉<br/>教师端 + 学生端"] -->|"443 /m"| N
+  N -->|"/api"| S1["server × N<br/>NestJS 无状态"]
+  S1 --> PG[("PostgreSQL 17<br/>public + school_* + analytics")]
+  S1 --> RD[("Redis 8")]
+  S1 --> MO[("MinIO")]
+  WK["worker<br/>BullMQ"] --> PG
+  WK --> RD
+  MG["migrate 一次性任务<br/>启动前执行"] --> PG
+  </pre></div>
+  <p class="note">server 不在启动时跑迁移，改由 migrate 一次性容器先执行，避免多副本同时迁移。演示数据通过 seed 任务单独写入。</p>
+  <p class="note">最低备份要求：每日自动全库备份（pg_dump），保留最近 7 天，备份文件存放在数据库服务器以外的位置。完整的恢复方案与演练后续再做。</p>
+</section>
+
+<section>
+  <h2><small>M</small>地基 M1 范围清单</h2>
+  <p class="lead">地基 M1 只交付 Web 后台管理（含后台外壳与权限体系），移动端放到 M2。P0 是 M1 必须完成的；P1 在 M1 后半段完成，不阻塞上层业务启动。</p>
+  <div class="panel scroll">
+    <table>
+      <thead><tr><th>领域</th><th>P0（必须）</th><th>P1（随后）</th></tr></thead>
+      <tbody>
+        <tr><td>工程</td><td>monorepo、契约包、Biome、git cz、CI、三套环境、Docker Compose、种子数据</td><td>OpenAPI 文档站、可观测性接入</td></tr>
+        <tr><td>账号与认证</td><td>登录、切换身份、access + refresh token、失败锁定、首次改密、开发密码 123456</td><td>邮箱验证码找回密码、在线会话管理、定期改密</td></tr>
+        <tr><td>身份与权限</td><td>六种身份、基础角色、模块四档与六个基础动作、数据范围、分级管理、机构自建部门、敏感字段脱敏</td><td>自定义角色的“高级”动作勾选、菜单预览</td></tr>
+        <tr><td>组织与基础数据</td><td>机构、部门、全国区划导入、学校档案与年级编码、数据字典、运动项目库</td><td>系统参数后台、区划变更迁移、评分标准维护页面</td></tr>
+        <tr><td>学年学期</td><td>学年学期、按届建班、学籍、任课、学年切换</td><td>教学周与节假日</td></tr>
+        <tr><td>学校租户</td><td>开通、迁移、多数据源、租户隔离测试</td><td>停用、导出、销毁</td></tr>
+        <tr><td>学校基础数据</td><td>行政班、教学班、大学院系、学生档案、教师、代理商授权</td><td>学生账号生成（随 M2 移动端）</td></tr>
+        <tr><td>学生查重与转学</td><td>学生索引（身份证哈希）、录入查重、升学关联</td><td>转学申请与确认、成长摘要复制</td></tr>
+        <tr><td>学校服务与模块</td><td>服务状态（试用 · 服务中 · 宽限期 · 停用）、模块授权参与权限计算、只读拦截</td><td>到期提醒、销售工作台</td></tr>
+        <tr><td>家长身份（预留）</td><td>parent 身份类型、child 数据范围、绑定表</td><td>绑定流程与家长端页面（不在地基）</td></tr>
+        <tr><td>初始化与开通</td><td>系统初始化命令、学校开通向导、菜单以代码为准自动同步</td><td>菜单显示项后台调整</td></tr>
+        <tr><td>待办与首页</td><td>简易待办中心（转学确认、开通审核）、各身份工作台首页</td><td>首页卡片个性化排序</td></tr>
+        <tr><td>企业级基线</td><td>防并发覆盖、防重复提交、发布不停机、跨库一致性、安全基线、密钥管理与轮换、编号规则、每日全库备份</td><td>字段级变更历史、功能开关与灰度、运维面板、前端错误上报、接口版本、数据保留与清理</td></tr>
+        <tr><td>暂不考虑</td><td colspan="2">第三方对接（省学籍、钉钉/企业微信、单点登录，后续规划）· 完整恢复方案与演练 · 中职学段 · 信创国产化</td></tr>
+        <tr><td>通用能力</td><td>导入导出、任务中心、文件存储、outbox</td><td>站内消息、回收站页面</td></tr>
+        <tr><td>审计合规</td><td>审计日志、登录日志、日志留存 6 个月、敏感字段加密</td><td>日志查询页面</td></tr>
+        <tr><td>前端</td><td>后台外壳、动态路由、权限组件、通用列表页、通用表单、浏览器版本检测与升级提示</td><td>404 / 无权限 / 空状态页</td></tr>
+        <tr><td>移动端</td><td colspan="2">不在地基 M1，放到 M2：教师端、学生端 H5、学生账号登录。后端照常预留学生身份、菜单 client 字段、token 客户端区分</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section>
+  <h2><small>附录 A</small>上层业务预留：中考体育（M3 再讨论）</h2>
+  <p class="lead">不在地基范围。这里只保留已讨论过的结论：市级规模，体测设备（自研）自动上报，一分钟内出统计。地基为它保证三件事：可以新增区域级 schema，可以新增身份类型和数据范围（如考务人员、按考点），有 outbox 事件和 worker。</p>
+  <div class="panel scroll"><pre class="mermaid">
+flowchart TB
+  subgraph Site["考点现场"]
+    D1["跳绳 / 实心球 / 1000 米等设备"] -->|"局域网"| GW["边缘网关<br/>本地缓存 · 断网补传 · 签名"]
+  end
+  GW -->|"HTTPS 每 5–10 秒一批"| IG["ingest 采集服务<br/>验签 · 设备号+序号去重"]
+  IG --> RAW[("exam.results_raw<br/>只追加")]
+  IG --> SCO[("exam.scores<br/>每人每项有效成绩")]
+  SCO -->|"每 20 秒增量"| WK["worker 汇总"]
+  WK --> RC[("Redis 大屏缓存")]
+  RC -->|"每 10–15 秒轮询"| BI["教育局大屏"]
+  SC["学校库 九年级学生"] -->|"报名时复制考生"| EC[("exam.candidates")]
+  SCO -->|"发布后回写本校学生成绩"| SS["各校学校库"]
+  </pre></div>
+  <p class="note">估算：5–10 万考生、约 40 万条成绩，峰值每秒几十条，PostgreSQL 足够；端到端约 45 秒。考试期间采集服务独立部署、平台封版。考试库表结构、考务身份、设备认证到 M3 再详细设计。</p>
+</section>
+
+<footer>下一步：确认本图后，生成 docs/ARCHITECTURE.md（架构说明）、docs/SPEC.md（功能与接口规格）、docs/TASKS.md（开发任务拆分）。</footer>
+</div>
