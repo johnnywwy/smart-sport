@@ -1,0 +1,25 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "tasks": {
+    "build": {
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": [
+        "dist/**"
+      ]
+    },
+    "typecheck": {
+      "dependsOn": [
+        "^typecheck"
+      ]
+    },
+    "@smart-sport/contracts#build": {
+      "outputs": []
+    },
+    "@smart-sport/domain#build": {
+      "outputs": []
+    }
+  },
+  "globalPassThroughEnv": []
+}

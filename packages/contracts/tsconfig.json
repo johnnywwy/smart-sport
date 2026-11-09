@@ -1,0 +1,1 @@
+{ "extends": "@smart-sport/config/tsconfig", "include": ["src"] }
