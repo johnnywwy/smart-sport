@@ -3,7 +3,9 @@ packages:
   - packages/*
 onlyBuiltDependencies:
   - esbuild
+  - argon2
 
 allowBuilds:
   "@heroui-pro/react": true
   "@zowe/secrets-for-zowe-sdk": true
+  "argon2": true

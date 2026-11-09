@@ -2,17 +2,11 @@
   "$schema": "https://turbo.build/schema.json",
   "tasks": {
     "build": {
-      "dependsOn": [
-        "^build"
-      ],
-      "outputs": [
-        "dist/**"
-      ]
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**"]
     },
     "typecheck": {
-      "dependsOn": [
-        "^typecheck"
-      ]
+      "dependsOn": ["^typecheck"]
     },
     "@smart-sport/contracts#build": {
       "outputs": []
@@ -21,7 +15,5 @@
       "outputs": []
     }
   },
-  "globalPassThroughEnv": [
-    "HEROUI_KEY"
-  ]
+  "globalPassThroughEnv": ["HEROUI_KEY", "PORT"]
 }
