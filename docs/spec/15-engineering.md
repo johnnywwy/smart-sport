@@ -1,0 +1,104 @@
+# 15 · 工程与部署
+
+## 1. 仓库
+
+- pnpm workspace + Turborepo；包：`apps/server`、`apps/worker`、`apps/web`、`packages/contracts`、`packages/domain`、`packages/config`。
+- 全部 ESM；TypeScript strict；路径别名只在包内使用，跨包通过包名引用。
+- Biome 2 负责 lint 与格式化。
+- HeroUI Pro 为付费私有包：本地开发在用户级 `.npmrc` 配置令牌；CI 与 Docker 构建通过密钥注入（BuildKit secret），令牌不进代码库、不进镜像层；锁定精确版本。
+
+### 当前 Web 安装方式
+
+本项目按用户指定的 CollectUI 文档，使用 `hpsetup@4.7.4 react --auto` 下载 HeroUI React Pro。通过 `HEROUI_KEY` 环境变量注入密钥，不配置明文仓库凭据。安装步骤与当前交付边界见 `docs/DEVELOPMENT.md`。
+
+## 2. 提交规范
+
+- 统一用 `git cz`（commitizen + cz-git，中文交互）；commitlint 在 commit-msg 钩子校验；husky 管理钩子。
+- 格式：`type(scope): 说明`，正文写“做了什么、为什么”，关联任务编号（如 `Refs: T-031`）。
+- type：feat · fix · docs · style · refactor · perf · test · build · ci · chore · revert。
+- scope：server · worker · web · contracts · domain · db · deploy · docs · 以及规格编号（如 `spec-05`）。
+- 一个提交只做一件事（对应 TASKS 中的一个任务或其中一个可独立验证的部分）。
+- pre-commit：对暂存文件运行 Biome；pre-push：类型检查 + 受影响包单测。
+
+## 3. 前后端协作
+
+- **契约先行**：每个接口先在 `packages/contracts` 写 Zod schema（请求、响应、错误码）和示例数据，单独提交（`feat(contracts): …`），评审通过后前后端并行开发。
+- **前端 Mock**：MSW 根据契约与示例数据提供 Mock 接口；`VITE_MOCK` 可按接口前缀开关，后端就绪一个就切换一个。
+- **联调规则**：前后端出现不一致时，只能通过修改契约解决，修改契约要同时通知两端。
+- **切片完成定义**：后端集成测试通过、前端页面完成并接真实接口、切片 Playwright 冒烟通过、种子数据可演示、相关规格已更新（见 TASKS“前后端同步推进”）。
+- **后端任务合并后的检查**：负责人检查对应切片的前端任务是否可以开始或从 Mock 切换到真实接口。
+
+## 4. Drizzle 使用约定
+
+Drizzle 中文资料较少，以下写法作为团队标准，新人照此编写。
+
+| 场景       | 约定                                                                                                      |
+| ---------- | --------------------------------------------------------------------------------------------------------- |
+| 平台库查询 | 注入 `DRIZZLE`（默认数据源），表从 `schema/public.ts` 导入                                                |
+| 学校库查询 | 只能通过 `const { db, t } = await tenant.forSchool(schoolId)`；禁止手写 schema 名，禁止 `SET search_path` |
+| 数据范围   | 列表查询必须 `.where(and(条件, scopeFilter(t, 权限码)))`；代码评审时检查                                  |
+| 事务       | `db.transaction(async (tx) => …)`；同数据源内跨 public 与学校库写入用同一个 tx；跨数据源写 outbox         |
+| 乐观锁     | 更新统一用仓储基类的 `updateWithVersion`，条件含 `version`，影响 0 行抛 90002                             |
+| 软删除     | 默认查询经基类自动加 `isNull(deletedAt)`；需要包含已删除数据时显式调用 `withDeleted()`                    |
+| 迁移       | public 与学校库迁移都是手写 SQL 文件（学校库用 `__SCHEMA__` 占位），文件名 `NNNN_说明.sql`，只增不改      |
+| 类型       | 查询结果类型由 Drizzle 推导；对外返回前用 contracts 中的响应 schema 转换，不直接返回表行                  |
+| 原生 SQL   | 只能用 `sql` 模板（自动参数化），禁止字符串拼接                                                           |
+| 版本       | 锁定精确版本；升级前阅读更新日志并跑完整测试                                                              |
+
+## 5. 测试
+
+| 层       | 工具                                              | 要求                                                  |
+| -------- | ------------------------------------------------- | ----------------------------------------------------- |
+| 纯函数   | Vitest                                            | domain 包覆盖率 ≥ 90%                                 |
+| 接口集成 | Vitest + Testcontainers（真实 PostgreSQL、Redis） | 每个接口至少一个成功与一个权限失败用例                |
+| 隔离     | 专用测试套件                                      | 跨学校、跨部门、教师班级、代理商授权撤销              |
+| 端到端   | Playwright                                        | 登录 → 选择组织 → 门户 → 应用；学校开通向导；导入学生 |
+
+## 6. CI
+
+```
+install → biome → typecheck → unit → integration（Testcontainers）→ isolation → build → 依赖与镜像漏洞扫描 → 推送镜像
+```
+
+任何一步失败阻断合并。
+
+## 7. 环境
+
+| 环境        | 说明                                             |
+| ----------- | ------------------------------------------------ |
+| development | 本地；默认密码 `123456`；`seed-demo` 可用        |
+| test        | CI 与测试服务器；默认密码 `123456`；自动重建数据 |
+| production  | 禁止默认密码；必须配置全部密钥；关闭 `/api/docs` |
+
+配置由环境变量注入，启动时用 Zod 校验，缺失即启动失败。
+
+## 8. 部署
+
+Docker Compose 服务：postgres、redis、minio、migrate（一次性）、server × N、worker、web（Nginx）。
+
+发布顺序：构建镜像 → migrate（public 迁移 → 菜单与内置角色同步 → 学校库增量迁移）→ 滚动更新 server、worker → 更新 web。
+
+**不停机规则（先加后删）**：
+
+1. 版本 N：只新增列 / 表，新旧代码都能运行。
+2. 版本 N+1：代码不再使用旧列。
+3. 版本 N+2：删除旧列。
+
+server 收到 SIGTERM 后停止接收新请求，处理完进行中的请求再退出（最长 30 秒）。
+
+## 9. 备份
+
+- 每日 03:00 `pg_dump` 全库，保留 7 天，存放到数据库服务器以外的存储。
+- 完整恢复方案与演练不在 M1。
+
+## 10. 可观测（P1 为主）
+
+- M1：pino 结构化日志（含 traceId、identityId、schoolId）；`/health/live`、`/health/ready`。
+- P1：@nestjs/observe + OpenTelemetry 链路与指标；前端错误上报；运维面板（队列、学校库迁移状态、失败任务重试）；功能开关。
+
+## 11. 验收标准
+
+- 新开发者按 README 两条命令可在本地跑起全部服务。
+- 不符合规范的提交信息被 commit-msg 钩子拒绝。
+- 生产配置缺少任一密钥时服务拒绝启动。
+- 滚动发布期间持续请求无 5xx。
