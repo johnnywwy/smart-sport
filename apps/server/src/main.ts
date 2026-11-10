@@ -8,9 +8,10 @@ import { Logger, LoggerModule } from "nestjs-pino";
 
 import { ApiExceptionFilter, ApiResponseInterceptor } from "./api-response.js";
 import { DataSourceRegistry, DRIZZLE } from "./database/registry.js";
-import { HealthController, SERVER_CONFIG } from "./health.js";
-
+import { HealthController } from "./health.js";
+import { IdempotencyInterceptor } from "./idempotency.js";
 import { requestContextMiddleware } from "./request-context.js";
+import { SERVER_CONFIG } from "./server-config.js";
 
 const config = loadConfig("server");
 const databaseConfig = loadDatabaseConfig();
@@ -32,6 +33,7 @@ const databaseConfig = loadDatabaseConfig();
   controllers: [HealthController],
   providers: [
     { provide: APP_INTERCEPTOR, useClass: ApiResponseInterceptor },
+    { provide: APP_INTERCEPTOR, useClass: IdempotencyInterceptor },
     { provide: APP_FILTER, useClass: ApiExceptionFilter },
     { provide: SERVER_CONFIG, useValue: config },
     {

@@ -11,10 +11,9 @@ import { Redis } from "ioredis";
 import pg from "pg";
 
 import { RawResponse } from "./api-response.js";
-
+import { SERVER_CONFIG } from "./server-config.js";
 import { ApiZodResponse } from "./zod-route.js";
 
-export const SERVER_CONFIG = Symbol("SERVER_CONFIG");
 const timeoutMs = 2000;
 
 async function postgresReady(config: ServerConfig) {
