@@ -12,9 +12,18 @@ for (const workspace of ["server", "worker"]) {
   const { dependencies } = JSON.parse(await readFile(manifest, "utf8"));
   const require = createRequire(manifest);
   for (const name of Object.keys(dependencies)) {
-    await import(pathToFileURL(require.resolve(name)).href);
+    await import(
+      pathToFileURL(
+        require.resolve(name === "@smart-sport/config" ? `${name}/env` : name),
+      ).href
+    );
   }
-  const load = (name) => import(pathToFileURL(require.resolve(name)).href);
+  const load = (name) =>
+    import(
+      pathToFileURL(
+        require.resolve(name === "@smart-sport/config" ? `${name}/env` : name),
+      ).href
+    );
   const { Module } = await load("@nestjs/common");
   const { NestFactory } = await load("@nestjs/core");
   class DependencyProbe {}

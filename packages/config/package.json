@@ -5,6 +5,22 @@
   "type": "module",
   "exports": {
     "./tsconfig": "./tsconfig.json",
-    "./tsconfig.node": "./tsconfig.node.json"
+    "./tsconfig.node": "./tsconfig.node.json",
+    "./env": {
+      "types": "./dist/env.d.ts",
+      "default": "./dist/env.js"
+    }
+  },
+  "dependencies": {
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "24.19.2",
+    "vitest": "5.1.0"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.build.json --noEmit",
+    "test": "vitest run"
   }
 }

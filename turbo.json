@@ -6,7 +6,7 @@
       "outputs": ["dist/**"]
     },
     "typecheck": {
-      "dependsOn": ["^typecheck"]
+      "dependsOn": ["^build", "^typecheck"]
     },
     "@smart-sport/contracts#build": {
       "outputs": []

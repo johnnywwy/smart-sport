@@ -44,6 +44,9 @@ importers:
       '@nestjs/throttler':
         specifier: 6.7.1
         version: 6.7.1(@nestjs/common@12.4.2(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@12.4.2)(reflect-metadata@0.2.2)
+      '@smart-sport/config':
+        specifier: workspace:*
+        version: link:../../packages/config
       argon2:
         specifier: 0.45.2
         version: 0.45.2
@@ -90,9 +93,6 @@ importers:
       '@nestjs/testing':
         specifier: 12.4.2
         version: 12.4.2(@nestjs/common@12.4.2(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@12.4.2)(@nestjs/platform-express@12.4.2)
-      '@smart-sport/config':
-        specifier: workspace:*
-        version: link:../../packages/config
       '@testcontainers/postgresql':
         specifier: 12.2.1
         version: 12.2.1(bare-buffer@3.7.1)
@@ -259,6 +259,9 @@ importers:
       '@nestjs/core':
         specifier: 12.4.2
         version: 12.4.2(@nestjs/common@12.4.2(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/platform-express@12.4.2)(reflect-metadata@0.2.2)(rxjs@7.8.2)
+      '@smart-sport/config':
+        specifier: workspace:*
+        version: link:../../packages/config
       bullmq:
         specifier: 6.7.2
         version: 6.7.2(ioredis@6.0.0)(pg@8.23.1)
@@ -293,9 +296,6 @@ importers:
       '@nestjs/testing':
         specifier: 12.4.2
         version: 12.4.2(@nestjs/common@12.4.2(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@12.4.2)(@nestjs/platform-express@12.4.2)
-      '@smart-sport/config':
-        specifier: workspace:*
-        version: link:../../packages/config
       '@testcontainers/postgresql':
         specifier: 12.2.1
         version: 12.2.1(bare-buffer@3.7.1)
@@ -315,7 +315,18 @@ importers:
         specifier: 5.1.0
         version: 5.1.0(@types/node@24.19.2)(vite@7.3.8(@types/node@24.19.2)(jiti@2.7.0)(lightningcss@1.33.0)(tsx@4.23.15)(yaml@2.9.0))
 
-  packages/config: {}
+  packages/config:
+    dependencies:
+      zod:
+        specifier: 4.6.7
+        version: 4.6.7
+    devDependencies:
+      '@types/node':
+        specifier: 24.19.2
+        version: 24.19.2
+      vitest:
+        specifier: 5.1.0
+        version: 5.1.0(@types/node@24.19.2)(vite@7.3.8(@types/node@24.19.2)(jiti@2.7.0)(lightningcss@1.33.0)(tsx@4.23.15)(yaml@2.9.0))
 
   packages/contracts:
     dependencies:

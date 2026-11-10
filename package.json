@@ -13,7 +13,10 @@
     "lint": "biome check . && node scripts/check-ui.mjs",
     "format": "biome check --write .",
     "setup:hero": "node scripts/setup-hero.mjs",
-    "check:backend-deps": "node scripts/check-backend-deps.mjs"
+    "check:backend-deps": "pnpm --filter @smart-sport/config build && node scripts/check-backend-deps.mjs",
+    "env:init": "node scripts/init-env.mjs",
+    "test:config": "pnpm --filter @smart-sport/config test",
+    "test:config-startup": "turbo run build --filter=@smart-sport/server --filter=@smart-sport/worker && node scripts/check-config-startup.mjs"
   },
   "devDependencies": {
     "@biomejs/biome": "2.6.6",
