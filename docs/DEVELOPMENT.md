@@ -1,6 +1,6 @@
 # 本地开发
 
-从 `docs/TASKS.md` 的 S-01 开始。当前交付工程与 Web UI 接入基础，不代表 S-01 或 M1 已验收；后端依赖、最小 ESM 入口及共享配置校验已建立；本地基础设施见 `docs/LOCAL_INFRA.md`，业务数据库访问、认证、队列消费者、权限与业务接口尚未实现。界面预览中的统计为示例数据。
+从 `docs/TASKS.md` 的 S-01 开始。当前交付工程与 Web UI 接入基础，不代表 S-01 或 M1 已验收；后端依赖、最小 ESM 入口及共享配置校验已建立；本地基础设施见 `docs/LOCAL_INFRA.md`，业务数据库访问、认证、业务队列消费者、权限与业务接口尚未实现。界面预览中的统计为示例数据。
 
 ## 安装与运行
 
@@ -60,8 +60,8 @@ pnpm build
 pnpm --filter @smart-sport/server start
 ```
 
-`check:backend-deps` 验证各包运行时依赖导入、Nest ESM 上下文、argon2id 哈希验证及 jose EdDSA 签名验签；不会连接数据库或 Redis。worker 当前仅为可编译的应用上下文入口，尚未注册队列消费者。
+`check:backend-deps` 验证各包运行时依赖导入、Nest ESM 上下文、argon2id 哈希验证及 jose EdDSA 签名验签；不会连接数据库或 Redis。BullMQ worker 的本地运行方式见 `docs/LOCAL_INFRA.md`。
 
 `nestjs-zod` 当前发布版的 peer 范围未覆盖 NestJS 12，故未安装；T-014 后续用 Zod 4 接入验证与 OpenAPI。P1 的 OpenTelemetry / @nestjs/observe 暂不安装。
 
-依赖安装后已继续实施 T-003 开发环境与 T-004 配置校验，使用方式见 `docs/LOCAL_INFRA.md`；T-010 健康接口已可用，T-018 消费者仍待实现。安装器报告的可选原生加速与遥测脚本未统一放开；argon2 的必需构建已执行并验证。
+依赖安装后已继续实施 T-003 开发环境与 T-004 配置校验，使用方式见 `docs/LOCAL_INFRA.md`；T-010 健康接口与 T-018 测试队列消费者已可用。安装器报告的可选原生加速与遥测脚本未统一放开；argon2 的必需构建已执行并验证。

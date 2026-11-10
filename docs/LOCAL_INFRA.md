@@ -36,7 +36,7 @@ pnpm infra:check
 ```sh
 pnpm build
 pnpm --filter @smart-sport/server start
-# 另一个终端：worker 仍是最小入口，消费者将在 T-018 实现
+# 另一个终端：启动 BullMQ worker
 pnpm --filter @smart-sport/worker start
 ```
 
@@ -77,4 +77,10 @@ pnpm build
 
 运行 `pnpm db:migrate` 构建后端并迁移 `DATABASE_URL` 指向的默认数据库。SQL 文件放在 `apps/server/migrations/public`，命名为 `NNNN_说明.sql`，每个文件包含一条事务内可执行的 SQL。已执行文件按版本、文件名和 SHA-256 校验。迁移批次与记录写入使用同一事务，并持有数据库级 advisory lock。
 
-`EXTRA_DATASOURCES` 可配置命名连接池，值为数据源 key 到 PostgreSQL URL 的 JSON 对象，`default` 由 `DATABASE_URL` 提供。public 命令只迁移默认数据库。学校库迁移由 T-061 实现，队列消费者和生产部署分别由 T-018、T-181 实现。
+`EXTRA_DATASOURCES` 可配置命名连接池，值为数据源 key 到 PostgreSQL URL 的 JSON 对象，`default` 由 `DATABASE_URL` 提供。public 命令只迁移默认数据库。学校库迁移和生产部署分别由 T-061、T-181 实现。
+
+## BullMQ worker
+
+worker 使用 `REDIS_URL`，队列前缀由 `WORKER_QUEUE_PREFIX` 设置，默认 `smart-sport`。生产者和消费者需要使用相同的 Redis 数据库和前缀。当前 `probe` 队列消费 `ping` 任务，输入为 `{}` 或带有 0–2000 毫秒整数 `delayMs` 的对象，成功返回 `{ status: "ok" }`。未知任务和无效参数直接失败，成功及失败记录分别保留最近 100 条。
+
+收到 SIGTERM 或 SIGINT 后停止拉取任务，等待正在执行的任务结束，再关闭 Redis 连接。待执行任务仍保存在队列中，供重启后消费。业务消费者随对应任务接入。

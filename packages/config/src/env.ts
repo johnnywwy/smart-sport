@@ -60,8 +60,14 @@ const shared = {
   FIELD_ENCRYPTION_KEY: key32,
   STUDENT_HMAC_KEY: key32,
 };
-const workerSchema = z.object(shared);
-const serverSchema = workerSchema.extend({
+const workerSchema = z.object({
+  ...shared,
+  WORKER_QUEUE_PREFIX: z
+    .string()
+    .regex(/^[a-z0-9][a-z0-9_-]{0,63}$/)
+    .default("smart-sport"),
+});
+const serverSchema = z.object(shared).extend({
   HOST: nonempty.default("127.0.0.1"),
   PORT: z.coerce.number().int().min(1).max(65535).default(3000),
   JWT_KEY_ID: nonempty,
