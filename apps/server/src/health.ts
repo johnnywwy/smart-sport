@@ -6,6 +6,8 @@ import type { Readiness } from "@smart-sport/contracts";
 import { Redis } from "ioredis";
 import pg from "pg";
 
+import { RawResponse } from "./api-response.js";
+
 export const SERVER_CONFIG = Symbol("SERVER_CONFIG");
 const timeoutMs = 2000;
 
@@ -72,6 +74,7 @@ async function check(probe: Promise<void>) {
   }
 }
 
+@RawResponse()
 @Controller("health")
 export class HealthController {
   private pending: Promise<Readiness> | undefined;

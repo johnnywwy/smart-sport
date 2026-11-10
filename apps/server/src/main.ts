@@ -1,10 +1,11 @@
 import "reflect-metadata";
 import { Module } from "@nestjs/common";
-import { NestFactory } from "@nestjs/core";
+import { APP_FILTER, APP_INTERCEPTOR, NestFactory } from "@nestjs/core";
 import { loadConfig, loadDatabaseConfig } from "@smart-sport/config/env";
 import { ClsModule, ClsService } from "nestjs-cls";
 import { Logger, LoggerModule } from "nestjs-pino";
 
+import { ApiExceptionFilter, ApiResponseInterceptor } from "./api-response.js";
 import { DataSourceRegistry, DRIZZLE } from "./database/registry.js";
 import { HealthController, SERVER_CONFIG } from "./health.js";
 
@@ -29,6 +30,8 @@ const databaseConfig = loadDatabaseConfig();
   ],
   controllers: [HealthController],
   providers: [
+    { provide: APP_INTERCEPTOR, useClass: ApiResponseInterceptor },
+    { provide: APP_FILTER, useClass: ApiExceptionFilter },
     { provide: SERVER_CONFIG, useValue: config },
     {
       provide: DataSourceRegistry,
