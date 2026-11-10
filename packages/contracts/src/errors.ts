@@ -4,6 +4,7 @@ export const systemErrors = {
   90003: { status: 409, message: "重复提交" },
   90004: { status: 404, message: "数据不存在或无权查看" },
   90005: { status: 429, message: "请求过于频繁" },
+  90006: { status: 413, message: "请求体过大" },
   90500: { status: 500, message: "系统错误" },
 } as const;
 

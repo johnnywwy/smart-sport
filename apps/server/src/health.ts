@@ -11,6 +11,7 @@ import { Redis } from "ioredis";
 import pg from "pg";
 
 import { RawResponse } from "./api-response.js";
+import { SkipRateLimit } from "./rate-limit.js";
 import { SERVER_CONFIG } from "./server-config.js";
 import { ApiZodResponse } from "./zod-route.js";
 
@@ -79,6 +80,7 @@ async function check(probe: Promise<void>) {
   }
 }
 
+@SkipRateLimit()
 @RawResponse()
 @Controller("health")
 export class HealthController {

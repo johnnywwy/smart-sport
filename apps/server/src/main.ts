@@ -1,6 +1,12 @@
 import "reflect-metadata";
 import { Module } from "@nestjs/common";
-import { APP_FILTER, APP_INTERCEPTOR, NestFactory } from "@nestjs/core";
+import {
+  APP_FILTER,
+  APP_GUARD,
+  APP_INTERCEPTOR,
+  NestFactory,
+} from "@nestjs/core";
+import type { NestExpressApplication } from "@nestjs/platform-express";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import { loadConfig, loadDatabaseConfig } from "@smart-sport/config/env";
 import { ClsModule, ClsService } from "nestjs-cls";
@@ -10,6 +16,7 @@ import { ApiExceptionFilter, ApiResponseInterceptor } from "./api-response.js";
 import { DataSourceRegistry, DRIZZLE } from "./database/registry.js";
 import { HealthController } from "./health.js";
 import { IdempotencyInterceptor } from "./idempotency.js";
+import { RateLimitGuard } from "./rate-limit.js";
 import { requestContextMiddleware } from "./request-context.js";
 import { SERVER_CONFIG } from "./server-config.js";
 
@@ -32,6 +39,7 @@ const databaseConfig = loadDatabaseConfig();
   ],
   controllers: [HealthController],
   providers: [
+    { provide: APP_GUARD, useClass: RateLimitGuard },
     { provide: APP_INTERCEPTOR, useClass: ApiResponseInterceptor },
     { provide: APP_INTERCEPTOR, useClass: IdempotencyInterceptor },
     { provide: APP_FILTER, useClass: ApiExceptionFilter },
@@ -49,9 +57,13 @@ const databaseConfig = loadDatabaseConfig();
 })
 class ServerModule {}
 
-const app = await NestFactory.create(ServerModule, { bufferLogs: true });
+const app = await NestFactory.create<NestExpressApplication>(ServerModule, {
+  bufferLogs: true,
+});
 app.useLogger(app.get(Logger));
 app.use(requestContextMiddleware(app.get(ClsService)));
+app.useBodyParser("json", { limit: "1mb" });
+app.useBodyParser("urlencoded", { limit: "1mb", extended: true });
 app.enableShutdownHooks();
 if (config.apiDocsEnabled && config.NODE_ENV === "development") {
   const options = new DocumentBuilder()

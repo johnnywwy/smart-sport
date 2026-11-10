@@ -91,6 +91,8 @@ function errorBody(error: unknown, status: number) {
       return { code: 11101, message: "缺少权限", data: null };
     case 404:
       return { code: 90004, message: systemErrors[90004].message, data: null };
+    case 413:
+      return { code: 90006, message: systemErrors[90006].message, data: null };
     case 429:
       return { code: 90005, message: systemErrors[90005].message, data: null };
     default:
@@ -115,7 +117,13 @@ export class ApiExceptionFilter implements ExceptionFilter {
       return;
     }
     const request = http.getRequest<IncomingMessage & { id: string }>();
-    const status = error instanceof HttpException ? error.getStatus() : 500;
+    const tooLarge =
+      typeof error === "object" &&
+      error !== null &&
+      "type" in error &&
+      error.type === "entity.too.large";
+    const status =
+      error instanceof HttpException ? error.getStatus() : tooLarge ? 413 : 500;
     httpAdapter.reply(
       response,
       {
