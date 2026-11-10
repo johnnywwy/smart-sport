@@ -12,6 +12,8 @@
 | 请求校验   | 每个接口的 body、query、params 都有 `packages/contracts` 中的 Zod schema |
 | 文档       | 由 Zod schema 生成 OpenAPI，开发环境 `/api/docs` 可访问                  |
 
+开发环境可从 `/api/docs/openapi.json` 下载 OpenAPI 文档。路由参数用 `ZodRequest` 绑定共享对象 schema，响应文档用 `ApiZodResponse` 声明。业务响应 schema 应包含统一响应封装。
+
 ### 1.1 响应格式
 
 ```json

@@ -53,6 +53,8 @@ export function responseSchema<Data extends z.ZodType>(data: Data) {
   return z.union([successResponseSchema(data), errorResponseSchema(z.json())]);
 }
 
+export const livenessSchema = z.object({ status: z.literal("alive") });
+
 export const readinessSchema = z.object({
   status: z.enum(["ready", "unavailable"]),
   checks: z.object({

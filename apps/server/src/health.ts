@@ -2,11 +2,17 @@ import type { ServerResponse } from "node:http";
 import { ListBucketsCommand, S3Client } from "@aws-sdk/client-s3";
 import { Controller, Get, Inject, Res } from "@nestjs/common";
 import type { ServerConfig } from "@smart-sport/config/env";
-import type { Readiness } from "@smart-sport/contracts";
+import {
+  livenessSchema,
+  type Readiness,
+  readinessSchema,
+} from "@smart-sport/contracts";
 import { Redis } from "ioredis";
 import pg from "pg";
 
 import { RawResponse } from "./api-response.js";
+
+import { ApiZodResponse } from "./zod-route.js";
 
 export const SERVER_CONFIG = Symbol("SERVER_CONFIG");
 const timeoutMs = 2000;
@@ -81,11 +87,14 @@ export class HealthController {
 
   constructor(@Inject(SERVER_CONFIG) private readonly config: ServerConfig) {}
 
+  @ApiZodResponse(200, livenessSchema, "进程存活")
   @Get("live")
   live() {
     return { status: "alive" };
   }
 
+  @ApiZodResponse(200, readinessSchema, "依赖已就绪")
+  @ApiZodResponse(503, readinessSchema, "依赖不可用")
   @Get("ready")
   async ready(@Res({ passthrough: true }) response: ServerResponse) {
     this.pending ??= this.probe().finally(() => {
