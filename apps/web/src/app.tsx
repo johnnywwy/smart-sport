@@ -3,7 +3,7 @@ import { AppLayout } from "@heroui-pro/react/app-layout";
 import { KPI } from "@heroui-pro/react/kpi";
 import { KPIGroup } from "@heroui-pro/react/kpi-group";
 import { Sidebar } from "@heroui-pro/react/sidebar";
-import { useEffect } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import {
   Navigate,
   Route,
@@ -13,6 +13,14 @@ import {
 } from "react-router";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+
+const BackendHealth = import.meta.env.DEV
+  ? lazy(() =>
+      import("./backend-health").then(({ BackendHealth }) => ({
+        default: BackendHealth,
+      })),
+    )
+  : null;
 
 const usePreferences = create(
   persist<{
@@ -57,6 +65,11 @@ function PortalPreview() {
         <Chip size="sm" variant="soft">
           界面预览 · 示例数据
         </Chip>
+        {BackendHealth && (
+          <Suspense fallback={null}>
+            <BackendHealth />
+          </Suspense>
+        )}
         <h1 className="text-3xl font-semibold tracking-tight">
           让每一所学校，连接更好的体育教育
         </h1>

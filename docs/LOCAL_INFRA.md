@@ -40,7 +40,7 @@ pnpm --filter @smart-sport/server start
 pnpm --filter @smart-sport/worker start
 ```
 
-两个入口先加载 `@smart-sport/config/env` 校验，再创建 Nest 应用。`start` 自动加载根目录 `.env`（存在时），已注入的环境变量优先；直接执行构建产物时由运行环境提供变量。server 默认监听 `127.0.0.1:3000`，尚无健康检查和业务路由，访问 `/` 返回 404 是当前正常行为。
+两个入口先加载 `@smart-sport/config/env` 校验，再创建 Nest 应用。`start` 自动加载根目录 `.env`（存在时），已注入的环境变量优先；直接执行构建产物时由运行环境提供变量。server 默认监听 `127.0.0.1:3000`，提供 `GET /health/live` 和 `GET /health/ready`。前者检查进程是否存活，后者并行检查 PostgreSQL、Redis 和 MinIO，全部通过返回 200，否则返回 503。MinIO 使用签名的 ListBuckets 请求，本地开发凭据需要列举存储桶权限。开发版门户通过 Vite 代理查询默认端口 3000 并显示状态。
 
 ## 配置契约
 
@@ -73,4 +73,4 @@ pnpm build
 
 配置测试覆盖三种环境、缺失项、非法 URL/端口/密钥及错误日志脱敏。启动测试逐个移除 server / worker 的必填变量，直接执行编译后的真实入口，要求进程非零退出并指出缺失变量。
 
-T-003 / T-004 不包括 T-010 健康接口、T-011 迁移、T-018 消费者或 T-181 生产部署。
+数据库迁移、队列消费者和生产部署分别由 T-011、T-018、T-181 实现。

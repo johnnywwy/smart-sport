@@ -4,10 +4,25 @@ import { NestFactory } from "@nestjs/core";
 import { loadConfig } from "@smart-sport/config/env";
 import { Logger, LoggerModule } from "nestjs-pino";
 
+import { HealthController, SERVER_CONFIG } from "./health.js";
+
 const config = loadConfig("server");
 
-// 安装验证用的最小入口；健康检查与业务路由在 T-010 中实现。
-@Module({ imports: [LoggerModule.forRoot()] })
+@Module({
+  imports: [
+    LoggerModule.forRoot({
+      pinoHttp: {
+        redact: [
+          "req.headers.authorization",
+          "req.headers.cookie",
+          'res.headers["set-cookie"]',
+        ],
+      },
+    }),
+  ],
+  controllers: [HealthController],
+  providers: [{ provide: SERVER_CONFIG, useValue: config }],
+})
 class ServerModule {}
 
 const app = await NestFactory.create(ServerModule, { bufferLogs: true });

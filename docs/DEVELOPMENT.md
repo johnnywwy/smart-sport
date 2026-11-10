@@ -64,4 +64,4 @@ pnpm --filter @smart-sport/server start
 
 `nestjs-zod` 当前发布版的 peer 范围未覆盖 NestJS 12，故未安装；T-014 后续用 Zod 4 接入验证与 OpenAPI。P1 的 OpenTelemetry / @nestjs/observe 暂不安装。
 
-依赖安装后已继续实施 T-003 开发环境与 T-004 配置校验，使用方式见 `docs/LOCAL_INFRA.md`；T-010 健康接口与 T-018 消费者仍待实现。安装器报告的可选原生加速与遥测脚本未统一放开；argon2 的必需构建已执行并验证。
+依赖安装后已继续实施 T-003 开发环境与 T-004 配置校验，使用方式见 `docs/LOCAL_INFRA.md`；T-010 健康接口已可用，T-018 消费者仍待实现。安装器报告的可选原生加速与遥测脚本未统一放开；argon2 的必需构建已执行并验证。

@@ -10,9 +10,11 @@
 - 已建立 pnpm/Turborepo/TypeScript strict/Biome 工程骨架与 config、contracts、domain 包骨架（T-001）。
 - 已安装 HeroUI React Pro 并建立 Web 预览，包含 AppLayout、Sidebar、KPIGroup、KPI 与主题切换（T-150）；前端 UI 控件强制从 HeroUI 导入。
 - 当前页面位于 `/preview/portal` 与 `/preview/workspace`，仅用于验证 UI 接入，数据明确标为示例。T-155/T-156 的业务功能、S-01 后端与其他任务尚未完成，切片不标为已完成。
-- 已安装 server / worker 后端依赖（NestJS 12、Zod 4、Drizzle、Redis/BullMQ、认证、日志、S3、测试工具），并提供最小 ESM 入口；T-010 健康接口与 T-018 消费者尚未完成。
+- 已安装 server / worker 后端依赖（NestJS 12、Zod 4、Drizzle、Redis/BullMQ、认证、日志、S3、测试工具），并提供最小 ESM 入口；T-018 消费者尚未完成。
 - **T-003 已完成**：PostgreSQL 17、Redis 8、MinIO 开发容器均 healthy，真实鉴权与查询/读写检查通过；MinIO 使用固定官方源码及 SHA-256 构建。
 - **T-004 已完成**：server / worker 在 Nest 初始化前校验环境变量；33 项配置测试、22 个缺失必填变量的实际启动场景通过，有效配置启动通过。S-01 其余任务尚未完成。
+- **T-006 已完成**：共享响应、分页、通用错误码及 Zod 类型，前后端编译通过。
+- **T-010 已完成**：存活检查返回 200，就绪检查验证 200 与 503，pino 请求日志为 JSON。开发版门户接入就绪接口。
 - 本地环境与配置说明见 `docs/LOCAL_INFRA.md`。
 - 安装与验证命令见 `docs/DEVELOPMENT.md`。
 
