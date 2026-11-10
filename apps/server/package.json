@@ -6,7 +6,8 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc --noEmit",
-    "start": "node --env-file-if-exists=../../.env dist/main.js"
+    "start": "node --env-file-if-exists=../../.env dist/main.js",
+    "check:infra": "node --env-file-if-exists=../../.env scripts/check-infra.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "3.1164.0",

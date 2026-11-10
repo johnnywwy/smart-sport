@@ -1,0 +1,5 @@
+# 仅用于本地开发；生产部署由 T-181 单独实现。
+name: smart-sport-dev
+include:
+  - path: deploy/compose.dev.yaml
+    env_file: .env
