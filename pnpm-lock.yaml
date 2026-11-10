@@ -47,6 +47,9 @@ importers:
       '@smart-sport/config':
         specifier: workspace:*
         version: link:../../packages/config
+      '@smart-sport/contracts':
+        specifier: workspace:*
+        version: link:../../packages/contracts
       argon2:
         specifier: 0.45.2
         version: 0.45.2
@@ -129,6 +132,9 @@ importers:
       '@react-aria/utils':
         specifier: 3.34.1
         version: 3.34.1(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
+      '@smart-sport/contracts':
+        specifier: workspace:*
+        version: link:../../packages/contracts
       '@tanstack/react-query':
         specifier: 5.107.1
         version: 5.107.1(@types/react@19.3.0)(react@19.2.0)
