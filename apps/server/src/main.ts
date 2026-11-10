@@ -1,12 +1,14 @@
 import "reflect-metadata";
 import { Module } from "@nestjs/common";
 import { NestFactory } from "@nestjs/core";
-import { loadConfig } from "@smart-sport/config/env";
+import { loadConfig, loadDatabaseConfig } from "@smart-sport/config/env";
 import { Logger, LoggerModule } from "nestjs-pino";
 
+import { DataSourceRegistry, DRIZZLE } from "./database/registry.js";
 import { HealthController, SERVER_CONFIG } from "./health.js";
 
 const config = loadConfig("server");
+const databaseConfig = loadDatabaseConfig();
 
 @Module({
   imports: [
@@ -21,7 +23,18 @@ const config = loadConfig("server");
     }),
   ],
   controllers: [HealthController],
-  providers: [{ provide: SERVER_CONFIG, useValue: config }],
+  providers: [
+    { provide: SERVER_CONFIG, useValue: config },
+    {
+      provide: DataSourceRegistry,
+      useFactory: () => new DataSourceRegistry(databaseConfig),
+    },
+    {
+      provide: DRIZZLE,
+      inject: [DataSourceRegistry],
+      useFactory: (registry: DataSourceRegistry) => registry.get().db,
+    },
+  ],
 })
 class ServerModule {}
 

@@ -73,4 +73,8 @@ pnpm build
 
 配置测试覆盖三种环境、缺失项、非法 URL/端口/密钥及错误日志脱敏。启动测试逐个移除 server / worker 的必填变量，直接执行编译后的真实入口，要求进程非零退出并指出缺失变量。
 
-数据库迁移、队列消费者和生产部署分别由 T-011、T-018、T-181 实现。
+## Public 数据库迁移
+
+运行 `pnpm db:migrate` 构建后端并迁移 `DATABASE_URL` 指向的默认数据库。SQL 文件放在 `apps/server/migrations/public`，命名为 `NNNN_说明.sql`，每个文件包含一条事务内可执行的 SQL。已执行文件按版本、文件名和 SHA-256 校验。迁移批次与记录写入使用同一事务，并持有数据库级 advisory lock。
+
+`EXTRA_DATASOURCES` 可配置命名连接池，值为数据源 key 到 PostgreSQL URL 的 JSON 对象，`default` 由 `DATABASE_URL` 提供。public 命令只迁移默认数据库。学校库迁移由 T-061 实现，队列消费者和生产部署分别由 T-018、T-181 实现。

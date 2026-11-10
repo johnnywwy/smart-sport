@@ -14,6 +14,40 @@ const key32 = z
   .string()
   .regex(/^[A-Za-z0-9+/]{43}=$/)
   .refine((value) => Buffer.from(value, "base64").length === 32);
+const databaseSchema = z.object({
+  DATABASE_URL: url(["postgres:", "postgresql:"]),
+  EXTRA_DATASOURCES: z
+    .string()
+    .default("{}")
+    .transform((value, ctx) => {
+      try {
+        return JSON.parse(value) as unknown;
+      } catch {
+        ctx.addIssue({ code: "custom", message: "需要 JSON 对象" });
+        return z.NEVER;
+      }
+    })
+    .pipe(
+      z.record(
+        z.string().regex(/^(?!default$)[a-z][a-z0-9_]*$/),
+        url(["postgres:", "postgresql:"]),
+      ),
+    ),
+});
+
+export type DatabaseConfig = z.infer<typeof databaseSchema>;
+
+export function loadDatabaseConfig(
+  env: NodeJS.ProcessEnv = process.env,
+): DatabaseConfig {
+  const result = databaseSchema.safeParse(env);
+  if (!result.success) {
+    const names = new Set(result.error.issues.map(({ path }) => path[0]));
+    throw new Error(`数据库环境变量缺失或格式无效：${[...names].join(", ")}`);
+  }
+  return result.data;
+}
+
 const shared = {
   NODE_ENV: z.enum(["development", "test", "production"]),
   DATABASE_URL: url(["postgres:", "postgresql:"]),
