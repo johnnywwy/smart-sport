@@ -6,6 +6,7 @@ import { Test } from "@nestjs/testing";
 import type { ServerConfig } from "@smart-sport/config/env";
 import {
   apiResponseSchema,
+  authSessionSchema,
   identityListSchema,
   loginResponseSchema,
   selectIdentityResponseSchema,
@@ -208,6 +209,39 @@ function authRequest(
 }
 
 describe("身份列表、自动选择与切换", () => {
+  it("恢复上下文读取服务端会话当前身份，账号级会话不冒用上次身份", async () => {
+    const seeded = await seedAccount("restore-session", [
+      { type: "company", orgType: "company", orgName: "公司甲" },
+      { type: "company", orgType: "company", orgName: "公司乙" },
+    ]);
+    const result = await login("restore-session");
+    const before = await authRequest("session", result.body.data.accessToken);
+    expect(before.status).toBe(200);
+    expect(
+      successResponseSchema(authSessionSchema).parse(await before.json()).data,
+    ).toMatchObject({
+      currentIdentity: null,
+      identityCount: 2,
+      mustChangePassword: false,
+    });
+    const selected = await authRequest(
+      "select-identity",
+      result.body.data.accessToken,
+      {
+        method: "POST",
+        body: JSON.stringify({ identityId: seeded.identityIds[1] }),
+      },
+    );
+    const selection = successResponseSchema(selectIdentityResponseSchema).parse(
+      await selected.json(),
+    ).data;
+    const current = await authRequest("session", selection.accessToken);
+    expect(current.status).toBe(200);
+    expect(
+      successResponseSchema(authSessionSchema).parse(await current.json()).data
+        .currentIdentity?.id,
+    ).toBe(seeded.identityIds[1]);
+  });
   it("唯一 company 身份登录后自动选择并签发身份级令牌", async () => {
     const { userId, identityIds } = await seedAccount("admin-auto", [
       { type: "company", orgType: "company", orgName: "平台公司" },

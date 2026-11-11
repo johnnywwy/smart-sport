@@ -40,6 +40,26 @@ export class IdentitiesService {
     });
   }
 
+  session(claims: AuthenticatedClaims) {
+    return this.identities.transaction(async (tx) => {
+      const found = await this.requireSession(tx, claims);
+      const items = await this.listItems(
+        tx,
+        claims.userId,
+        found.user.lastIdentityId,
+      );
+      const currentIdentity =
+        items.find(
+          (item) => item.id === found.session.identityId && item.available,
+        ) ?? null;
+      return {
+        mustChangePassword: found.user.mustChangePassword,
+        identityCount: items.filter((item) => item.available).length,
+        currentIdentity,
+      };
+    });
+  }
+
   select(
     claims: AuthenticatedClaims,
     input: SelectIdentityRequest,

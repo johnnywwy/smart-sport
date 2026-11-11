@@ -1,6 +1,7 @@
 import type { IncomingMessage } from "node:http";
 import { Controller, Get, Inject, Post, Req } from "@nestjs/common";
 import {
+  authSessionSchema,
   identityListSchema,
   type SelectIdentityRequest,
   selectIdentityRequestSchema,
@@ -20,6 +21,16 @@ export class IdentitiesController {
     @Inject(IdentitiesService) private readonly identities: IdentitiesService,
     @Inject(ClsService) private readonly cls: ClsService,
   ) {}
+
+  @Get("session")
+  @ApiZodResponse(
+    200,
+    successResponseSchema(authSessionSchema),
+    "恢复当前服务端会话上下文",
+  )
+  session(@Req() request: AuthenticatedRequest) {
+    return this.identities.session(this.claims(request));
+  }
 
   @Get("identities")
   @ApiZodResponse(
