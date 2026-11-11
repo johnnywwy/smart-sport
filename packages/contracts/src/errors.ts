@@ -27,9 +27,19 @@ export const identityErrors = {
   11005: { status: 401, message: "已在其他页面切换身份，请刷新" },
 } as const;
 
+export const permissionErrors = {
+  11101: { status: 403, message: "缺少权限" },
+  11102: { status: 403, message: "分配的角色超出你的权限" },
+  11103: { status: 403, message: "不能修改自己的角色" },
+  11104: { status: 409, message: "组织至少保留一名管理员" },
+  11105: { status: 403, message: "内置角色不可修改" },
+  11106: { status: 409, message: "角色正在使用，不能删除" },
+} as const;
+
 export const apiErrors = {
   ...systemErrors,
   ...authErrors,
   ...identityErrors,
+  ...permissionErrors,
 } as const;
 export type ApiErrorCode = keyof typeof apiErrors;

@@ -15,7 +15,8 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "pnpm build && node --test test/*.test.mjs"
   },
   "devDependencies": {
     "@smart-sport/config": "workspace:*"
