@@ -6,6 +6,12 @@ import {
 import type pg from "pg";
 import { v7 } from "uuid";
 
+import {
+  advanceChangedTemplates,
+  cleanTemplateOverrides,
+  templateSnapshots,
+} from "./sync-template-overrides.js";
+
 type SyncCounts = {
   apps: number;
   features: number;
@@ -28,6 +34,7 @@ export async function syncCatalog(pool: pg.Pool): Promise<SyncCounts> {
   try {
     await client.query("BEGIN ISOLATION LEVEL READ COMMITTED");
     await client.query("SELECT pg_advisory_xact_lock(1936749167, 41)");
+    const templateVersions = await templateSnapshots(client);
     const now = new Date();
     const activeApps: string[] = [];
     let featureCount = 0;
@@ -139,6 +146,8 @@ export async function syncCatalog(pool: pg.Pool): Promise<SyncCounts> {
       "UPDATE public.roles SET status=0,updated_at=$2 WHERE kind='preset' AND deleted_at IS NULL AND NOT (code=ANY($1::text[]))",
       [activeRoleCodes, now],
     );
+    await cleanTemplateOverrides(client);
+    await advanceChangedTemplates(client, templateVersions);
     await client.query("COMMIT");
     return {
       apps: activeApps.length,

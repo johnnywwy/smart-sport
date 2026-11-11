@@ -51,6 +51,12 @@ import {
   OrganizationsService,
 } from "./modules/platform/organizations/index.js";
 import {
+  PresetRolesController,
+  PresetRolesRepository,
+  PresetRolesService,
+  TemplateReader,
+} from "./modules/platform/preset-roles/index.js";
+import {
   RegionsController,
   RegionsRepository,
   RegionsService,
@@ -102,6 +108,7 @@ const databaseConfig = loadDatabaseConfig();
     OrganizationsController,
     IdentitiesController,
     NavigationController,
+    PresetRolesController,
   ],
   providers: [
     AuthRepository,
@@ -123,6 +130,9 @@ const databaseConfig = loadDatabaseConfig();
     OrganizationsRepository,
     OrganizationsService,
     CompanyOrganizationGuard,
+    PresetRolesRepository,
+    PresetRolesService,
+    TemplateReader,
     RolesRepository,
     RolesService,
     ContextRepository,

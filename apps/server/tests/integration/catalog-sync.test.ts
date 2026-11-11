@@ -103,4 +103,46 @@ describe("应用目录与内置角色同步", () => {
       ).rows[0],
     ).toEqual({ count: 0 });
   });
+  it("模板覆盖保留有效差异并清理代码已删除功能", async () => {
+    const role = (
+      await pool.query<{ id: string }>(
+        "SELECT id FROM public.roles WHERE code='company-sales'",
+      )
+    ).rows[0];
+    await pool.query(
+      `INSERT INTO public.preset_role_overrides(role_id,data_scope,remark,grants) VALUES($1,'personal','平台修改',$2)`,
+      [
+        role?.id,
+        JSON.stringify([
+          { app: "system", feature: "param", grant: { level: "view" } },
+          { app: "retired", feature: "old", grant: { level: "manage" } },
+        ]),
+      ],
+    );
+    await syncCatalog(pool);
+    const saved = (
+      await pool.query(
+        "SELECT data_scope,remark,grants FROM public.preset_role_overrides WHERE role_id=$1",
+        [role?.id],
+      )
+    ).rows[0];
+    expect(saved).toEqual({
+      data_scope: "personal",
+      remark: "平台修改",
+      grants: [{ app: "system", feature: "param", grant: { level: "view" } }],
+    });
+    const version = (
+      await pool.query("SELECT version FROM public.roles WHERE id=$1", [
+        role?.id,
+      ])
+    ).rows[0].version;
+    await syncCatalog(pool);
+    expect(
+      (
+        await pool.query("SELECT version FROM public.roles WHERE id=$1", [
+          role?.id,
+        ])
+      ).rows[0].version,
+    ).toBe(version);
+  });
 });
