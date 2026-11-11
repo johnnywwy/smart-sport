@@ -42,7 +42,10 @@ const icons: Record<string, ReactNode> = {
   ),
   departments: (
     <>
-      <path d="M9 3h6v5H9zM3 16h6v5H3zM15 16h6v5h-6zM12 8v4M6 16v-4h12v4" />
+      <rect x="9" y="3" width="6" height="5" rx="1" />
+      <rect x="3" y="16" width="6" height="5" rx="1" />
+      <rect x="15" y="16" width="6" height="5" rx="1" />
+      <path d="M12 8v4M6 16v-4h12v4" />
     </>
   ),
   members: (
@@ -98,6 +101,9 @@ const icons: Record<string, ReactNode> = {
       <path d="m11 12 8-8M16 7l3 3" />
     </>
   ),
+  "platform-admin:audits": (
+    <path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 7v5l3 2" />
+  ),
   audits: (
     <>
       <circle cx="12" cy="12" r="9" />
@@ -116,7 +122,7 @@ export function SidebarIcon({ name }: { name: string }) {
       strokeLinecap="round"
       strokeLinejoin="round"
     >
-      {icons[name] ?? icons.roles}
+      {icons[name]}
     </svg>
   );
 }

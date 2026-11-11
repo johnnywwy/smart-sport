@@ -58,7 +58,14 @@ export function ModuleSidebar({
                 >
                   <Sidebar.MenuItemContent>
                     <Sidebar.MenuIcon>
-                      <SidebarIcon name={menu.key} />
+                      <SidebarIcon
+                        name={
+                          module.code === "platform-admin" &&
+                          menu.key === "audits"
+                            ? "platform-admin:audits"
+                            : menu.key
+                        }
+                      />
                     </Sidebar.MenuIcon>
                     <Sidebar.MenuLabel>{menu.name}</Sidebar.MenuLabel>
                   </Sidebar.MenuItemContent>
