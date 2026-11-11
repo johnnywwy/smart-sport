@@ -1,2 +1,26 @@
 <!doctype html>
-<html lang="zh-CN"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><meta name="color-scheme" content="light dark"/><title>智慧体育云平台</title></head><body><div id="root"></div><script type="module" src="/src/main.tsx"></script></body></html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
+    <title>智慧体育云平台</title>
+    <style>
+      #browser-upgrade { display: block; max-width: 44rem; margin: 10vh auto; padding: 24px; font-family: "PingFang SC", "Microsoft YaHei", sans-serif; line-height: 1.8; }
+      #browser-upgrade[hidden] { display: none; }
+    </style>
+  </head>
+  <body>
+    <main id="browser-upgrade" hidden>
+      <p>智慧体育云平台</p>
+      <h1>请升级浏览器后继续使用</h1>
+      <p>当前浏览器不在支持范围内。请更新至以下版本或更新版本，再重新打开平台。</p>
+      <!-- 浏览器版本列表由入口插件按统一配置生成。 -->
+      <p>Safari 随系统更新。若电脑由单位统一管理，请联系管理员协助更新浏览器。</p>
+      <p>请使用浏览器的“帮助 / 关于”功能检查更新，或在新版浏览器中重新打开当前平台地址。</p>
+    </main>
+    <noscript><p>请启用 JavaScript，再重新打开智慧体育云平台。</p></noscript>
+    <div id="root"></div>
+    <script type="module" src="/src/bootstrap.ts"></script>
+  </body>
+</html>
