@@ -13,7 +13,11 @@ import {
   StreamableFile,
 } from "@nestjs/common";
 import { HttpAdapterHost, Reflector } from "@nestjs/core";
-import { type SystemErrorCode, systemErrors } from "@smart-sport/contracts";
+import {
+  type ApiErrorCode,
+  apiErrors,
+  systemErrors,
+} from "@smart-sport/contracts";
 import { ClsService } from "nestjs-cls";
 import { map } from "rxjs";
 
@@ -22,10 +26,10 @@ export const RawResponse = () => SetMetadata(RAW_RESPONSE, true);
 
 export class ApiException extends HttpException {
   constructor(
-    readonly code: SystemErrorCode,
+    readonly code: ApiErrorCode,
     readonly data: unknown = null,
   ) {
-    const { message, status } = systemErrors[code];
+    const { message, status } = apiErrors[code];
     super(message, status);
   }
 }
@@ -74,7 +78,7 @@ function errorBody(error: unknown, status: number) {
   if (error instanceof ApiException) {
     return {
       code: error.code,
-      message: systemErrors[error.code].message,
+      message: apiErrors[error.code].message,
       data: error.data,
     };
   }

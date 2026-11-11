@@ -17,6 +17,11 @@ import { ApiExceptionFilter, ApiResponseInterceptor } from "./api-response.js";
 import { DataSourceRegistry, DRIZZLE } from "./database/registry.js";
 import { HealthController } from "./health.js";
 import { IdempotencyInterceptor } from "./idempotency.js";
+import { AccessTokenSigner } from "./infra/auth/access-token-signer.js";
+import { PasswordHasher } from "./infra/crypto/password-hasher.js";
+import { AuthController } from "./modules/platform/auth/auth.controller.js";
+import { AuthRepository } from "./modules/platform/auth/auth.repository.js";
+import { AuthService } from "./modules/platform/auth/auth.service.js";
 import { RateLimitGuard } from "./rate-limit.js";
 import { requestContextMiddleware } from "./request-context.js";
 import { SERVER_CONFIG } from "./server-config.js";
@@ -52,8 +57,12 @@ const databaseConfig = loadDatabaseConfig();
       },
     }),
   ],
-  controllers: [HealthController],
+  controllers: [HealthController, AuthController],
   providers: [
+    AuthRepository,
+    AuthService,
+    AccessTokenSigner,
+    PasswordHasher,
     { provide: APP_GUARD, useClass: RateLimitGuard },
     { provide: APP_INTERCEPTOR, useClass: ApiResponseInterceptor },
     { provide: APP_INTERCEPTOR, useClass: IdempotencyInterceptor },

@@ -28,7 +28,9 @@ function encryptedPhone(phone: string) {
   ]);
   return {
     phone: `v1:${iv.toString("base64")}:${ciphertext.toString("base64")}:${cipher.getAuthTag().toString("base64")}`,
-    phoneHash: createHmac("sha256", hmacKey).update(phone).digest("hex"),
+    phoneHash: createHmac("sha256", hmacKey)
+      .update(`phone:${phone}`)
+      .digest("hex"),
   };
 }
 function insert(overrides: Partial<typeof users.$inferInsert> = {}) {
@@ -63,6 +65,13 @@ describe("用户表 PostgreSQL 17 迁移与约束", () => {
       "0002_users_username_unique.sql",
       "0003_users_phone_hash_unique.sql",
       "0004_users_email_unique.sql",
+      "0005_create_user_sessions.sql",
+      "0006_create_identities.sql",
+      "0007_identities_unique.sql",
+      "0008_create_login_logs.sql",
+      "0009_create_audit_logs.sql",
+      "0010_audit_logs_initial_partitions.sql",
+      "0011_audit_logs_fallback_partition.sql",
     ]);
     expect(await migratePublic(pool)).toEqual([]);
   });

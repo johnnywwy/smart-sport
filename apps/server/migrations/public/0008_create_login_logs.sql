@@ -1,0 +1,1 @@
+CREATE TABLE public.login_logs (id uuid PRIMARY KEY, user_id uuid REFERENCES public.users(id), username_input text NOT NULL, result varchar(32) NOT NULL CHECK (result IN ('success','bad_password','locked','disabled','captcha_required')), ip text, user_agent text, created_at timestamptz NOT NULL DEFAULT now());

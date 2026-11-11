@@ -1,0 +1,1 @@
+CREATE TABLE public.audit_logs (id uuid NOT NULL, user_id uuid, identity_id uuid, org_id uuid, school_id uuid, action text NOT NULL, target_type text, target_id uuid, changes jsonb, ip text, user_agent text, trace_id uuid, created_at timestamptz NOT NULL, PRIMARY KEY (id, created_at)) PARTITION BY RANGE (created_at);
