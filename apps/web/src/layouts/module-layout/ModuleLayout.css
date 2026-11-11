@@ -1,5 +1,4 @@
 .module-layout {
-  --module-edge-gap: 24px;
   background: #f5f5f5;
   color: #18181b;
   min-height: 100vh;
@@ -9,7 +8,7 @@
   border: 0;
 }
 .module-layout [data-slot="app-layout-main"] {
-  padding: 0 var(--module-edge-gap) 24px;
+  padding: 0 24px 24px;
 }
 .module-workspace {
   min-height: calc(100vh - 100px);
@@ -29,9 +28,6 @@
   background: #27272a;
 }
 @media (max-width: 760px) {
-  .module-layout {
-    --module-edge-gap: 12px;
-  }
   .module-layout [data-slot="app-layout-main"] {
     padding: 0 12px 12px;
   }
