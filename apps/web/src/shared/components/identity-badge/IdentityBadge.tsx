@@ -11,9 +11,18 @@ export function IdentityBadge({ identity }: { identity: IdentitySummary }) {
       <span className="identity-badge-title">
         {identity.title ?? identity.typeName}
       </span>
-      <span className="identity-badge-chevron" aria-hidden="true">
-        ⌄
-      </span>
+      <svg
+        className="identity-badge-chevron"
+        aria-hidden="true"
+        viewBox="0 0 16 16"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <path d="m4.5 6.25 3.5 3.5 3.5-3.5" />
+      </svg>
     </span>
   );
 }
