@@ -197,3 +197,20 @@ export const passwordHistory = pgTable(
     ),
   ],
 );
+
+export const regions = pgTable(
+  "regions",
+  {
+    code: varchar("code", { length: 6 }).primaryKey(),
+    name: varchar("name", { length: 64 }).notNull(),
+    level: smallint("level").notNull(),
+    parentCode: varchar("parent_code", { length: 6 }),
+    path: varchar("path", { length: 20 }).notNull().unique(),
+    status: smallint("status").notNull().default(1),
+  },
+  (table) => [
+    check("regions_code_check", sql`${table.code} ~ '^[0-9]{6}$'`),
+    check("regions_level_check", sql`${table.level} IN (1,2,3)`),
+    check("regions_status_check", sql`${table.status} IN (0,1)`),
+  ],
+);
