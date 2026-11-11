@@ -1,14 +1,18 @@
 .module-layout {
+  --module-inline-padding: 24px;
   background: #f5f5f5;
   color: #18181b;
   min-height: 100vh;
+}
+.module-layout[data-state="collapsed"] {
+  --module-inline-padding: 16px;
 }
 .module-layout [data-slot="app-layout-header"] {
   background: transparent;
   border: 0;
 }
 .module-layout [data-slot="app-layout-main"] {
-  padding: 0 24px 24px;
+  padding: 0 var(--module-inline-padding) var(--module-inline-padding);
 }
 .module-workspace {
   min-height: calc(100vh - 100px);
@@ -28,8 +32,9 @@
   background: #27272a;
 }
 @media (max-width: 760px) {
-  .module-layout [data-slot="app-layout-main"] {
-    padding: 0 12px 12px;
+  .module-layout,
+  .module-layout[data-state="collapsed"] {
+    --module-inline-padding: 12px;
   }
   .module-content {
     padding: 20px 16px;
