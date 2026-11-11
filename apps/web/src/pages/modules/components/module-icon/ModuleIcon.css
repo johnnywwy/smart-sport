@@ -1,0 +1,20 @@
+.module-icon {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  flex: none;
+}
+.module-icon svg {
+  width: 24px;
+  height: 24px;
+}
+.module-icon-base {
+  background: #daedfe;
+  color: #0a64b5;
+}
+.module-icon-platform-admin {
+  background: #f2eafa;
+  color: #6020a0;
+}

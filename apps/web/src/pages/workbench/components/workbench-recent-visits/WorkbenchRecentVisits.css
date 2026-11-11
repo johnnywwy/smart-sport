@@ -1,0 +1,9 @@
+.workbench-recent-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.workbench-recent-list > * {
+  justify-content: space-between;
+  font-size: 14px;
+}

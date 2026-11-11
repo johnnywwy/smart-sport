@@ -31,7 +31,7 @@ export function ApiEffects() {
   useEffect(() => {
     if (!navigation) return;
     useApiEvents.getState().consumeNavigation();
-    navigate(navigation === "login" ? "/login" : "/portal", { replace: true });
+    navigate(navigation === "login" ? "/login" : "/modules", { replace: true });
   }, [navigation, navigate]);
   return (
     <>

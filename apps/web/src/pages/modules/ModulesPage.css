@@ -1,0 +1,24 @@
+.modules-page {
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 40px 24px 64px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+.modules-introduction h1 {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 600;
+}
+.modules-introduction p {
+  margin: 8px 0 0;
+  font-size: 15px;
+  color: #63636b;
+}
+@media (max-width: 639px) {
+  .modules-page {
+    padding: 24px 16px 40px;
+  }
+}

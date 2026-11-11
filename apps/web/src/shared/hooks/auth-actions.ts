@@ -34,7 +34,7 @@ export async function loginAccount(input: LoginRequest) {
   return result.mustChangePassword
     ? "/change-password"
     : result.selectedIdentity
-      ? "/portal"
+      ? "/modules"
       : "/select-org";
 }
 export async function changeAccountPassword(input: ChangePasswordRequest) {

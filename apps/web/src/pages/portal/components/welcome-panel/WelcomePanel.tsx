@@ -12,7 +12,7 @@ export function WelcomePanel({ identity }: { identity: IdentitySummary }) {
       </div>
       <div className="portal-welcome-note">
         <span className="portal-live-dot" />
-        当前身份的应用已按权限展示
+        当前模块的菜单已按权限展示
       </div>
     </div>
   );

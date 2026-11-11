@@ -1,0 +1,44 @@
+.module-identity {
+  height: 40px;
+  padding: 4px 10px;
+  background: #fff;
+  border-radius: 999px;
+  font-size: 13px;
+}
+.module-identity small {
+  display: block;
+  color: #63636b;
+  font-size: 11px;
+  text-align: left;
+}
+.module-identity-company [data-slot="avatar"] {
+  color: #0a64b5;
+  background: #daedfe;
+}
+.module-identity-bureau [data-slot="avatar"] {
+  color: #6020a0;
+  background: #f2eafa;
+}
+.module-identity-agent [data-slot="avatar"] {
+  color: #8d6320;
+  background: #fef2de;
+}
+.module-identity-school [data-slot="avatar"] {
+  color: #177d45;
+  background: #dcf7e8;
+}
+.module-identity-teacher [data-slot="avatar"] {
+  color: #087e8b;
+  background: #d8f4f6;
+}
+.dark .module-identity {
+  background: #27272a;
+}
+@media (max-width: 639px) {
+  .module-identity {
+    max-width: 180px;
+  }
+  .module-identity small {
+    display: none;
+  }
+}

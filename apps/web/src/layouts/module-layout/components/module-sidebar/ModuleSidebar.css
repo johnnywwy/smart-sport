@@ -1,0 +1,36 @@
+.module-sidebar {
+  background: #f5f5f5;
+}
+.module-sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 8px 24px;
+  font-size: 15px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.module-sidebar [data-slot="sidebar-group-label"] {
+  color: #8e8e96;
+  font-size: 12px;
+}
+.module-sidebar svg {
+  width: 20px;
+  height: 20px;
+}
+.module-switcher {
+  width: 100%;
+  justify-content: space-between;
+  height: 40px;
+  border-radius: 12px;
+  background: #ebebec;
+  font-size: 14px;
+}
+.module-switcher-hint {
+  padding: 0 12px;
+  font-size: 11px;
+  color: #8e8e96;
+}
+.dark .module-sidebar {
+  background: #18181b;
+}

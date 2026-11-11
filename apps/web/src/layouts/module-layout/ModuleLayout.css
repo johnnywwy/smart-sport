@@ -1,0 +1,37 @@
+.module-layout {
+  background: #f5f5f5;
+  color: #18181b;
+  min-height: 100vh;
+}
+.module-layout [data-slot="app-layout-header"] {
+  background: transparent;
+  border: 0;
+}
+.module-layout [data-slot="app-layout-main"] {
+  padding: 0 24px 24px;
+}
+.module-workspace {
+  min-height: calc(100vh - 100px);
+  border-radius: 16px;
+  background: #fff;
+  overflow: hidden;
+  box-shadow: 0 0 1px #0000000f;
+}
+.module-content {
+  padding: 28px;
+}
+.dark .module-layout {
+  background: #18181b;
+  color: #f4f4f5;
+}
+.dark .module-workspace {
+  background: #27272a;
+}
+@media (max-width: 760px) {
+  .module-layout [data-slot="app-layout-main"] {
+    padding: 0 12px 12px;
+  }
+  .module-content {
+    padding: 20px 16px;
+  }
+}

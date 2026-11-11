@@ -1,7 +1,7 @@
 import "./PortalKpiGroup.css";
 import { KPI } from "@heroui-pro/react/kpi";
 import { KPIGroup } from "@heroui-pro/react/kpi-group";
-import type { IdentitySummary } from "@smart-sport/contracts";
+import type { IdentitySummary, ModuleCode } from "@smart-sport/contracts";
 
 const labels = {
   company: ["负责学校", "试用中", "30 天内到期", "待审核开通"],
@@ -12,11 +12,20 @@ const labels = {
   student: [],
   parent: [],
 } satisfies Record<IdentitySummary["type"], string[]>;
-export function PortalKpiGroup({ type }: { type: IdentitySummary["type"] }) {
+export function PortalKpiGroup({
+  type,
+  module,
+}: {
+  type: IdentitySummary["type"];
+  module?: ModuleCode;
+}) {
   return (
     <section aria-label="工作台指标">
       <KPIGroup className="portal-kpi-grid">
-        {labels[type].map((label) => (
+        {(module === "platform-admin"
+          ? ["已开通学校", "试用中", "30 天内到期", "待审核开通"]
+          : labels[type]
+        ).map((label) => (
           <KPI key={label} className="portal-kpi-card">
             <KPI.Header>
               <KPI.Title>{label}</KPI.Title>

@@ -3,10 +3,11 @@ import { AdminLayout } from "../../layouts/admin-layout/AdminLayout";
 import { AppEntryPage } from "../../pages/app-entry/AppEntryPage";
 import { ChangePasswordPage } from "../../pages/change-password/ChangePasswordPage";
 import { LoginPage } from "../../pages/login/LoginPage";
+import { ModulesPage } from "../../pages/modules/ModulesPage";
 import { NotFoundPage } from "../../pages/not-found/NotFoundPage";
-import { PortalPage } from "../../pages/portal/PortalPage";
 import { SelectOrgPage } from "../../pages/select-org/SelectOrgPage";
 import { UpgradeBrowserPage } from "../../pages/upgrade-browser/UpgradeBrowserPage";
+import { WorkbenchPage } from "../../pages/workbench/WorkbenchPage";
 import { WorkspacePage } from "../../pages/workspace/WorkspacePage";
 
 export function AppRouter() {
@@ -15,7 +16,9 @@ export function AppRouter() {
       <Route path="/login" element={<LoginPage />} />
       <Route path="/change-password" element={<ChangePasswordPage />} />
       <Route path="/select-org" element={<SelectOrgPage />} />
-      <Route path="/portal" element={<PortalPage />} />
+      <Route path="/portal" element={<Navigate to="/modules" replace />} />
+      <Route path="/modules" element={<ModulesPage />} />
+      <Route path="/m/:moduleCode/*" element={<WorkbenchPage />} />
       <Route path="/app/:appCode/*" element={<AppEntryPage />} />
       <Route path="/upgrade-browser" element={<UpgradeBrowserPage />} />
       <Route element={<AdminLayout />}>

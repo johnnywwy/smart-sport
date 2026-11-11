@@ -42,7 +42,7 @@ describe("登录与改密流程", () => {
       });
     },
   );
-  it("单身份自动选择后直接进入门户", async () => {
+  it("单身份自动选择后进入模块选择", async () => {
     request.mockResolvedValue({
       accessToken: "identity-token",
       mustChangePassword: false,
@@ -62,7 +62,7 @@ describe("登录与改密流程", () => {
       },
     });
     expect(await loginAccount({ account: "admin", password: "123456" })).toBe(
-      "/portal",
+      "/modules",
     );
     expect(useSession.getState().accessToken).toBe("identity-token");
     expect(useSession.getState().currentIdentity?.orgName).toBe("平台公司");

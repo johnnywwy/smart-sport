@@ -1,0 +1,25 @@
+.workbench-page {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+.workbench-unavailable h1 {
+  font-size: 24px;
+  font-weight: 600;
+}
+.workbench-unavailable p {
+  margin-top: 12px;
+  font-size: 14px;
+  color: #63636b;
+}
+
+.workbench-bottom-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+@media (max-width: 900px) {
+  .workbench-bottom-grid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -35,7 +35,7 @@ export function useSelectIdentity() {
       useApiEvents
         .getState()
         .notifySuccess(`正在进入${identity.orgName}`, "身份已切换");
-      navigate("/portal", { replace: true });
+      navigate("/modules", { replace: true });
     },
   });
 }
