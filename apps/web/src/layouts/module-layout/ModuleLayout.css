@@ -35,3 +35,13 @@
     padding: 20px 16px;
   }
 }
+
+/* 图标卡右缘到内容区的间距，与内容区右侧24px留白相等。 */
+@media (min-width: 768px) {
+  .module-layout[data-state="collapsed"] [data-slot="app-layout-main"] {
+    padding-left: 12px;
+  }
+  .module-layout[data-state="collapsed"] .module-header {
+    padding-left: 12px;
+  }
+}

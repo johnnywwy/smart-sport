@@ -25,7 +25,7 @@ export function ModuleSidebar({
       <Sidebar.Header>
         <div className="module-sidebar-brand">
           <BrandMark />
-          <span data-sidebar="label">智慧体育云平台</span>
+          <span className="module-sidebar-brand-name">智慧体育云平台</span>
         </div>
       </Sidebar.Header>
       <Sidebar.Content>
