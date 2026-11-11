@@ -14,6 +14,10 @@ import { ClsModule, ClsService } from "nestjs-cls";
 import { Logger, LoggerModule } from "nestjs-pino";
 
 import { ApiExceptionFilter, ApiResponseInterceptor } from "./api-response.js";
+import {
+  ACCESS_TOKEN_VERIFIER,
+  AuthenticatedGuard,
+} from "./core/authenticated.guard.js";
 import { DataSourceRegistry, DRIZZLE } from "./database/registry.js";
 import { HealthController } from "./health.js";
 import { IdempotencyInterceptor } from "./idempotency.js";
@@ -22,6 +26,11 @@ import { PasswordHasher } from "./infra/crypto/password-hasher.js";
 import { AuthController } from "./modules/platform/auth/auth.controller.js";
 import { AuthRepository } from "./modules/platform/auth/auth.repository.js";
 import { AuthService } from "./modules/platform/auth/auth.service.js";
+import {
+  RegionsController,
+  RegionsRepository,
+  RegionsService,
+} from "./modules/platform/regions/index.js";
 import { RateLimitGuard } from "./rate-limit.js";
 import { requestContextMiddleware } from "./request-context.js";
 import { SERVER_CONFIG } from "./server-config.js";
@@ -57,12 +66,16 @@ const databaseConfig = loadDatabaseConfig();
       },
     }),
   ],
-  controllers: [HealthController, AuthController],
+  controllers: [HealthController, AuthController, RegionsController],
   providers: [
     AuthRepository,
     AuthService,
     AccessTokenSigner,
     PasswordHasher,
+    AuthenticatedGuard,
+    { provide: ACCESS_TOKEN_VERIFIER, useExisting: AccessTokenSigner },
+    RegionsRepository,
+    RegionsService,
     { provide: APP_GUARD, useClass: RateLimitGuard },
     { provide: APP_INTERCEPTOR, useClass: ApiResponseInterceptor },
     { provide: APP_INTERCEPTOR, useClass: IdempotencyInterceptor },
