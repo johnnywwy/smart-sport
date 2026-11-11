@@ -6,3 +6,26 @@ export const refreshAccessTokenSchema = z.object({
 });
 export type RefreshAccessToken = z.infer<typeof refreshAccessTokenSchema>;
 
+export const loginRequestSchema = z.object({
+  account: z.string().trim().min(1),
+  password: z.string().min(1),
+  captchaId: z.string().min(1).optional(),
+  captchaCode: z.string().min(1).optional(),
+});
+export const loginResponseSchema = z.object({
+  accessToken: z.string().min(1),
+  mustChangePassword: z.boolean(),
+  identityCount: z.int().nonnegative(),
+});
+export const captchaResponseSchema = z.object({
+  captchaId: z.string().min(1),
+  image: z.string().min(1),
+});
+export const changePasswordRequestSchema = z.object({
+  oldPassword: z.string().min(1),
+  newPassword: z.string().min(1),
+});
+export const emptyResultSchema = z.null();
+export type LoginRequest = z.infer<typeof loginRequestSchema>;
+export type LoginResponse = z.infer<typeof loginResponseSchema>;
+export type ChangePasswordRequest = z.infer<typeof changePasswordRequestSchema>;

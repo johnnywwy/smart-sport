@@ -7,6 +7,10 @@
     ".": {
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
+    },
+    "./examples/auth": {
+      "types": "./dist/auth-examples.d.ts",
+      "default": "./dist/auth-examples.js"
     }
   },
   "scripts": {
