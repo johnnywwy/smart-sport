@@ -22,15 +22,16 @@
     border-color 160ms ease-out;
 }
 
-button.select-org-card:hover {
+button.select-org-card:not(:disabled):is(
+  :hover,
+  :focus-visible,
+  [data-focus-visible="true"]
+) {
+  border-color: #0485f7;
   transform: translateY(-1px);
   box-shadow:
     0 8px 20px rgb(0 0 0 / 8%),
     0 1px 2px rgb(0 0 0 / 6%);
-}
-
-.select-org-card.is-last-used {
-  border-color: #0485f7;
 }
 
 .select-org-card.is-unavailable {
@@ -46,12 +47,17 @@ button.select-org-card:hover {
   color: #a1a1aa;
 }
 
-.is-last-used .select-org-card-arrow {
-  color: #006fee;
-}
-
 .is-unavailable .select-org-card-arrow {
   display: none;
+}
+
+button.select-org-card:not(:disabled):is(
+    :hover,
+    :focus-visible,
+    [data-focus-visible="true"]
+  )
+  .select-org-card-arrow {
+  color: #006fee;
 }
 
 @media (max-width: 639px) {

@@ -72,7 +72,7 @@ export function IdentityCard({
   pending,
   onSelect,
 }: IdentityCardProps) {
-  const className = `select-org-card${identity.lastUsed ? " is-last-used" : ""}`;
+  const className = "select-org-card";
   if (!identity.available)
     return (
       <Card className={`${className} is-unavailable`}>
