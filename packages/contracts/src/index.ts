@@ -7,5 +7,6 @@ export * from "./modules.js";
 export * from "./navigation.js";
 export * from "./organizations.js";
 export * from "./permissions.js";
+export * from "./preset-role-management.js";
 export * from "./regions.js";
 export * from "./scope.js";

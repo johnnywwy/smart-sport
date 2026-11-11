@@ -74,7 +74,10 @@ export const presetRoles = [
     dataScope: "all",
     defaultDepartment: "研发部",
     grants: {
-      system: allFeatures("system", "manage"),
+      system: {
+        ...allFeatures("system", "manage"),
+        "preset-role": { level: "view" },
+      },
       platform: allFeatures("platform", "view"),
       ops: allFeatures("ops", "view"),
       school: allFeatures("school", "view"),
