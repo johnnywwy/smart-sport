@@ -27,6 +27,10 @@ export async function loginAccount(input: LoginRequest) {
   useSession
     .getState()
     .setLoginContext(result.mustChangePassword, result.identityCount);
+  if (result.selectedIdentity)
+    useSession
+      .getState()
+      .selectIdentity(result.accessToken, result.selectedIdentity);
   return result.mustChangePassword
     ? "/change-password"
     : result.selectedIdentity

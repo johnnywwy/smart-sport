@@ -65,6 +65,7 @@ describe("登录与改密流程", () => {
       "/portal",
     );
     expect(useSession.getState().accessToken).toBe("identity-token");
+    expect(useSession.getState().currentIdentity?.orgName).toBe("平台公司");
   });
 
   it("改密成功后刷新令牌再解除强制改密状态", async () => {

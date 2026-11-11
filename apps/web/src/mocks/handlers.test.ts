@@ -1,9 +1,11 @@
 import {
   captchaResponseSchema,
   emptyResultSchema,
+  identityListSchema,
   loginResponseSchema,
   refreshAccessTokenSchema,
   responseSchema,
+  selectIdentityResponseSchema,
 } from "@smart-sport/contracts";
 import {
   authExamples,
@@ -116,6 +118,32 @@ describe("按契约模拟认证接口", () => {
       (await post("login", { account: "demo", password: body.newPassword }))
         .status,
     ).toBe(200);
+  });
+  it("登录后可列出身份并选择可用身份", async () => {
+    await login();
+    const listResponse = await fetch(`${origin}/api/v1/auth/identities`);
+    const listEnvelope = responseSchema(identityListSchema).parse(
+      await listResponse.json(),
+    );
+    const list = identityListSchema.parse(listEnvelope.data);
+    expect(list).toMatchObject({ total: 5, availableCount: 4 });
+    const identityId = list.groups[0]?.items[0]?.id;
+    const response = await post("select-identity", { identityId });
+    expect(response.status).toBe(200);
+    const selectedEnvelope = responseSchema(selectIdentityResponseSchema).parse(
+      await response.json(),
+    );
+    expect(
+      selectIdentityResponseSchema.parse(selectedEnvelope.data).identity,
+    ).toMatchObject({ orgName: "智体科技", lastUsed: true });
+  });
+  it("不可用身份不能选择", async () => {
+    await login();
+    const response = await post("select-identity", {
+      identityId: "019a0000-0000-7000-8000-000000000005",
+    });
+    expect(response.status).toBe(403);
+    expect(await response.json()).toMatchObject({ code: 11002 });
   });
   it("不合法请求返回 90001 与字段错误", async () => {
     const response = await post("login", { account: "", password: "" });

@@ -10,7 +10,7 @@ export function NotFoundPage() {
           <Card.Title>页面不存在</Card.Title>
         </Card.Header>
         <Card.Footer>
-          <Button onPress={() => navigate("/preview/portal")}>返回预览</Button>
+          <Button onPress={() => navigate("/portal")}>返回门户</Button>
         </Card.Footer>
       </Card>
     </div>

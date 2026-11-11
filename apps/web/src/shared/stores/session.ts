@@ -1,3 +1,4 @@
+import type { IdentitySummary } from "@smart-sport/contracts";
 import { create } from "zustand";
 
 type SessionState = {
@@ -5,8 +6,13 @@ type SessionState = {
   generation: number;
   mustChangePassword: boolean | null;
   identityCount: number | null;
+  currentIdentity: IdentitySummary | null;
   setLoginContext: (mustChangePassword: boolean, identityCount: number) => void;
   startSession: (accessToken: string) => void;
+  selectIdentity: (
+    accessToken: string,
+    currentIdentity: IdentitySummary,
+  ) => void;
   refreshToken: (accessToken: string, generation: number) => void;
   clearSession: () => void;
 };
@@ -17,6 +23,7 @@ export const useSession = create<SessionState>((set) => ({
   generation: 0,
   mustChangePassword: null,
   identityCount: null,
+  currentIdentity: null,
   setLoginContext: (mustChangePassword, identityCount) =>
     set({ mustChangePassword, identityCount }),
   startSession: (accessToken) =>
@@ -25,6 +32,14 @@ export const useSession = create<SessionState>((set) => ({
       generation: state.generation + 1,
       mustChangePassword: null,
       identityCount: null,
+      currentIdentity: null,
+    })),
+  selectIdentity: (accessToken, currentIdentity) =>
+    set((state) => ({
+      accessToken,
+      currentIdentity,
+      generation: state.generation + 1,
+      mustChangePassword: false,
     })),
   refreshToken: (accessToken, generation) =>
     set((state) => (state.generation === generation ? { accessToken } : state)),
@@ -34,5 +49,6 @@ export const useSession = create<SessionState>((set) => ({
       generation: state.generation + 1,
       mustChangePassword: null,
       identityCount: null,
+      currentIdentity: null,
     })),
 }));

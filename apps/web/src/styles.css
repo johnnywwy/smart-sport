@@ -95,6 +95,175 @@ body {
   padding: clamp(20px, 4vw, 48px);
 }
 
+/* 选择组织页严格对应离线设计稿，颜色只在该页面作用域内使用。 */
+.select-org-page {
+  min-height: 100vh;
+  color: #18181b;
+  background: #f5f5f5;
+}
+.select-org-header {
+  min-height: 64px;
+  padding: 14px 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+.select-org-main {
+  width: min(1040px, 100%);
+  margin-inline: auto;
+  padding: 48px 24px 64px;
+}
+.select-org-search {
+  width: 280px;
+}
+.select-org-search [data-slot="group"] {
+  height: 36px;
+  border: 0;
+  border-radius: 10px;
+  background: #fff;
+  box-shadow:
+    0 2px 4px rgb(0 0 0 / 4%),
+    0 1px 2px rgb(0 0 0 / 6%),
+    0 0 1px rgb(0 0 0 / 6%);
+}
+.select-org-search [data-slot="input"] {
+  font-size: 14px;
+}
+.select-org-logo {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  background: #18181b;
+  font-size: 15px;
+  font-weight: 700;
+}
+.select-org-main {
+  width: min(1040px, 100%);
+  margin-inline: auto;
+  padding: 48px 24px 64px;
+}
+.select-org-search {
+  width: 280px;
+}
+.select-org-search [data-slot="group"] {
+  height: 36px;
+  border: 0;
+  border-radius: 10px;
+  background: #fff;
+  box-shadow:
+    0 2px 4px rgb(0 0 0 / 4%),
+    0 1px 2px rgb(0 0 0 / 6%),
+    0 0 1px rgb(0 0 0 / 6%);
+}
+.select-org-search [data-slot="input"] {
+  font-size: 13px;
+}
+.select-org-card {
+  width: 100%;
+  max-width: 488px;
+  min-height: 88px;
+  height: auto;
+  padding: 18px 20px;
+  border: 2px solid transparent;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  color: #18181b;
+  background: #fff;
+  box-shadow:
+    0 2px 4px rgb(0 0 0 / 4%),
+    0 1px 2px rgb(0 0 0 / 6%),
+    0 0 1px rgb(0 0 0 / 6%);
+  white-space: normal;
+  transition:
+    transform 160ms ease-out,
+    box-shadow 160ms ease-out,
+    border-color 160ms ease-out;
+}
+button.select-org-card:hover {
+  transform: translateY(-1px);
+  box-shadow:
+    0 8px 20px rgb(0 0 0 / 8%),
+    0 1px 2px rgb(0 0 0 / 6%);
+}
+.select-org-card.is-last-used {
+  border-color: #0485f7;
+}
+.select-org-card.is-unavailable {
+  border: 1.5px dashed #a1a1aa;
+  background: #ebebec;
+  box-shadow: none;
+}
+.select-org-card-arrow {
+  width: 20px;
+  height: 20px;
+  flex: none;
+  color: #a1a1aa;
+}
+.is-last-used .select-org-card-arrow {
+  color: #006fee;
+}
+.is-unavailable .select-org-card-arrow {
+  display: none;
+}
+.select-org-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  flex: none;
+}
+.select-org-icon svg {
+  width: 24px;
+  height: 24px;
+}
+.select-org-icon-company {
+  color: #0a64b5;
+  background: #daedfe;
+}
+.select-org-icon-bureau {
+  color: #6020a0;
+  background: #f2eafa;
+}
+.select-org-icon-agent {
+  color: #8d6320;
+  background: #fef2de;
+}
+.select-org-icon-school {
+  color: #177d45;
+  background: #dcf7e8;
+}
+.select-org-state {
+  min-height: 220px;
+  border-radius: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  text-align: center;
+  background: rgb(255 255 255 / 65%);
+}
+@media (max-width: 639px) {
+  .select-org-header {
+    padding-inline: 20px;
+  }
+  .select-org-main {
+    padding: 32px 20px 48px;
+  }
+  .select-org-search,
+  .select-org-card {
+    width: 100%;
+    max-width: none;
+  }
+}
+
 /* 登录画板的品牌色与表面色，作用域限定在认证页面。 */
 .auth-layout {
   --auth-brand: #006fee;

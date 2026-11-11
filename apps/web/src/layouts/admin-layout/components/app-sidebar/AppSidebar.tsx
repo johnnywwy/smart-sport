@@ -9,15 +9,6 @@ export function AppSidebar() {
       <Sidebar.Content>
         <Sidebar.Menu aria-label="预览导航">
           <Sidebar.MenuItem
-            id="portal"
-            textValue="模块门户"
-            href="/preview/portal"
-          >
-            <Sidebar.MenuItemContent>
-              <Sidebar.MenuLabel>模块门户</Sidebar.MenuLabel>
-            </Sidebar.MenuItemContent>
-          </Sidebar.MenuItem>
-          <Sidebar.MenuItem
             id="workspace"
             textValue="应用工作区"
             href="/preview/workspace"
