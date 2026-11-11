@@ -1,6 +1,28 @@
 import type { ReactNode } from "react";
 
 const icons: Record<string, ReactNode> = {
+  organizations: (
+    <path d="M4 21V5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v16M9 8h2M13 8h2M9 12h2M13 12h2M10 21v-4h4v4" />
+  ),
+  onboarding: <path d="M3 21h18M5 21V8l7-4 7 4v13M10 21v-5h4v5" />,
+  subscriptions: (
+    <path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z" />
+  ),
+  menus: <path d="M4 6h16M4 12h16M4 18h10" />,
+  academic: (
+    <path d="M5 5h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2zM3 10h18M8 3v4M16 3v4" />
+  ),
+  dictionaries: (
+    <path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3zM5 17a3 3 0 0 1 3-3h11M9 8h6" />
+  ),
+  parameters: (
+    <path d="M4 6h9M17 6h3M4 12h3M11 12h9M4 18h11M19 18h1M15 4v4M9 10v4M17 16v4" />
+  ),
+  "number-rules": <path d="M9 4 7 20M17 4l-2 16M4 9h16M3 15h16" />,
+  regions: (
+    <path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11zM12 12.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z" />
+  ),
+  "preset-roles": <path d="M12 3 4 6v6c0 4.5 3.2 8 8 9 4.8-1 8-4.5 8-9V6z" />,
   base: (
     <>
       <circle cx="9" cy="8" r="3.5" />
