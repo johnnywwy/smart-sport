@@ -1,0 +1,62 @@
+.select-org-card {
+  width: 100%;
+  max-width: 488px;
+  min-height: 88px;
+  height: auto;
+  padding: 18px 20px;
+  border: 2px solid transparent;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  color: #18181b;
+  background: #fff;
+  box-shadow:
+    0 2px 4px rgb(0 0 0 / 4%),
+    0 1px 2px rgb(0 0 0 / 6%),
+    0 0 1px rgb(0 0 0 / 6%);
+  white-space: normal;
+  transition:
+    transform 160ms ease-out,
+    box-shadow 160ms ease-out,
+    border-color 160ms ease-out;
+}
+
+button.select-org-card:hover {
+  transform: translateY(-1px);
+  box-shadow:
+    0 8px 20px rgb(0 0 0 / 8%),
+    0 1px 2px rgb(0 0 0 / 6%);
+}
+
+.select-org-card.is-last-used {
+  border-color: #0485f7;
+}
+
+.select-org-card.is-unavailable {
+  border: 1.5px dashed #a1a1aa;
+  background: #ebebec;
+  box-shadow: none;
+}
+
+.select-org-card-arrow {
+  width: 20px;
+  height: 20px;
+  flex: none;
+  color: #a1a1aa;
+}
+
+.is-last-used .select-org-card-arrow {
+  color: #006fee;
+}
+
+.is-unavailable .select-org-card-arrow {
+  display: none;
+}
+
+@media (max-width: 639px) {
+  .select-org-card {
+    width: 100%;
+    max-width: none;
+  }
+}

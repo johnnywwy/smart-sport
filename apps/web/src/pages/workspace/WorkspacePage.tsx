@@ -1,8 +1,9 @@
+import "./WorkspacePage.css";
 import { Card, Chip } from "@heroui/react";
 
 export function WorkspacePage() {
   return (
-    <div className="workspace space-y-6">
+    <div className="workspace-page space-y-6">
       <Chip variant="soft" size="sm">
         界面预览
       </Chip>

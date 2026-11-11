@@ -1,0 +1,33 @@
+.select-org-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  flex: none;
+}
+
+.select-org-icon svg {
+  width: 24px;
+  height: 24px;
+}
+
+.select-org-icon-company {
+  color: #0a64b5;
+  background: #daedfe;
+}
+
+.select-org-icon-bureau {
+  color: #6020a0;
+  background: #f2eafa;
+}
+
+.select-org-icon-agent {
+  color: #8d6320;
+  background: #fef2de;
+}
+
+.select-org-icon-school {
+  color: #177d45;
+  background: #dcf7e8;
+}

@@ -1,3 +1,5 @@
+import { BrandMark } from "../../../../shared/components/brand-mark/BrandMark";
+import "./SelectOrgHeader.css";
 import { Avatar, Button } from "@heroui/react";
 
 type SelectOrgHeaderProps = {
@@ -9,7 +11,7 @@ export function SelectOrgHeader({ pending, onSignOut }: SelectOrgHeaderProps) {
   return (
     <header className="select-org-header">
       <div className="flex items-center gap-3">
-        <span className="select-org-logo">体</span>
+        <BrandMark />
         <span className="text-[15px] font-semibold text-[#18181b]">
           智慧体育云平台
         </span>

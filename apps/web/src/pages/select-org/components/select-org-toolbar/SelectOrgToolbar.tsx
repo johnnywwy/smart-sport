@@ -1,3 +1,4 @@
+import "./SelectOrgToolbar.css";
 import { SearchField } from "@heroui/react";
 
 type SelectOrgToolbarProps = {

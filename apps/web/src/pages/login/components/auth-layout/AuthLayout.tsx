@@ -1,3 +1,4 @@
+import "./AuthLayout.css";
 import type { ReactNode } from "react";
 import { AuthBrandPanel } from "../auth-brand-panel/AuthBrandPanel";
 

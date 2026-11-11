@@ -1,0 +1,17 @@
+.select-org-page {
+  min-height: 100vh;
+  color: #18181b;
+  background: #f5f5f5;
+}
+
+.select-org-main {
+  width: min(1040px, 100%);
+  margin-inline: auto;
+  padding: 48px 24px 64px;
+}
+
+@media (max-width: 639px) {
+  .select-org-main {
+    padding: 32px 20px 48px;
+  }
+}

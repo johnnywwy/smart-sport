@@ -1,0 +1,93 @@
+.auth-brand {
+  flex: 1 1 440px;
+  background: var(--auth-brand);
+  color: var(--auth-brand-foreground);
+  padding: 40px 48px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 40px;
+}
+
+.auth-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.auth-logo > span {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: var(--auth-brand-foreground);
+  color: var(--auth-brand);
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+}
+
+.auth-brand h1 {
+  font-size: 28px;
+  line-height: 1.3;
+  font-weight: 600;
+}
+
+.auth-track,
+.auth-track > div,
+.auth-track > div > div,
+.auth-track > div > div > div {
+  border: 3px solid var(--auth-brand-foreground);
+  border-radius: 999px;
+  padding: 22px;
+}
+
+.auth-track {
+  width: 100%;
+  max-width: 560px;
+  align-self: center;
+}
+
+.auth-track-field {
+  height: 120px;
+  border-radius: 999px;
+  background: var(--auth-brand-foreground);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+}
+
+.auth-track-field i {
+  width: 3px;
+  height: 72px;
+  background: var(--auth-brand);
+  border-radius: 2px;
+}
+
+.auth-track-field span {
+  width: 56px;
+  height: 56px;
+  border: 3px solid var(--auth-brand);
+  border-radius: 50%;
+}
+
+@media (max-width: 879px) {
+  .auth-brand {
+    min-height: 420px;
+    padding: 32px;
+  }
+  .auth-track {
+    max-width: 380px;
+  }
+  .auth-track,
+  .auth-track > div,
+  .auth-track > div > div,
+  .auth-track > div > div > div {
+    padding: 12px;
+  }
+  .auth-track-field {
+    height: 80px;
+  }
+}

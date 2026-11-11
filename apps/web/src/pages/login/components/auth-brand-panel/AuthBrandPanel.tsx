@@ -1,3 +1,4 @@
+import "./AuthBrandPanel.css";
 export function AuthBrandPanel() {
   return (
     <section className="auth-brand" aria-label="智慧体育云品牌介绍">

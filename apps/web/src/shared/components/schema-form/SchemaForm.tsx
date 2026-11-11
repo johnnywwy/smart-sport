@@ -1,3 +1,4 @@
+import "./SchemaForm.css";
 import {
   Button,
   FieldError,

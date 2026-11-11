@@ -1,3 +1,4 @@
+import "./OperationNotice.css";
 import { Toast } from "@heroui/react";
 
 export function OperationNotice() {

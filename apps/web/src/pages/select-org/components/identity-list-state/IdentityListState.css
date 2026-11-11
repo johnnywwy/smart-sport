@@ -1,0 +1,11 @@
+.select-org-state {
+  min-height: 220px;
+  border-radius: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  text-align: center;
+  background: rgb(255 255 255 / 65%);
+}

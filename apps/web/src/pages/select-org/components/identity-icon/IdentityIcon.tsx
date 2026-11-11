@@ -1,3 +1,4 @@
+import "./IdentityIcon.css";
 import type { IdentityList } from "@smart-sport/contracts";
 
 type IdentityGroupType = IdentityList["groups"][number]["type"];

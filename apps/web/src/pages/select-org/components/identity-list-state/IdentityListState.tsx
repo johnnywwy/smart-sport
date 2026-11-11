@@ -1,3 +1,4 @@
+import "./IdentityListState.css";
 import { Button, Spinner } from "@heroui/react";
 
 type IdentityListStateProps = {

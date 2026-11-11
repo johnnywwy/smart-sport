@@ -1,3 +1,4 @@
+import "./IdentityCard.css";
 import { Button, Card, Chip } from "@heroui/react";
 import type { IdentityList, IdentitySummary } from "@smart-sport/contracts";
 import { IdentityIcon } from "../identity-icon/IdentityIcon";
