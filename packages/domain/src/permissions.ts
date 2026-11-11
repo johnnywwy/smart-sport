@@ -71,3 +71,45 @@ export function hasPermission(
 ): boolean {
   return permissions.has(required);
 }
+
+export type FeatureGrantEntry = {
+  app: string;
+  feature: string;
+  grant: FeatureGrant;
+};
+
+const grantKey = (entry: Pick<FeatureGrantEntry, "app" | "feature">) =>
+  `${entry.app}:${entry.feature}`;
+
+function sameGrant(left: FeatureGrant, right: FeatureGrant) {
+  if (left.level !== right.level) return false;
+  if (left.level !== "custom" || right.level !== "custom") return true;
+  return (
+    [...new Set(left.actions)].sort().join(":") ===
+    [...new Set(right.actions)].sort().join(":")
+  );
+}
+
+/** 自定义角色只覆盖已调整模块，其余模块始终跟随基础角色。 */
+export function resolveRoleGrants(
+  base: readonly FeatureGrantEntry[],
+  overrides: readonly FeatureGrantEntry[],
+): FeatureGrantEntry[] {
+  const result = new Map(base.map((entry) => [grantKey(entry), entry]));
+  for (const entry of overrides) result.set(grantKey(entry), entry);
+  return [...result.values()].sort((left, right) =>
+    grantKey(left).localeCompare(grantKey(right)),
+  );
+}
+
+/** 整体提交角色档位时，仅返回与基础角色不同的授权行。 */
+export function diffRoleGrants(
+  base: readonly FeatureGrantEntry[],
+  submitted: readonly FeatureGrantEntry[],
+): FeatureGrantEntry[] {
+  const baseMap = new Map(base.map((entry) => [grantKey(entry), entry.grant]));
+  return submitted.filter((entry) => {
+    const inherited = baseMap.get(grantKey(entry));
+    return !sameGrant(inherited ?? { level: "none" }, entry.grant);
+  });
+}

@@ -42,6 +42,10 @@ import {
   RegionsRepository,
   RegionsService,
 } from "./modules/platform/regions/index.js";
+import {
+  RolesRepository,
+  RolesService,
+} from "./modules/platform/roles/index.js";
 import { RateLimitGuard } from "./rate-limit.js";
 import { requestContextMiddleware } from "./request-context.js";
 import { SERVER_CONFIG } from "./server-config.js";
@@ -98,6 +102,8 @@ const databaseConfig = loadDatabaseConfig();
     OrganizationsRepository,
     OrganizationsService,
     CompanyOrganizationGuard,
+    RolesRepository,
+    RolesService,
     { provide: APP_GUARD, useClass: RateLimitGuard },
     { provide: APP_INTERCEPTOR, useClass: ApiResponseInterceptor },
     { provide: APP_INTERCEPTOR, useClass: IdempotencyInterceptor },

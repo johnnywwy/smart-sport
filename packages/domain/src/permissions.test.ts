@@ -1,10 +1,17 @@
 import type {
+  Action,
   DataScopeOption,
   FeatureDefinition,
   FeatureGrant,
 } from "@smart-sport/contracts";
 import { describe, expect, it } from "vitest";
-import { expandGrant, hasPermission, mergePermissions } from "./permissions.js";
+import {
+  diffRoleGrants,
+  expandGrant,
+  hasPermission,
+  mergePermissions,
+  resolveRoleGrants,
+} from "./permissions.js";
 
 const feature: FeatureDefinition = {
   app: "school",
@@ -69,6 +76,69 @@ describe("permission expansion", () => {
     expect(() =>
       expandGrant(feature, { level: "custom" } as FeatureGrant),
     ).toThrow();
+  });
+});
+
+describe("role grant inheritance", () => {
+  const base = [
+    { app: "school", feature: "student", grant: { level: "view" } as const },
+    { app: "school", feature: "teacher", grant: { level: "edit" } as const },
+  ];
+  it("inherits unadjusted features and applies only explicit overrides", () => {
+    expect(
+      resolveRoleGrants(base, [
+        {
+          app: "school",
+          feature: "student",
+          grant: { level: "manage" },
+        },
+      ]),
+    ).toEqual([
+      { app: "school", feature: "student", grant: { level: "manage" } },
+      { app: "school", feature: "teacher", grant: { level: "edit" } },
+    ]);
+  });
+  it("new base features automatically appear in custom roles", () => {
+    expect(
+      resolveRoleGrants(
+        [
+          ...base,
+          { app: "school", feature: "class", grant: { level: "view" } },
+        ],
+        [],
+      ),
+    ).toContainEqual({
+      app: "school",
+      feature: "class",
+      grant: { level: "view" },
+    });
+  });
+  it("stores only differences and compares custom action sets without order", () => {
+    const submitted = [
+      ...base,
+      {
+        app: "school",
+        feature: "class",
+        grant: {
+          level: "custom" as const,
+          actions: ["update", "view"] as Action[],
+        },
+      },
+    ];
+    expect(
+      diffRoleGrants(
+        [
+          ...base,
+          {
+            app: "school",
+            feature: "class",
+            grant: { level: "custom", actions: ["view", "update"] },
+          },
+        ],
+        submitted,
+      ),
+    ).toEqual([]);
+    expect(diffRoleGrants(base, submitted)).toEqual([submitted[2]]);
   });
 });
 

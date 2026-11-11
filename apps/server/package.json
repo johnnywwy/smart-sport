@@ -26,6 +26,7 @@
     "@nestjs/throttler": "6.7.1",
     "@smart-sport/config": "workspace:*",
     "@smart-sport/contracts": "workspace:*",
+    "@smart-sport/domain": "workspace:*",
     "argon2": "0.45.2",
     "bullmq": "6.7.2",
     "drizzle-orm": "0.45.4",

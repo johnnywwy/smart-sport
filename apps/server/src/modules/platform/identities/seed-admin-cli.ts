@@ -2,7 +2,13 @@ import { loadConfig, loadDatabaseConfig } from "@smart-sport/config/env";
 import { and, eq, isNull } from "drizzle-orm";
 import { v7 } from "uuid";
 import { DataSourceRegistry } from "../../../database/registry.js";
-import { identities, organizations, users } from "../../../schema/public.js";
+import {
+  identities,
+  identityRoles,
+  organizations,
+  roles,
+  users,
+} from "../../../schema/public.js";
 
 const config = loadConfig("server");
 if (!config.demoSeedEnabled) {
@@ -82,6 +88,23 @@ if (!config.demoSeedEnabled) {
           .returning();
       }
       if (!identity) throw new Error("admin 公司身份创建失败");
+      const [superAdminRole] = await tx
+        .select({ id: roles.id })
+        .from(roles)
+        .where(
+          and(
+            eq(roles.code, "company-super-admin"),
+            eq(roles.kind, "preset"),
+            isNull(roles.deletedAt),
+          ),
+        )
+        .limit(1);
+      if (!superAdminRole)
+        throw new Error("未找到超级管理员角色，请先执行 catalog:sync");
+      await tx
+        .insert(identityRoles)
+        .values({ identityId: identity.id, roleId: superAdminRole.id })
+        .onConflictDoNothing();
       await tx
         .update(users)
         .set({ lastIdentityId: identity.id, updatedAt: new Date() })

@@ -68,6 +68,9 @@ importers:
       '@smart-sport/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts
+      '@smart-sport/domain':
+        specifier: workspace:*
+        version: link:../../packages/domain
       argon2:
         specifier: 0.45.2
         version: 0.45.2
