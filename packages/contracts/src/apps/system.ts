@@ -14,7 +14,7 @@ export const systemApp = defineApp({
     academic: { name: "学年学期", actions: ["view", "create", "update"] },
     region: { name: "行政区划", actions: ["view", "import"] },
     menu: { name: "菜单显示", actions: ["view", "update"] },
-    "preset-role": { name: "内置角色", actions: ["view"] },
+    "preset-role": { name: "内置角色", actions: ["view", "update"] },
     audit: { name: "全平台审计", actions: ["view", "export"] },
   },
   menus: [
