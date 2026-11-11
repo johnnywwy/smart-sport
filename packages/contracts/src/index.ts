@@ -3,6 +3,7 @@ export * from "./auth.js";
 export * from "./common.js";
 export * from "./errors.js";
 export * from "./identities.js";
+export * from "./modules.js";
 export * from "./navigation.js";
 export * from "./organizations.js";
 export * from "./permissions.js";
