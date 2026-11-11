@@ -31,3 +31,11 @@ export const emptyResultSchema = z.null();
 export type LoginRequest = z.infer<typeof loginRequestSchema>;
 export type LoginResponse = z.infer<typeof loginResponseSchema>;
 export type ChangePasswordRequest = z.infer<typeof changePasswordRequestSchema>;
+
+/** 刷新后从已验证的服务端会话恢复身份，不从浏览器持久化令牌推断。 */
+export const authSessionSchema = z.object({
+  mustChangePassword: z.boolean(),
+  identityCount: z.int().nonnegative(),
+  currentIdentity: identitySummarySchema.nullable(),
+});
+export type AuthSession = z.infer<typeof authSessionSchema>;
