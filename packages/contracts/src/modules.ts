@@ -348,3 +348,15 @@ export const moduleNavigationExamples = {
     },
   ]),
 };
+
+/** 迁移期同一路径接受两种查询；必须且只能指定其中一种。 */
+export const navigationMenusQuerySchema = z
+  .strictObject({
+    module: moduleCodeSchema.optional(),
+    app: z.enum(Object.keys(appRegistry) as [AppCode, ...AppCode[]]).optional(),
+  })
+  .refine(({ module, app }) => Boolean(module) !== Boolean(app), {
+    message: "必须且只能指定 module 或 app",
+  });
+
+export type NavigationMenusQuery = z.infer<typeof navigationMenusQuerySchema>;

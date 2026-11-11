@@ -7,6 +7,7 @@ import {
   moduleMenusQuerySchema,
   moduleMenusSchema,
   moduleNavigationExamples,
+  navigationMenusQuerySchema,
 } from "../dist/index.js";
 
 test("两个模块使用现有权限功能，菜单名、路径和分组符合新版规格", () => {
@@ -69,6 +70,17 @@ test("模块响应示例有效，分组不可为空且模块必须有可见菜�
     availableModulesSchema.safeParse([
       { ...moduleNavigationExamples.modules[0], menuCount: 0 },
     ]).success,
+    false,
+  );
+});
+
+test("迁移期菜单查询接受单一 app 或 module，拒绝混用", () => {
+  assert.ok(navigationMenusQuerySchema.safeParse({ app: "school" }).success);
+  assert.ok(navigationMenusQuerySchema.safeParse({ module: "base" }).success);
+  assert.equal(navigationMenusQuerySchema.safeParse({}).success, false);
+  assert.equal(
+    navigationMenusQuerySchema.safeParse({ app: "school", module: "base" })
+      .success,
     false,
   );
 });
