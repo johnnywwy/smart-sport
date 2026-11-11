@@ -39,6 +39,7 @@ import {
   IdentityContextService,
 } from "./modules/platform/identity-context/index.js";
 import {
+  ModuleNavigationService,
   NavigationController,
   NavigationRepository,
   NavigationService,
@@ -108,6 +109,7 @@ const databaseConfig = loadDatabaseConfig();
     IdentitiesRepository,
     NavigationRepository,
     NavigationService,
+    ModuleNavigationService,
     IdentitiesService,
     AccessTokenSigner,
     PasswordHasher,

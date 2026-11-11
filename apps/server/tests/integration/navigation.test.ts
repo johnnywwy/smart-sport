@@ -8,7 +8,9 @@ import type { ServerConfig } from "@smart-sport/config/env";
 import {
   apiResponseSchema,
   availableAppsSchema,
+  availableModulesSchema,
   currentMenusSchema,
+  moduleMenusSchema,
   successResponseSchema,
 } from "@smart-sport/contracts";
 import {
@@ -29,6 +31,7 @@ import { DRIZZLE } from "../../src/database/registry.js";
 import { AccessTokenSigner } from "../../src/infra/auth/access-token-signer.js";
 import { syncCatalog } from "../../src/modules/platform/catalog/catalog-sync.js";
 import {
+  ModuleNavigationService,
   NavigationController,
   NavigationRepository,
   NavigationService,
@@ -118,6 +121,7 @@ beforeAll(async () => {
       ...security.providers,
       NavigationRepository,
       NavigationService,
+      ModuleNavigationService,
       AccessTokenSigner,
       { provide: DRIZZLE, useValue: drizzle(pool) },
       { provide: SERVER_CONFIG, useValue: security.config },
@@ -292,6 +296,109 @@ describe("当前身份的可用应用与菜单", () => {
         "INSERT INTO public.identity_roles (identity_id,role_id) SELECT $1,id FROM public.roles WHERE code='company-developer'",
         [companyIdentity],
       );
+    }
+  });
+});
+
+describe("新版模块导航", () => {
+  it("模块菜单应用覆盖与启停后重新计算可见性", async () => {
+    await pool.query(
+      "INSERT INTO public.menu_overrides (app_code,menu_key,display_name,sort) VALUES ('school','student','本校学生',0)",
+    );
+    await pool.query(
+      "UPDATE public.features SET status=0 WHERE app_code='school' AND code='class'",
+    );
+    try {
+      const response = await request("menus/current?module=base", teacherToken);
+      const groups = successResponseSchema(moduleMenusSchema).parse(
+        await response.json(),
+      ).data;
+      const items = groups.flatMap(({ children }) => children);
+      expect(items[0]).toMatchObject({
+        key: "students",
+        name: "本校学生",
+        sort: 0,
+      });
+      expect(items.some(({ key }) => key === "classes")).toBe(true);
+      await pool.query(
+        "UPDATE public.features SET status=0 WHERE app_code='school' AND code='teaching-class'",
+      );
+      const hidden = await request("menus/current?module=base", teacherToken);
+      const remaining = successResponseSchema(moduleMenusSchema).parse(
+        await hidden.json(),
+      ).data;
+      expect(
+        remaining.flatMap(({ children }) => children).map(({ key }) => key),
+      ).toEqual(["students"]);
+    } finally {
+      await pool.query("DELETE FROM public.menu_overrides");
+      await syncCatalog(pool);
+    }
+  });
+
+  it("研发获得两个模块及固定分组，不泄露无权限的组织菜单", async () => {
+    const response = await request("modules/available");
+    expect(response.status).toBe(200);
+    const items = successResponseSchema(availableModulesSchema).parse(
+      await response.json(),
+    ).data;
+    expect(items.map(({ code }) => code)).toEqual(["base", "platform-admin"]);
+    const result = await request("menus/current?module=base");
+    expect(result.status).toBe(200);
+    const groups = successResponseSchema(moduleMenusSchema).parse(
+      await result.json(),
+    ).data;
+    expect(groups.map(({ name }) => name)).toEqual([
+      "学校数据",
+      "学籍变动",
+      "授权记录",
+    ]);
+    expect(
+      groups.flatMap(({ children }) => children).map(({ name }) => name),
+    ).toContain("学校管理");
+    expect(
+      groups
+        .flatMap(({ children }) => children)
+        .some(({ key }) => key === "members"),
+    ).toBe(false);
+  });
+  it("教师仅见基础信息的班级与学生，无角色返回空列表", async () => {
+    const response = await request("modules/available", teacherToken);
+    const items = successResponseSchema(availableModulesSchema).parse(
+      await response.json(),
+    ).data;
+    expect(items.map(({ code }) => code)).toEqual(["base"]);
+    const result = await request("menus/current?module=base", teacherToken);
+    const groups = successResponseSchema(moduleMenusSchema).parse(
+      await result.json(),
+    ).data;
+    expect(
+      groups.flatMap(({ children }) => children).map(({ name }) => name),
+    ).toEqual(["班级管理", "学生管理"]);
+    const denied = await request(
+      "menus/current?module=platform-admin",
+      teacherToken,
+    );
+    expect(denied.status).toBe(200);
+    expect(
+      successResponseSchema(moduleMenusSchema).parse(await denied.json()).data,
+    ).toEqual([]);
+    const empty = await request("modules/available", emptyToken);
+    expect(empty.status).toBe(200);
+    expect(
+      successResponseSchema(availableModulesSchema).parse(await empty.json())
+        .data,
+    ).toEqual([]);
+  });
+  it("模块导航要求身份令牌并拒绝未知、混合参数", async () => {
+    for (const token of [accountToken, ""]) {
+      expect((await request("modules/available", token)).status).toBe(401);
+      expect((await request("menus/current?module=base", token)).status).toBe(
+        401,
+      );
+    }
+    for (const query of ["module=unknown", "module=base&app=school"]) {
+      expect((await request(`menus/current?${query}`)).status).toBe(400);
     }
   });
 });
