@@ -22,7 +22,7 @@ export function createApiClient(options: ApiClientOptions) {
     options.onUnauthenticated?.();
   }
 
-  function refresh(): Promise<string> {
+  function refresh(silent = false): Promise<string> {
     const { generation } = options.session.get();
     if (refreshing?.generation === generation) return refreshing.promise;
     const promise = (async () => {
@@ -34,7 +34,8 @@ export function createApiClient(options: ApiClientOptions) {
         return accessToken;
       } catch (error) {
         assertSession(generation);
-        expire(generation);
+        if (silent) options.session.clear();
+        else expire(generation);
         throw error;
       } finally {
         if (refreshing?.generation === generation) refreshing = undefined;

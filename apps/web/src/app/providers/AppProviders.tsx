@@ -4,6 +4,7 @@ import { BrowserRouter } from "react-router";
 import { ApiError, SessionChangedError } from "../../shared/api/api-error";
 import { useTheme } from "../../shared/hooks/use-theme";
 import { ApiEffects } from "./ApiEffects";
+import { SessionBootstrap } from "./session-bootstrap/SessionBootstrap";
 
 type AppProvidersProps = { children: ReactNode };
 
@@ -27,7 +28,7 @@ export function AppProviders({ children }: AppProvidersProps) {
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <ApiEffects />
-        {children}
+        <SessionBootstrap>{children}</SessionBootstrap>
       </BrowserRouter>
     </QueryClientProvider>
   );
