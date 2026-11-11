@@ -1,44 +1,15 @@
 .module-identity {
-  height: 40px;
-  padding: 4px 10px;
-  background: #fff;
+  height: 36px;
+  padding: 4px 12px 4px 4px;
   border-radius: 999px;
-  font-size: 13px;
-}
-.module-identity small {
-  display: block;
-  color: #63636b;
-  font-size: 11px;
-  text-align: left;
-}
-.module-identity-company [data-slot="avatar"] {
-  color: #0a64b5;
-  background: #daedfe;
-}
-.module-identity-bureau [data-slot="avatar"] {
-  color: #6020a0;
-  background: #f2eafa;
-}
-.module-identity-agent [data-slot="avatar"] {
-  color: #8d6320;
-  background: #fef2de;
-}
-.module-identity-school [data-slot="avatar"] {
-  color: #177d45;
-  background: #dcf7e8;
-}
-.module-identity-teacher [data-slot="avatar"] {
-  color: #087e8b;
-  background: #d8f4f6;
+  background: #fff;
+  color: #18181b;
+  box-shadow:
+    0 2px 4px #0000000a,
+    0 1px 2px #0000000f,
+    0 0 1px #0000000f;
 }
 .dark .module-identity {
   background: #27272a;
-}
-@media (max-width: 639px) {
-  .module-identity {
-    max-width: 180px;
-  }
-  .module-identity small {
-    display: none;
-  }
+  color: #f4f4f5;
 }

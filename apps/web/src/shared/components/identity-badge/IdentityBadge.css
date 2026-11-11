@@ -1,0 +1,32 @@
+.identity-badge {
+  display: inline-flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  white-space: nowrap;
+}
+.identity-badge-avatar {
+  width: 28px;
+  height: 28px;
+  flex: none;
+  background: #ebebec;
+  color: #18181b;
+  font-size: 13px;
+}
+.identity-badge-org {
+  font-size: 14px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.identity-badge-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: #63636b;
+  flex: none;
+}
+.identity-badge-chevron {
+  flex: none;
+  color: #18181b;
+}

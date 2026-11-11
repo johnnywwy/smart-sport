@@ -1,6 +1,7 @@
-import { Avatar, Button, Dropdown, Label } from "@heroui/react";
+import { Button, Dropdown, Label } from "@heroui/react";
 import type { IdentitySummary } from "@smart-sport/contracts";
 import { useNavigate } from "react-router";
+import { IdentityBadge } from "../../../../shared/components/identity-badge/IdentityBadge";
 import {
   useIdentities,
   useSelectIdentity,
@@ -18,14 +19,7 @@ export function IdentitySwitcher({ identity }: { identity: IdentitySummary }) {
         aria-label="切换组织"
         isDisabled={select.isPending}
       >
-        <Avatar size="sm">
-          <Avatar.Fallback>{identity.orgName.slice(0, 1)}</Avatar.Fallback>
-        </Avatar>
-        <span>
-          {identity.orgName}
-          <small>{identity.title ?? identity.typeName}</small>
-        </span>
-        <span aria-hidden="true">⌄</span>
+        <IdentityBadge identity={identity} />
       </Button>
       <Dropdown.Popover>
         <Dropdown.Menu aria-label="组织身份">

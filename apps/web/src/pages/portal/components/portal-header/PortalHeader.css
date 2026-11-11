@@ -37,19 +37,6 @@
     0 0 1px #0000000f;
 }
 
-.portal-org-avatar {
-  width: 28px;
-  height: 28px;
-  background: #daedfe;
-  color: #0a64b5;
-  font-size: 13px;
-}
-
-.portal-identity-title {
-  color: #63636b;
-  font-size: 13px;
-}
-
 .portal-user-avatar {
   width: 36px;
   height: 36px;
@@ -81,9 +68,6 @@
   }
   .portal-header-actions {
     margin-left: auto;
-  }
-  .portal-identity-title {
-    display: none;
   }
   .portal-identity-switch {
     max-width: 260px;

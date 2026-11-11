@@ -1,4 +1,5 @@
 import { BrandMark } from "../../../../shared/components/brand-mark/BrandMark";
+import { IdentityBadge } from "../../../../shared/components/identity-badge/IdentityBadge";
 import "./PortalHeader.css";
 import { Avatar, Button } from "@heroui/react";
 import type { IdentitySummary } from "@smart-sport/contracts";
@@ -20,14 +21,7 @@ export function PortalHeader({ identity }: { identity: IdentitySummary }) {
           onPress={() => navigate("/select-org")}
           aria-label={`切换组织，当前：${identity.orgName} ${identity.title ?? identity.typeName}`}
         >
-          <Avatar className="portal-org-avatar" size="sm">
-            <Avatar.Fallback>{identity.orgName.slice(0, 1)}</Avatar.Fallback>
-          </Avatar>
-          <span>{identity.orgName}</span>
-          <span className="portal-identity-title">
-            {identity.title ?? identity.typeName}
-          </span>
-          <span aria-hidden="true">⌄</span>
+          <IdentityBadge identity={identity} />
         </Button>
         <Button
           className="portal-logout"
