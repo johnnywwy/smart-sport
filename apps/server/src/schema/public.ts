@@ -214,3 +214,29 @@ export const regions = pgTable(
     check("regions_status_check", sql`${table.status} IN (0,1)`),
   ],
 );
+
+export const organizations = pgTable(
+  "orgs",
+  {
+    ...commonColumns(),
+    type: varchar("type", { length: 16 }).notNull(),
+    name: varchar("name", { length: 128 }).notNull(),
+    code: varchar("code", { length: 40 }).notNull().unique(),
+    regionCode: varchar("region_code", { length: 6 }).references(
+      () => regions.code,
+    ),
+    status: smallint("status").notNull().default(1),
+  },
+  (table) => [
+    check(
+      "orgs_type_check",
+      sql`${table.type} IN ('company','bureau','agent','school')`,
+    ),
+    check("orgs_name_check", sql`length(btrim(${table.name})) >= 2`),
+    check("orgs_status_check", sql`${table.status} IN (0,1)`),
+    check(
+      "orgs_region_rule_check",
+      sql`(${table.type} = 'company' AND ${table.regionCode} IS NULL) OR (${table.type} IN ('bureau','school') AND ${table.regionCode} IS NOT NULL) OR ${table.type} = 'agent'`,
+    ),
+  ],
+);
