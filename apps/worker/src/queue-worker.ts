@@ -5,6 +5,7 @@ import {
   Injectable,
 } from "@nestjs/common";
 import type { WorkerConfig } from "@smart-sport/config/env";
+import { createLoggerOptions } from "@smart-sport/config/logger";
 import { UnrecoverableError, Worker } from "bullmq";
 import { Redis } from "ioredis";
 import { pino } from "pino";
@@ -16,12 +17,19 @@ const probeSchema = z.object({ delayMs: z.int().min(0).max(2000).default(0) });
 
 @Injectable()
 export class QueueWorker implements BeforeApplicationShutdown {
-  private readonly logger = pino({ name: "smart-sport-worker" });
+  private readonly logger: ReturnType<typeof pino>;
   private readonly connection: Redis;
   private worker?: Worker;
   private stopping: Promise<void> | undefined;
 
   constructor(@Inject(WORKER_CONFIG) private readonly config: WorkerConfig) {
+    this.logger = pino(
+      createLoggerOptions(
+        config.NODE_ENV,
+        "smart-sport-worker",
+        Boolean(process.stdout.isTTY),
+      ),
+    );
     this.connection = new Redis(config.REDIS_URL, {
       lazyConnect: true,
       connectTimeout: 3000,

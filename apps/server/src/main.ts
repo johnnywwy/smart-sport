@@ -9,6 +9,7 @@ import {
 import type { NestExpressApplication } from "@nestjs/platform-express";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import { loadConfig, loadDatabaseConfig } from "@smart-sport/config/env";
+import { createLoggerOptions } from "@smart-sport/config/logger";
 import { ClsModule, ClsService } from "nestjs-cls";
 import { Logger, LoggerModule } from "nestjs-pino";
 
@@ -29,11 +30,25 @@ const databaseConfig = loadDatabaseConfig();
     LoggerModule.forRoot({
       pinoHttp: {
         customProps: (request) => ({ traceId: request.id }),
-        redact: [
-          "req.headers.authorization",
-          "req.headers.cookie",
-          'res.headers["set-cookie"]',
-        ],
+        ...createLoggerOptions(
+          config.NODE_ENV,
+          "smart-sport-server",
+          Boolean(process.stdout.isTTY),
+        ),
+        ...(config.NODE_ENV === "development"
+          ? {
+              customLogLevel: (_request, response, error) =>
+                error || response.statusCode >= 500
+                  ? "error"
+                  : response.statusCode >= 400
+                    ? "warn"
+                    : "info",
+              customSuccessMessage: (request, response, duration) =>
+                `${request.method} ${request.url?.split("?")[0]} → ${response.statusCode} (${duration} ms)`,
+              customErrorMessage: (request, response) =>
+                `${request.method} ${request.url?.split("?")[0]} → ${response.statusCode} 请求失败`,
+            }
+          : {}),
       },
     }),
   ],
@@ -81,3 +96,5 @@ if (config.apiDocsEnabled && config.NODE_ENV === "development") {
   );
 }
 await app.listen(config.PORT, config.HOST);
+
+app.get(Logger).log(`后端服务已启动：http://${config.HOST}:${config.PORT}`);
