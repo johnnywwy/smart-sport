@@ -1,6 +1,24 @@
 # 前端组件拆解
 
-分析依据为 `智慧体育云后台设计稿.html` 的 8 张画板，以及 `architecture-diagram.html` 中的角色配置、组织架构、范围选择器和人员抽屉。实现边界以 spec 13、spec 16 及各业务规格为准。
+分析依据为 `智慧体育云后台设计稿.html` 的 13 张画板，以及 `architecture-diagram.html` 中的角色配置、组织架构、范围选择器和人员抽屉。实现边界以 spec 13、spec 16 及各业务规格为准。
+
+## 2026-11-12 设计稿更新
+
+本次采用用户覆盖后的 HTML（仅清理行尾空白；源文件6,887,494 字节，SHA-256：`5cbd0c12b1754947b5b9a8cbab5f0958a7220b1aa16f9d0cd1e359b0d1af64f4`）。画板由 8 张增加到 13 张；工作台改为模块内侧栏布局，基础信息补充成员账号及角色分配，平台端统一称为角色模板。
+
+新增画板与组件规划：
+
+| 画板              | 组件拆分                                                                                                                                                                                | 任务         |
+| ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ |
+| 09 平台管理模块   | PlatformManagementPage、PlatformFilters、OnboardingStepFlow、SchoolInfoStep、SchoolGradesStep、SchoolAdminStep、SchoolServiceStep、OnboardingResult；角色模板与菜单设置复用对应功能组件 | T-164、T-165 |
+| 10 批量导入学生   | ImportWizard、ImportUploadStep、ImportPreviewStep、ImportResultStep、ImportUndoDialog；学生、班级、教师复用流程外框                                                                     | T-113、T-159 |
+| 11 学年升级流程   | RolloverOverview、RolloverPrecheck、RolloverPreview、RolloverExceptions、GraduationDestination、TeachingCopyOptions、RolloverResult、RolloverUndoDialog                                 | T-081、T-199 |
+| 12 转学办理流程   | TransferSearch、TransferEnrollmentForm、TransferTimeline、TransferReviewDialog、TransferResult；覆盖撤回、拒绝和提醒分支                                                                | T-101、T-168 |
+| 13 代理商授权流程 | AgentGrantForm、GrantPermissionSelector、GrantEffectPreview、GrantResult、GrantRevokeDialog                                                                                             | T-052、T-168 |
+
+以上每个组件仍遵守“组件文件夹 → TSX / 专属 CSS”的目录规则，按实际页面职责拆分，不把整个流程放进一个文件。
+
+设计稿中的冲突按已确认规则处理：通知遵循用户要求的右上角 2 秒自动消失；角色模板不能在界面新增、删除内置角色；外校学生查找不暴露姓名、班级等安全规格禁止返回的信息。学年升级示例里的留级、休学人数存在文案混用，计算以真实数据及 spec 08 为准，不照抄示例数字。学校开通的业务校验与初始化步骤继续按 spec 14 执行，设计稿四个录入步骤与结果页不代表减少后台校验步骤。
 
 ## 目录约定
 
