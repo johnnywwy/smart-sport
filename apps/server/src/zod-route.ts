@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { Body, Param, type PipeTransform, Query } from "@nestjs/common";
 import {
   ApiBody,
@@ -5,6 +6,7 @@ import {
   type ApiParamOptions,
   ApiQuery,
   ApiResponse,
+  type OpenAPIObject,
 } from "@nestjs/swagger";
 
 type SchemaObject = Extract<ApiParamOptions, { schema: unknown }>["schema"];
@@ -22,6 +24,19 @@ export class ZodRoutePipe implements PipeTransform {
   }
 }
 
+const recursiveSchemas: Record<string, SchemaObject> = {};
+
+/** 将 Zod 的递归定义注册为 OpenAPI 组件，避免嵌套 schema 的引用指向错误根节点。 */
+export function withZodSchemas(document: OpenAPIObject): OpenAPIObject {
+  return {
+    ...document,
+    components: {
+      ...document.components,
+      schemas: { ...document.components?.schemas, ...recursiveSchemas },
+    },
+  };
+}
+
 function openApiSchema(
   schema: z.ZodType,
   io: "input" | "output",
@@ -29,9 +44,23 @@ function openApiSchema(
   const { $schema: _dialect, ...document } = z.toJSONSchema(schema, {
     target: "openapi-3.0",
     io,
-    cycles: "throw",
+    cycles: "ref",
   });
-  return document as SchemaObject;
+  if (!document.definitions) return document as SchemaObject;
+  const prefix = `Zod_${createHash("sha256").update(JSON.stringify(document)).digest("hex").slice(0, 16)}_`;
+  const normalized = JSON.parse(
+    JSON.stringify(document, (key, value: unknown) =>
+      key === "$ref" &&
+      typeof value === "string" &&
+      value.startsWith("#/definitions/")
+        ? value.replace("#/definitions/", `#/components/schemas/${prefix}`)
+        : value,
+    ),
+  ) as { definitions: Record<string, SchemaObject> } & SchemaObject;
+  const { definitions, ...root } = normalized;
+  for (const [name, definition] of Object.entries(definitions))
+    recursiveSchemas[`${prefix}${name}`] = definition;
+  return root;
 }
 
 export function ZodRequest(

@@ -39,6 +39,11 @@ import {
   IdentityContextService,
 } from "./modules/platform/identity-context/index.js";
 import {
+  NavigationController,
+  NavigationRepository,
+  NavigationService,
+} from "./modules/platform/navigation/index.js";
+import {
   CompanyOrganizationGuard,
   OrganizationsController,
   OrganizationsRepository,
@@ -56,6 +61,7 @@ import {
 import { RateLimitGuard } from "./rate-limit.js";
 import { requestContextMiddleware } from "./request-context.js";
 import { SERVER_CONFIG } from "./server-config.js";
+import { withZodSchemas } from "./zod-route.js";
 
 const config = loadConfig("server");
 const databaseConfig = loadDatabaseConfig();
@@ -94,11 +100,14 @@ const databaseConfig = loadDatabaseConfig();
     RegionsController,
     OrganizationsController,
     IdentitiesController,
+    NavigationController,
   ],
   providers: [
     AuthRepository,
     AuthService,
     IdentitiesRepository,
+    NavigationRepository,
+    NavigationService,
     IdentitiesService,
     AccessTokenSigner,
     PasswordHasher,
@@ -150,7 +159,7 @@ if (config.apiDocsEnabled && config.NODE_ENV === "development") {
   SwaggerModule.setup(
     "api/docs",
     app,
-    () => SwaggerModule.createDocument(app, options),
+    () => withZodSchemas(SwaggerModule.createDocument(app, options)),
     {
       jsonDocumentUrl: "api/docs/openapi.json",
       raw: ["json"],
