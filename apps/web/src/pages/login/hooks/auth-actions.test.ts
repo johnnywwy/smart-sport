@@ -26,6 +26,7 @@ describe("登录与改密流程", () => {
         accessToken: "account-token",
         mustChangePassword,
         identityCount: 2,
+        selectedIdentity: null,
       });
       expect(
         await loginAccount({ account: " demo ", password: "123456" }),
@@ -41,6 +42,31 @@ describe("登录与改密流程", () => {
       });
     },
   );
+  it("单身份自动选择后直接进入门户", async () => {
+    request.mockResolvedValue({
+      accessToken: "identity-token",
+      mustChangePassword: false,
+      identityCount: 1,
+      selectedIdentity: {
+        id: "019a0000-0000-7000-8000-000000000001",
+        type: "company",
+        typeName: "公司",
+        orgId: "019a0000-0000-7000-8000-000000000002",
+        orgName: "平台公司",
+        departmentName: null,
+        title: null,
+        roleIds: [],
+        lastUsed: true,
+        available: true,
+        unavailableReason: null,
+      },
+    });
+    expect(await loginAccount({ account: "admin", password: "123456" })).toBe(
+      "/portal",
+    );
+    expect(useSession.getState().accessToken).toBe("identity-token");
+  });
+
   it("改密成功后刷新令牌再解除强制改密状态", async () => {
     useSession.getState().startSession("old-token");
     useSession.getState().setLoginContext(true, 1);
@@ -92,6 +118,7 @@ describe("登录与改密流程", () => {
         accessToken: "late-token",
         mustChangePassword: false,
         identityCount: 1,
+        selectedIdentity: null,
       };
     });
     await expect(

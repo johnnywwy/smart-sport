@@ -27,7 +27,11 @@ export async function loginAccount(input: LoginRequest) {
   useSession
     .getState()
     .setLoginContext(result.mustChangePassword, result.identityCount);
-  return result.mustChangePassword ? "/change-password" : "/select-org";
+  return result.mustChangePassword
+    ? "/change-password"
+    : result.selectedIdentity
+      ? "/portal"
+      : "/select-org";
 }
 export async function changeAccountPassword(input: ChangePasswordRequest) {
   const generation = useSession.getState().generation;

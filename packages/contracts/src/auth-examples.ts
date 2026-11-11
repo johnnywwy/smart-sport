@@ -12,6 +12,7 @@ export const authExamples = {
     accessToken: "mock-account-access",
     mustChangePassword: false,
     identityCount: 2,
+    selectedIdentity: null,
   }),
   refreshed: refreshAccessTokenSchema.parse({
     accessToken: "mock-refreshed-access",
