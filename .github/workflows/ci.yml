@@ -1,0 +1,57 @@
+name: 工程检查
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    name: 安装、静态检查、单测与构建
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      CI: "true"
+      HUSKY: "0"
+      TURBO_TELEMETRY_DISABLED: "1"
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 安装 pnpm（版本来自 packageManager）
+        uses: pnpm/action-setup@v4
+
+      - name: 安装 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: pnpm
+
+      - name: 安装锁定依赖
+        run: pnpm install --frozen-lockfile
+
+      - name: 安装已授权的 HeroUI Pro 组件
+        env:
+          HEROUI_KEY: ${{ secrets.HEROUI_KEY }}
+        run: pnpm setup:hero
+
+      - name: 确认安装没有改写依赖声明
+        run: git diff --exit-code -- package.json pnpm-lock.yaml pnpm-workspace.yaml 'apps/*/package.json' 'packages/*/package.json'
+
+      - name: 格式和组件约束检查
+        run: pnpm lint
+
+      - name: 类型检查
+        run: pnpm typecheck
+
+      - name: 单元测试
+        run: pnpm test:unit
+
+      - name: 构建
+        run: pnpm build

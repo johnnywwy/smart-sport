@@ -23,7 +23,8 @@
     "test:config-startup": "turbo run build --filter=@smart-sport/server --filter=@smart-sport/worker && node scripts/check-config-startup.mjs",
     "db:migrate": "turbo run build --filter=@smart-sport/server && pnpm --filter @smart-sport/server db:migrate",
     "prepare": "node scripts/setup-git.mjs",
-    "commit": "cz"
+    "commit": "cz",
+    "test:unit": "turbo run test"
   },
   "devDependencies": {
     "@biomejs/biome": "2.6.6",
