@@ -65,3 +65,11 @@ pnpm --filter @smart-sport/server start
 `nestjs-zod` 当前发布版的 peer 范围未覆盖 NestJS 12，故未安装；T-014 后续用 Zod 4 接入验证与 OpenAPI。P1 的 OpenTelemetry / @nestjs/observe 暂不安装。
 
 依赖安装后已继续实施 T-003 开发环境与 T-004 配置校验，使用方式见 `docs/LOCAL_INFRA.md`；T-010 健康接口与 T-018 测试队列消费者已可用。安装器报告的可选原生加速与遥测脚本未统一放开；argon2 的必需构建已执行并验证。
+
+## 身份上下文缓存（T-028）
+
+`IdentityContextService.load(identityId, client)` 加载身份、组织、账号状态和启用角色，把每个权限码对应的数据范围分别合并，返回的 `permissions` 为 Map。Redis 使用 `ctx:{identityId}` 保存可序列化副本，有效期 600 秒。
+
+迁移 `0022` 为账号、身份、身份角色、角色档位、组织及应用目录的变更维护事务内数据库版本。加载上下文前后都核对数据库和 Redis 失效版本，避免并发变更期间返回旧权限；Redis Lua 脚本拒绝旧版本回填。实例通过 `ctx:invalidate` 广播清理过期版本，清理使用 SCAN 和原子 UNLINK，不使用 KEYS。
+
+当前采用保守的全局版本：上述表的写入都会让已有上下文失效，包括账号资料和最近身份更新。缓存命中仍需查询数据库版本，优先保证权限变更立即可见。后续实现部门（T-033）时，也必须把部门调整纳入版本更新或在提交后调用 `invalidate`。本任务只提供内部服务，T-029 负责接入鉴权和 CLS，T-043 负责执行权限拦截。

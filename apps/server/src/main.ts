@@ -32,6 +32,10 @@ import {
   IdentitiesService,
 } from "./modules/platform/identities/index.js";
 import {
+  ContextRepository,
+  IdentityContextService,
+} from "./modules/platform/identity-context/index.js";
+import {
   CompanyOrganizationGuard,
   OrganizationsController,
   OrganizationsRepository,
@@ -104,6 +108,8 @@ const databaseConfig = loadDatabaseConfig();
     CompanyOrganizationGuard,
     RolesRepository,
     RolesService,
+    ContextRepository,
+    IdentityContextService,
     { provide: APP_GUARD, useClass: RateLimitGuard },
     { provide: APP_INTERCEPTOR, useClass: ApiResponseInterceptor },
     { provide: APP_INTERCEPTOR, useClass: IdempotencyInterceptor },
