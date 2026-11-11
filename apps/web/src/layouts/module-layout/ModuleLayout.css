@@ -8,10 +8,17 @@
   border: 0;
 }
 .module-layout [data-slot="app-layout-main"] {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
   padding: 0 24px 24px;
 }
+.module-layout .workspace-tabs {
+  flex: none;
+}
 .module-workspace {
-  min-height: calc(100vh - 100px);
+  flex: 1;
+  min-height: 0;
   border-radius: 16px;
   background: #fff;
   overflow: hidden;
