@@ -90,6 +90,8 @@ Redis 的 `session:{sessionId}` 保存不含 refresh 哈希的会话摘要，TTL
 
 ## 可用应用与菜单（T-046）
 
+以下描述的是当前已实现的旧版接口。2026-11-12 合并的目标规格已改为 `/api/v1/modules/available` 和 `/api/v1/menus/current?module=`，前台显示两个模块；这部分契约与实现尚待调整，进度见 `TASKS.md` 的规格合并待补齐项。
+
 `GET /api/v1/apps/available` 返回当前身份的应用摘要数组；`GET /api/v1/menus/current?app=school` 返回该应用的递归菜单树。共享契约与示例位于 `packages/contracts/src/navigation.ts`。两者都要求身份级令牌，无角色时成功返回空数组；未知或缺少 app 参数返回参数错误。
 
 应用必须在代码注册表和启用的数据库目录中，允许当前身份类型，并且至少有一个启用功能获授 view。菜单进一步按客户端、启停状态、功能查看权限和用户显示覆盖过滤。覆盖后的名称、图标、排序、显隐立即生效；父菜单被过滤时，不提升或暴露其后代。导航过滤只影响展示，不替代接口权限守卫。

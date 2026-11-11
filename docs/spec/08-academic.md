@@ -27,20 +27,22 @@
 
 **semesters**：academic_year_id、term（1、2）、name、start_date、end_date、is_current（部分唯一索引）。
 
-**school_rollovers**（public）：academic_year_id、school_id、status（pending · running · done · failed）、summary jsonb、confirmed_by、confirmed_at。
+**school_rollovers**（public）：academic_year_id、school_id、status（pending · running · done · failed · undoing · undone）、options jsonb（不随班升级的学生、毕业去向、任课方式）、summary jsonb、confirmed_by、confirmed_at、undo_deadline、undone_by、undone_at。
 
 ## 4. 接口
 
-| 方法  | 路径                              | 权限                     | 说明                                                                                                  |
-| ----- | --------------------------------- | ------------------------ | ----------------------------------------------------------------------------------------------------- |
-| GET   | `/academic-years`                 | 登录                     | 含学期                                                                                                |
-| GET   | `/academic-years/current`         | 登录                     | 当前学年与学期                                                                                        |
-| POST  | `/academic-years`                 | `system:academic:create` | `{ startYear }`，自动生成名称与两个学期，默认日期 9/1–次年 8/31，第一学期 9/1–1/31，第二学期 2/1–7/31 |
-| PATCH | `/semesters/:id`                  | `system:academic:update` | 调整起止日期                                                                                          |
-| POST  | `/semesters/:id/set-current`      | `system:academic:update` | 设为当前学期，同时切换当前学年                                                                        |
-| POST  | `/academic-years/:id/rollover`    | `system:academic:update` | 为全部学校发起学年切换（生成每校任务）                                                                |
-| GET   | `/schools/:schoolId/rollover`     | `school:rollover:view`   | 本校切换预检查与状态                                                                                  |
-| POST  | `/schools/:schoolId/rollover/run` | `school:rollover:update` | 执行本校切换                                                                                          |
+| 方法  | 路径                                  | 权限                     | 说明                                                                                                  |
+| ----- | ------------------------------------- | ------------------------ | ----------------------------------------------------------------------------------------------------- |
+| GET   | `/academic-years`                     | 登录                     | 含学期                                                                                                |
+| GET   | `/academic-years/current`             | 登录                     | 当前学年与学期                                                                                        |
+| POST  | `/academic-years`                     | `system:academic:create` | `{ startYear }`，自动生成名称与两个学期，默认日期 9/1–次年 8/31，第一学期 9/1–1/31，第二学期 2/1–7/31 |
+| PATCH | `/semesters/:id`                      | `system:academic:update` | 调整起止日期                                                                                          |
+| POST  | `/semesters/:id/set-current`          | `system:academic:update` | 设为当前学期，同时切换当前学年                                                                        |
+| POST  | `/academic-years/:id/rollover`        | `system:academic:update` | 为全部学校发起学年切换（生成每校任务）                                                                |
+| GET   | `/schools/:schoolId/rollover`         | `school:rollover:view`   | 本校切换预检查与状态                                                                                  |
+| POST  | `/schools/:schoolId/rollover/preview` | `school:rollover:view`   | 按 `options` 返回各年级去向、毕业人数、不随班升级的学生，不写数据                                     |
+| POST  | `/schools/:schoolId/rollover/run`     | `school:rollover:update` | 执行本校切换，`{ options }`，带幂等键                                                                 |
+| POST  | `/schools/:schoolId/rollover/undo`    | `school:rollover:update` | 撤回本校最近一次切换（见第 5 节）                                                                     |
 
 ## 5. 学年切换流程（每校）
 
@@ -54,6 +56,26 @@
 - 在 worker 中按学校执行，可重跑（幂等：已生成的记录跳过）。
 - 切换完成后清除该校身份的数据范围缓存。
 
+**执行时的选项（`options`）**
+
+| 选项             | 取值                          | 说明                                                                                              |
+| ---------------- | ----------------------------- | ------------------------------------------------------------------------------------------------- |
+| 不随班升级的学生 | 学生 id + 原因（留级 · 休学） | 留级：在原年级生成新学年学籍，班级待重新分配；休学：不生成新学年学籍，状态改为休学                |
+| 毕业去向         | 只办毕业 · 毕业并送到对口学校 | 后者为每名毕业生向目标学校生成一条待确认的转入记录（复用 spec 10 的升学关联），目标学校确认后建档 |
+| 任课方式         | 教师跟班走 · 全部清空         | 默认跟班走（即第 4 步的复制）                                                                     |
+
+- 九年一贯制、完全中学：本校内部的小升初、初升高按升年级处理，不算毕业；只有最高学段的最后一个年级办毕业。
+- 新学年的起始年级按上一学年同年级的班数建空班，班级里没有学生，等待导入新生。
+
+**撤回**
+
+- 切换完成后 7 天内可以整体撤回（参数 `rollover.undo_days`，默认 7；`undo_deadline` 在完成时写入）。
+- 撤回做的事：删除本次生成的新学年学籍、任课关系和空班；恢复毕业、休学学生的状态，学生索引同步恢复；取消本次生成且尚未被目标学校确认的转入记录；本校当前学年回到上一学年。
+- 撤回会丢弃这段时间在新学年做的修改（调班、任课调整）；界面在确认框中说明。
+- 以下情况不能撤回，返回 20005 并列出原因：已有毕业生被目标学校确认建档；新学年已有导入批次或已完成的转学；新学年已产生其他业务模块的数据。
+- 撤回在 worker 中执行，可重跑，写审计，完成后清除该校身份的数据范围缓存。
+- 代理商代办升级与撤回都需要学校授权包含 `school:rollover:update`（spec 05）。
+
 ## 6. 规则
 
 1. 同一时刻只有一个当前学年、一个当前学期。
@@ -63,14 +85,18 @@
 
 ## 7. 错误码
 
-| 码    | 含义                 |
-| ----- | -------------------- |
-| 20001 | 学年已存在           |
-| 20002 | 学年已关闭，不能修改 |
-| 20003 | 本校学年切换正在执行 |
+| 码    | 含义                               |
+| ----- | ---------------------------------- |
+| 20001 | 学年已存在                         |
+| 20002 | 学年已关闭，不能修改               |
+| 20003 | 本校学年切换正在执行               |
+| 20004 | 已超过可撤回时间                   |
+| 20005 | 新学年已有不能回退的数据，无法撤回 |
 
 ## 8. 验收标准
 
 - 2024 级小学班级在 2026-2027 学年显示为三年级，在 2027-2028 学年自动显示为四年级。
 - 五年制小学的 2021 级在 2026-2027 学年显示为已毕业，不出现在在读班级中。
 - 学年切换重跑不会产生重复学籍。
+- 指定为留级的学生留在原年级，指定为休学的学生没有新学年学籍。
+- 切换后 7 天内撤回，学籍、学生状态、学生索引和当前学年都回到切换前；毕业生已被对口学校确认后撤回返回 20005。

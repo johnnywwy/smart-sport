@@ -13,6 +13,18 @@
 - 支持 .xlsx，单次最多 10,000 行、10 MB。
 - 预览结果保留 24 小时；确认时带幂等键。
 - 失败行文件可下载，修改后重新上传。
+- 确认之前不写入任何业务数据；确认时可以只导入校验通过的行。
+- 用业务唯一键判断是不是同一条记录（学生用证件号哈希）：已存在的更新，不存在的新增，所以同一份文件重复导入不会产生重复数据。
+
+**导入批次与撤销**
+
+**import_batches**（学校内的导入放学校库，平台级导入放 public）：no（系统编号 `DR-…`）、feature、file_id、status（previewed · importing · done · undoing · undone · failed）、total / created_count / updated_count / skipped_count、created_ids jsonb（本批新增的记录：表名 → id 列表，含自动新建的班级）、confirmed_by、confirmed_at、undone_by、undone_at。
+
+- 确认导入后 24 小时内可以撤销本批（参数 `import.undo_hours`，默认 24）。
+- 撤销只软删除本批**新增**的记录；本批**更新**过的已有记录不回退，结果页要写明这一点。
+- 本批新增的记录在撤销前已被其他数据引用（如学生已有转学申请、班级里有不属于本批的学生）时，该条跳过并在撤销结果中列出。
+- 撤销在 worker 中执行，写审计；接口 `POST /schools/:schoolId/imports/:id/undo`，权限为该功能模块的 `import`，带幂等键。
+- 错误码：20301 已超过可撤销时间；20302 该批次已撤销或正在撤销。
 
 ## 2. 导出
 
@@ -53,6 +65,8 @@
 | `subscription.trial_days` | 30   |
 | `subscription.grace_days` | 30   |
 | `recycle.retention_days`  | 30   |
+| `import.undo_hours`       | 24   |
+| `rollover.undo_days`      | 7    |
 
 ## 7. 编号规则
 
@@ -101,6 +115,8 @@
 ## 12. 验收标准
 
 - 导入含错误行的文件，预览准确列出错误，确认后只导入正确行，失败行可下载。
+- 同一份学生表格导入两次，第二次全部识别为已存在，不新增学生。
+- 导入后 24 小时内撤销，本批新增的学生和自动新建的班级消失，本批只是更新过的学生保持不变；超过 24 小时返回 20301。
 - 导出文件带水印，无权限者导出的证件号为脱敏值。
 - 并发取号 1000 次无重复。
 - outbox 消费者重复收到同一事件，结果不变。
