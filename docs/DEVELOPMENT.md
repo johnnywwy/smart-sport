@@ -81,3 +81,9 @@ pnpm --filter @smart-sport/server start
 鉴权通过注入接口调用 `AuthContextService`，不让 core 反向依赖业务模块。每次请求核对数据库中的会话归属、到期及吊销状态、账号状态和 tokenVersion，身份级请求还要求令牌身份与会话当前身份一致，否则返回 401 / 11005。验证后的身份上下文及 userId、sessionId、identityId 写入 CLS；`identityContext.permissions` 保持 Map。
 
 Redis 的 `session:{sessionId}` 保存不含 refresh 哈希的会话摘要，TTL 不超过 600 秒及会话剩余有效期。它只作共享快照，不能作为跳过数据库校验的凭据，以保证退出、改密和跨标签页切换立即生效。权限动作的检查由后续 T-043 接入。
+
+## 功能权限守卫（T-043）
+
+`PermissionGuard` 在全局身份鉴权之后执行。业务方法使用 `@RequirePermissions("platform:org:view")` 声明所需权限，参数只能引用 contracts 已声明的权限码。多个参数为且关系；控制器与方法的声明累加，方法不能取消控制器要求。缺少已验证的身份上下文或任意一项权限时，返回 403 / 11101。
+
+组织列表、新建、修改、启停已分别接入 view、create、update 权限，并保留公司身份限制。区划查询按 spec 03 保持登录后可用。全局功能未声明功能权限时仍由身份鉴权保护。此守卫只检查动作是否获授，不扩大每项权限的数据范围；后续涉及具体业务记录的接口仍需按该动作的范围校验目标记录。

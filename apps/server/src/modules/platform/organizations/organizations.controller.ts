@@ -24,6 +24,7 @@ import {
   updateOrganizationRequestSchema,
 } from "@smart-sport/contracts";
 import { ClsService } from "nestjs-cls";
+import { RequirePermissions } from "../../../core/permission.guard.js";
 import { Idempotent } from "../../../idempotency.js";
 import { ApiZodResponse, ZodRequest } from "../../../zod-route.js";
 import {
@@ -41,6 +42,7 @@ export class OrganizationsController {
     @Inject(ClsService) private readonly cls: ClsService,
   ) {}
 
+  @RequirePermissions("platform:org:view")
   @Get()
   @ApiZodResponse(
     200,
@@ -54,6 +56,7 @@ export class OrganizationsController {
     return this.organizations.list(query);
   }
 
+  @RequirePermissions("platform:org:create")
   @Post()
   @Idempotent(
     "organization.create",
@@ -78,6 +81,7 @@ export class OrganizationsController {
     );
   }
 
+  @RequirePermissions("platform:org:update")
   @Patch(":id")
   @ApiZodResponse(200, successResponseSchema(organizationSchema), "修改组织")
   update(
@@ -95,6 +99,7 @@ export class OrganizationsController {
     );
   }
 
+  @RequirePermissions("platform:org:update")
   @Post(":id/toggle")
   @ApiZodResponse(
     200,

@@ -27,6 +27,7 @@ import {
 import { migratePublic } from "../../src/database/migrate.js";
 import { DRIZZLE } from "../../src/database/registry.js";
 import { AccessTokenSigner } from "../../src/infra/auth/access-token-signer.js";
+import { syncCatalog } from "../../src/modules/platform/catalog/catalog-sync.js";
 import {
   CompanyOrganizationGuard,
   OrganizationsController,
@@ -70,6 +71,7 @@ beforeAll(async () => {
   ).start();
   pool = new pg.Pool({ connectionString: container.getConnectionUri() });
   await migratePublic(pool);
+  await syncCatalog(pool);
   await importRegions(pool, seedFile);
   const db = drizzle(pool);
   await db.insert(users).values({
@@ -109,6 +111,10 @@ beforeAll(async () => {
     },
   ]);
 
+  await pool.query(
+    "INSERT INTO public.identity_roles (identity_id,role_id) SELECT $1,id FROM public.roles WHERE code='company-super-admin'",
+    [companyIdentityId],
+  );
   security = await authentication(config);
   const module = await Test.createTestingModule({
     imports: [ClsModule.forRoot({ global: true })],
@@ -327,6 +333,58 @@ describe("公司身份管理教育局与代理商", () => {
       });
       expect(response.status).toBe(404);
       expect(apiResponseSchema.parse(await response.json()).code).toBe(90004);
+    }
+  });
+});
+
+describe("组织接口功能权限", () => {
+  async function assign(code: string | null) {
+    await pool.query("DELETE FROM public.identity_roles WHERE identity_id=$1", [
+      companyIdentityId,
+    ]);
+    if (code)
+      await pool.query(
+        "INSERT INTO public.identity_roles (identity_id,role_id) SELECT $1,id FROM public.roles WHERE code=$2",
+        [companyIdentityId, code],
+      );
+  }
+
+  it("同为公司身份，无角色时各读写接口均返回11101", async () => {
+    await assign(null);
+    try {
+      const attempts: [string, RequestInit][] = [
+        ["", {}],
+        ["", { method: "POST" }],
+        [`/${v7()}`, { method: "PATCH" }],
+        [`/${v7()}/toggle`, { method: "POST" }],
+      ];
+      for (const [path, init] of attempts) {
+        const response = await request(path, init);
+        expect(response.status).toBe(403);
+        expect(apiResponseSchema.parse(await response.json()).code).toBe(11101);
+      }
+    } finally {
+      await assign("company-super-admin");
+    }
+  });
+
+  it("研发角色能查看组织，不能新增、修改和启停", async () => {
+    await assign("company-developer");
+    try {
+      expect((await request("")).status).toBe(200);
+      for (const [path, method] of [
+        ["", "POST"],
+        [`/${companyOrgId}`, "PATCH"],
+        [`/${companyOrgId}/toggle`, "POST"],
+      ]) {
+        const response = await request(path ?? "", {
+          method: method ?? "POST",
+        });
+        expect(response.status).toBe(403);
+        expect(apiResponseSchema.parse(await response.json()).code).toBe(11101);
+      }
+    } finally {
+      await assign("company-super-admin");
     }
   });
 });

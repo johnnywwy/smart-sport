@@ -6,6 +6,7 @@ import {
   AUTH_CONTEXT_LOADER,
   AuthenticatedGuard,
 } from "../../src/core/authenticated.guard.js";
+import { PermissionGuard } from "../../src/core/permission.guard.js";
 import { AccessTokenSigner } from "../../src/infra/auth/access-token-signer.js";
 import {
   AuthContextService,
@@ -31,6 +32,7 @@ export async function authentication(config: ServerConfig) {
     stop: () => redis.stop(),
     providers: [
       { provide: APP_GUARD, useClass: AuthenticatedGuard },
+      { provide: APP_GUARD, useClass: PermissionGuard },
       { provide: ACCESS_TOKEN_VERIFIER, useExisting: AccessTokenSigner },
       { provide: AUTH_CONTEXT_LOADER, useExisting: AuthContextService },
       AuthContextService,

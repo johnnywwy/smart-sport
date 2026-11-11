@@ -19,6 +19,7 @@ import {
   AUTH_CONTEXT_LOADER,
   AuthenticatedGuard,
 } from "./core/authenticated.guard.js";
+import { PermissionGuard } from "./core/permission.guard.js";
 import { DataSourceRegistry, DRIZZLE } from "./database/registry.js";
 import { HealthController } from "./health.js";
 import { IdempotencyInterceptor } from "./idempotency.js";
@@ -102,6 +103,7 @@ const databaseConfig = loadDatabaseConfig();
     AccessTokenSigner,
     PasswordHasher,
     { provide: APP_GUARD, useClass: AuthenticatedGuard },
+    { provide: APP_GUARD, useClass: PermissionGuard },
     AuthContextService,
     { provide: AUTH_CONTEXT_LOADER, useExisting: AuthContextService },
     { provide: ACCESS_TOKEN_VERIFIER, useExisting: AccessTokenSigner },
