@@ -64,3 +64,5 @@ export const readinessSchema = z.object({
   }),
 });
 export type Readiness = z.infer<typeof readinessSchema>;
+
+export * from "./permissions.js";
