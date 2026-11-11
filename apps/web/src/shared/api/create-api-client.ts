@@ -106,6 +106,9 @@ export function createApiClient(options: ApiClientOptions) {
         if (
           !(error instanceof ApiError) ||
           error.status !== 401 ||
+          (error.code !== null &&
+            error.code !== 10005 &&
+            error.code !== 11005) ||
           !authenticated
         )
           throw error;

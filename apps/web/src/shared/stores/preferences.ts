@@ -11,11 +11,18 @@ type Preferences = {
 export const usePreferences = create(
   persist<Preferences>(
     (set) => ({
-      dark: window.matchMedia("(prefers-color-scheme: dark)").matches,
+      dark: false,
       sidebarOpen: true,
       toggleTheme: () => set((state) => ({ dark: !state.dark })),
       setSidebarOpen: (sidebarOpen) => set({ sidebarOpen }),
     }),
-    { name: "smart-sport-ui" },
+    {
+      name: "smart-sport-ui",
+      version: 1,
+      migrate: (persisted) => ({
+        ...(persisted as Preferences),
+        dark: false,
+      }),
+    },
   ),
 );

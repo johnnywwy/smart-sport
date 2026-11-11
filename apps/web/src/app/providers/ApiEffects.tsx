@@ -22,8 +22,11 @@ export function ApiEffects() {
   );
   useEffect(() => {
     if (!notices.length) return;
-    for (const notice of useApiEvents.getState().drainNotices())
-      toast.danger(notice.message, { timeout: 0 });
+    for (const notice of useApiEvents.getState().drainNotices()) {
+      const options = { description: notice.message, timeout: 2000 };
+      if (notice.variant === "success") toast.success(notice.title, options);
+      else toast.danger(notice.title, options);
+    }
   }, [notices]);
   useEffect(() => {
     if (!navigation) return;

@@ -385,3 +385,24 @@ describe("API 客户端", () => {
     expect(fetcher).toHaveBeenCalledOnce();
   });
 });
+
+describe("认证业务失败不刷新会话", () => {
+  it.each([10001, 10002, 10003, 10004])(
+    "错误 %s 直接交给表单，保留当前会话",
+    async (code) => {
+      const { api, fetcher, session, onUnauthenticated } = setup(() =>
+        failure(401, code),
+      );
+      await expect(
+        api.request("/api/v1/auth/change-password", livenessSchema, {
+          method: "POST",
+          body: {},
+          notify: false,
+        }),
+      ).rejects.toMatchObject({ code });
+      expect(fetcher).toHaveBeenCalledTimes(1);
+      expect(onUnauthenticated).not.toHaveBeenCalled();
+      expect(session.get().accessToken).toBe("old-token");
+    },
+  );
+});

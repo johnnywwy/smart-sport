@@ -3,6 +3,9 @@ import { create } from "zustand";
 type SessionState = {
   accessToken: string | null;
   generation: number;
+  mustChangePassword: boolean | null;
+  identityCount: number | null;
+  setLoginContext: (mustChangePassword: boolean, identityCount: number) => void;
   startSession: (accessToken: string) => void;
   refreshToken: (accessToken: string, generation: number) => void;
   clearSession: () => void;
@@ -12,10 +15,24 @@ type SessionState = {
 export const useSession = create<SessionState>((set) => ({
   accessToken: null,
   generation: 0,
+  mustChangePassword: null,
+  identityCount: null,
+  setLoginContext: (mustChangePassword, identityCount) =>
+    set({ mustChangePassword, identityCount }),
   startSession: (accessToken) =>
-    set((state) => ({ accessToken, generation: state.generation + 1 })),
+    set((state) => ({
+      accessToken,
+      generation: state.generation + 1,
+      mustChangePassword: null,
+      identityCount: null,
+    })),
   refreshToken: (accessToken, generation) =>
     set((state) => (state.generation === generation ? { accessToken } : state)),
   clearSession: () =>
-    set((state) => ({ accessToken: null, generation: state.generation + 1 })),
+    set((state) => ({
+      accessToken: null,
+      generation: state.generation + 1,
+      mustChangePassword: null,
+      identityCount: null,
+    })),
 }));
