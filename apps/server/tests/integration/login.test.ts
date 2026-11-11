@@ -36,8 +36,13 @@ import { PasswordHasher } from "../../src/infra/crypto/password-hasher.js";
 import { AuthController } from "../../src/modules/platform/auth/auth.controller.js";
 import { AuthRepository } from "../../src/modules/platform/auth/auth.repository.js";
 import { AuthService } from "../../src/modules/platform/auth/auth.service.js";
+import {
+  IdentitiesRepository,
+  IdentitiesService,
+} from "../../src/modules/platform/identities/index.js";
+import { importRegions } from "../../src/modules/platform/regions/region-importer.js";
 import { requestContextMiddleware } from "../../src/request-context.js";
-import { identities, users } from "../../src/schema/public.js";
+import { identities, organizations, users } from "../../src/schema/public.js";
 import { SERVER_CONFIG } from "../../src/server-config.js";
 
 let container: StartedPostgreSqlContainer | undefined;
@@ -45,6 +50,10 @@ let pool: pg.Pool;
 let app: INestApplication;
 let base: string;
 const pair = generateKeyPairSync("ed25519");
+const seedFile = new URL(
+  "../../../../deploy/seed/regions.csv",
+  import.meta.url,
+);
 const userId = v7();
 const hasher = new PasswordHasher();
 const config = {
@@ -68,6 +77,7 @@ beforeAll(async () => {
   ).start();
   pool = new pg.Pool({ connectionString: container.getConnectionUri() });
   await migratePublic(pool);
+  await importRegions(pool, seedFile);
   await drizzle(pool)
     .insert(users)
     .values({
@@ -77,12 +87,20 @@ beforeAll(async () => {
       realName: "测试",
       passwordHash: await hasher.hash("123456"),
     });
+  const schoolOrgId = v7();
+  await drizzle(pool).insert(organizations).values({
+    id: schoolOrgId,
+    type: "school",
+    name: "测试学校",
+    code: "ORG_LOGIN_TEST_SCHOOL",
+    regionCode: "330106",
+  });
   await drizzle(pool)
     .insert(identities)
     .values(
       ["school", "teacher", "student", "parent"].map((type) => ({
         userId,
-        orgId: v7(),
+        orgId: schoolOrgId,
         type,
       })),
     );
@@ -92,6 +110,8 @@ beforeAll(async () => {
     providers: [
       AuthService,
       AuthRepository,
+      IdentitiesService,
+      IdentitiesRepository,
       PasswordHasher,
       AccessTokenSigner,
       { provide: DRIZZLE, useValue: drizzle(pool) },

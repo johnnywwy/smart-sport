@@ -4,6 +4,7 @@ import type { ServerConfig } from "@smart-sport/config/env";
 import {
   type ChangePasswordRequest,
   type LoginRequest,
+  type LoginResponse,
   loginResponseSchema,
 } from "@smart-sport/contracts";
 import { v7 } from "uuid";
@@ -11,6 +12,7 @@ import { ApiException } from "../../../api-response.js";
 import { AccessTokenSigner } from "../../../infra/auth/access-token-signer.js";
 import { PasswordHasher } from "../../../infra/crypto/password-hasher.js";
 import { SERVER_CONFIG } from "../../../server-config.js";
+import { IdentitiesService } from "../identities/index.js";
 import { AuthRepository, type LoginMetadata } from "./auth.repository.js";
 import { validateNewPassword } from "./password-policy.js";
 
@@ -22,6 +24,7 @@ export class AuthService {
     @Inject(PasswordHasher) private readonly hasher: PasswordHasher,
     @Inject(AccessTokenSigner) private readonly signer: AccessTokenSigner,
     @Inject(SERVER_CONFIG) private readonly config: ServerConfig,
+    @Inject(IdentitiesService) private readonly identities: IdentitiesService,
   ) {
     this.dummyHash = this.hasher.hash(randomBytes(32).toString("hex"));
   }
@@ -100,17 +103,41 @@ export class AuthService {
         tokenVersion: user.tokenVersion,
       });
       return {
-        body: loginResponseSchema.parse({
+        body: {
           accessToken,
           mustChangePassword: user.mustChangePassword,
           identityCount,
-        }),
+          selectedIdentity: null,
+        } as LoginResponse,
         refreshToken,
+        session: {
+          userId: user.id,
+          sessionId,
+          tokenVersion: user.tokenVersion,
+        },
       };
     });
     // 失败记录先提交，再抛出 HTTP 错误，避免事务回滚丢失日志。
     if ("error" in result) throw new ApiException(result.error);
-    return result;
+    if (!result.body.mustChangePassword) {
+      try {
+        const selection = await this.identities.autoSelectAfterLogin(
+          result.session,
+          metadata,
+        );
+        result.body.identityCount = selection.identityCount;
+        result.body.selectedIdentity = selection.selectedIdentity;
+        if (selection.accessToken)
+          result.body.accessToken = selection.accessToken;
+      } catch (error) {
+        await this.identities.revokeSession(result.session.sessionId);
+        throw error;
+      }
+    }
+    return {
+      body: loginResponseSchema.parse(result.body),
+      refreshToken: result.refreshToken,
+    };
   }
   /** 原值消费后仍保留哈希；重放吊销结果必须提交后再返回 401。 */
   async refresh(refreshToken: string | undefined) {

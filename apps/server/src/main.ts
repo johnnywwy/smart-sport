@@ -27,6 +27,11 @@ import { AuthController } from "./modules/platform/auth/auth.controller.js";
 import { AuthRepository } from "./modules/platform/auth/auth.repository.js";
 import { AuthService } from "./modules/platform/auth/auth.service.js";
 import {
+  IdentitiesController,
+  IdentitiesRepository,
+  IdentitiesService,
+} from "./modules/platform/identities/index.js";
+import {
   CompanyOrganizationGuard,
   OrganizationsController,
   OrganizationsRepository,
@@ -77,10 +82,13 @@ const databaseConfig = loadDatabaseConfig();
     AuthController,
     RegionsController,
     OrganizationsController,
+    IdentitiesController,
   ],
   providers: [
     AuthRepository,
     AuthService,
+    IdentitiesRepository,
+    IdentitiesService,
     AccessTokenSigner,
     PasswordHasher,
     AuthenticatedGuard,

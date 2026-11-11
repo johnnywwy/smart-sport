@@ -12,7 +12,7 @@ type RegionSeed = {
 
 const header = "code,name,level,parent_code,path,status";
 
-export async function readRegionSeeds(file: string) {
+export async function readRegionSeeds(file: string | URL) {
   const lines = (await readFile(file, "utf8")).trimEnd().split(/\r?\n/);
   if (lines.shift() !== header) throw new Error("区划 CSV 表头不正确");
   const seeds = lines.map((line, index) => parseLine(line, index + 2));
@@ -69,7 +69,7 @@ function validateTree(seeds: RegionSeed[]) {
   }
 }
 
-export async function importRegions(pool: pg.Pool, file: string) {
+export async function importRegions(pool: pg.Pool, file: string | URL) {
   const seeds = await readRegionSeeds(file);
   const client = await pool.connect();
   try {
