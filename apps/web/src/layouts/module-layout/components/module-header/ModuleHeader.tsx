@@ -19,7 +19,23 @@ export function ModuleHeader({
   return (
     <header className="module-header">
       <div className="module-breadcrumb">
-        <Sidebar.Trigger aria-label="展开或收起侧栏" />
+        <Sidebar.Trigger
+          className="module-sidebar-toggle"
+          aria-label="展开或收起侧栏"
+        >
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <rect x="3" y="4" width="18" height="16" rx="3" />
+            <path d="M9 4v16" />
+          </svg>
+        </Sidebar.Trigger>
         <span>{moduleName}</span>
         <span aria-hidden="true">/</span>
         <strong>{pageName}</strong>

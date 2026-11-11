@@ -13,8 +13,29 @@
   gap: 12px;
 }
 .module-breadcrumb {
-  color: #8e8e96;
-  font-size: 13px;
+  gap: 10px;
+  color: #63636b;
+  font-size: 14px;
+}
+.module-header .module-sidebar-toggle {
+  width: 36px;
+  min-width: 36px;
+  height: 36px;
+  padding: 0;
+  margin-inline-start: 0;
+  border: 0;
+  border-radius: 999px;
+  background: #ebebec;
+  color: #18181b;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+}
+.module-sidebar-toggle svg {
+  display: block;
+  width: 18px;
+  height: 18px;
 }
 .module-breadcrumb strong {
   color: #18181b;
