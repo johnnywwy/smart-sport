@@ -240,3 +240,17 @@ export const organizations = pgTable(
     ),
   ],
 );
+
+export const identityRoles = pgTable(
+  "identity_roles",
+  {
+    identityId: uuid("identity_id")
+      .notNull()
+      .references(() => identities.id, { onDelete: "cascade" }),
+    roleId: uuid("role_id").notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.identityId, table.roleId] }),
+    index("identity_roles_role_index").on(table.roleId),
+  ],
+);

@@ -79,6 +79,7 @@ describe("用户表 PostgreSQL 17 迁移与约束", () => {
       "0016_password_history_user_index.sql",
       "0017_create_regions.sql",
       "0018_create_orgs.sql",
+      "0019_complete_identities.sql",
     ]);
     expect(await migratePublic(pool)).toEqual([]);
   });
