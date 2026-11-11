@@ -75,19 +75,16 @@ export function ModuleLayout({
         />
       }
     >
+      <WorkspaceTabs
+        home={home}
+        tabs={visible}
+        current={pathname}
+        onClose={(path) => {
+          useWorkspaceTabs.getState().close(scope, path);
+          if (path === pathname) navigate(home);
+        }}
+      />
       <div className="module-workspace">
-        <WorkspaceTabs
-          home={home}
-          tabs={visible}
-          current={pathname}
-          onClose={(path) => {
-            useWorkspaceTabs.getState().close(scope, path);
-            if (path === pathname) navigate(home);
-          }}
-          onCloseOthers={() =>
-            useWorkspaceTabs.getState().closeOthers(scope, pathname)
-          }
-        />
         <div className="module-content">{children}</div>
       </div>
     </AppLayout>
