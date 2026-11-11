@@ -376,3 +376,4 @@ flowchart LR
 | 13   | `spec/13-admin-web.md`       | 后台页面流、外壳、通用组件、组织架构页、门户                       |
 | 14   | `spec/14-init-onboarding.md` | 系统初始化、学校开通向导                                           |
 | 15   | `spec/15-engineering.md`     | 仓库、CI、环境、提交规范、部署、备份、发布                         |
+| 16   | `spec/16-code-standards.md`  | 后端三层模块结构、前端四层组件、依赖方向与自动检查                 |
