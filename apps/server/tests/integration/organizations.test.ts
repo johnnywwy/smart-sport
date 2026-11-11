@@ -24,10 +24,6 @@ import {
   ApiExceptionFilter,
   ApiResponseInterceptor,
 } from "../../src/api-response.js";
-import {
-  ACCESS_TOKEN_VERIFIER,
-  AuthenticatedGuard,
-} from "../../src/core/authenticated.guard.js";
 import { migratePublic } from "../../src/database/migrate.js";
 import { DRIZZLE } from "../../src/database/registry.js";
 import { AccessTokenSigner } from "../../src/infra/auth/access-token-signer.js";
@@ -41,9 +37,11 @@ import { importRegions } from "../../src/modules/platform/regions/region-importe
 import { requestContextMiddleware } from "../../src/request-context.js";
 import { identities, organizations, users } from "../../src/schema/public.js";
 import { SERVER_CONFIG } from "../../src/server-config.js";
+import { authentication } from "../helpers/authentication.js";
 
 let container: StartedPostgreSqlContainer | undefined;
 let pool: pg.Pool;
+let security: Awaited<ReturnType<typeof authentication>>;
 let app: INestApplication;
 let base: string;
 let companyToken: string;
@@ -111,18 +109,18 @@ beforeAll(async () => {
     },
   ]);
 
+  security = await authentication(config);
   const module = await Test.createTestingModule({
     imports: [ClsModule.forRoot({ global: true })],
     controllers: [OrganizationsController],
     providers: [
       OrganizationsRepository,
       OrganizationsService,
-      AuthenticatedGuard,
+      ...security.providers,
       CompanyOrganizationGuard,
       AccessTokenSigner,
-      { provide: ACCESS_TOKEN_VERIFIER, useExisting: AccessTokenSigner },
       { provide: DRIZZLE, useValue: db },
-      { provide: SERVER_CONFIG, useValue: config },
+      { provide: SERVER_CONFIG, useValue: security.config },
       { provide: APP_FILTER, useClass: ApiExceptionFilter },
       { provide: APP_INTERCEPTOR, useClass: ApiResponseInterceptor },
     ],
@@ -141,15 +139,32 @@ beforeAll(async () => {
     ...tokenInput,
     identityId: companyIdentityId,
   });
+  const bureauSessionId = v7();
   bureauToken = await signer.signIdentity({
     ...tokenInput,
+    sessionId: bureauSessionId,
     identityId: bureauIdentityId,
   });
   accountToken = await signer.signAccount(tokenInput);
+  for (const [sessionId, identityId] of [
+    [tokenInput.sessionId, companyIdentityId],
+    [bureauSessionId, bureauIdentityId],
+  ] as const) {
+    await pool.query(
+      "INSERT INTO public.user_sessions (id,user_id,identity_id,refresh_token_hash,client,expires_at) VALUES ($1,$2,$3,$4,'admin',now()+interval '1 day')",
+      [
+        sessionId,
+        companyUserId,
+        identityId,
+        sessionId.replaceAll("-", "").repeat(2),
+      ],
+    );
+  }
 }, 120000);
 
 afterAll(async () => {
   await app?.close();
+  await security?.stop();
   await pool?.end();
   await container?.stop();
 }, 30000);
@@ -184,8 +199,10 @@ describe("公司身份管理教育局与代理商", () => {
     expect((await request("", {}, "")).status).toBe(401);
     for (const token of [accountToken, bureauToken]) {
       const response = await request("", {}, token);
-      expect(response.status).toBe(403);
-      expect(apiResponseSchema.parse(await response.json()).code).toBe(11101);
+      expect(response.status).toBe(token === accountToken ? 401 : 403);
+      expect(apiResponseSchema.parse(await response.json()).code).toBe(
+        token === accountToken ? 10005 : 11101,
+      );
     }
   });
 

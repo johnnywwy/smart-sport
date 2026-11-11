@@ -23,10 +23,6 @@ import {
   ApiExceptionFilter,
   ApiResponseInterceptor,
 } from "../../src/api-response.js";
-import {
-  ACCESS_TOKEN_VERIFIER,
-  AuthenticatedGuard,
-} from "../../src/core/authenticated.guard.js";
 import { migratePublic } from "../../src/database/migrate.js";
 import { DRIZZLE } from "../../src/database/registry.js";
 import { AccessTokenSigner } from "../../src/infra/auth/access-token-signer.js";
@@ -38,9 +34,11 @@ import {
 import { importRegions } from "../../src/modules/platform/regions/region-importer.js";
 import { requestContextMiddleware } from "../../src/request-context.js";
 import { SERVER_CONFIG } from "../../src/server-config.js";
+import { authentication } from "../helpers/authentication.js";
 
 let container: StartedPostgreSqlContainer | undefined;
 let pool: pg.Pool;
+let security: Awaited<ReturnType<typeof authentication>>;
 let app: INestApplication;
 let base: string;
 let accessToken: string;
@@ -68,17 +66,17 @@ beforeAll(async () => {
   expect(await importRegions(pool, seedFile)).toBe(3223);
   expect(await importRegions(pool, seedFile)).toBe(3223);
 
+  security = await authentication(config);
   const module = await Test.createTestingModule({
     imports: [ClsModule.forRoot({ global: true })],
     controllers: [RegionsController],
     providers: [
       RegionsRepository,
       RegionsService,
-      AuthenticatedGuard,
+      ...security.providers,
       AccessTokenSigner,
-      { provide: ACCESS_TOKEN_VERIFIER, useExisting: AccessTokenSigner },
       { provide: DRIZZLE, useValue: drizzle(pool) },
-      { provide: SERVER_CONFIG, useValue: config },
+      { provide: SERVER_CONFIG, useValue: security.config },
       { provide: APP_FILTER, useClass: ApiExceptionFilter },
       { provide: APP_INTERCEPTOR, useClass: ApiResponseInterceptor },
     ],
@@ -87,15 +85,34 @@ beforeAll(async () => {
   app.use(requestContextMiddleware(app.get(ClsService)));
   await app.listen(0, "127.0.0.1");
   base = await app.getUrl();
-  accessToken = await app.get(AccessTokenSigner).signAccount({
-    userId: v7(),
-    sessionId: v7(),
-    tokenVersion: 0,
-  });
+  const userId = v7(),
+    orgId = v7(),
+    identityId = v7(),
+    sessionId = v7();
+  await pool.query(
+    "INSERT INTO public.users (id,username,real_name,password_hash,must_change_password) VALUES ($1,'region-admin','区划管理员','test',false)",
+    [userId],
+  );
+  await pool.query(
+    "INSERT INTO public.orgs (id,type,name,code) VALUES ($1,'company','测试公司','REGION_TEST')",
+    [orgId],
+  );
+  await pool.query(
+    "INSERT INTO public.identities (id,user_id,org_id,type) VALUES ($1,$2,$3,'company')",
+    [identityId, userId, orgId],
+  );
+  await pool.query(
+    "INSERT INTO public.user_sessions (id,user_id,identity_id,refresh_token_hash,client,expires_at) VALUES ($1,$2,$3,$4,'admin',now()+interval '1 day')",
+    [sessionId, userId, identityId, "a".repeat(64)],
+  );
+  accessToken = await app
+    .get(AccessTokenSigner)
+    .signIdentity({ userId, sessionId, identityId, tokenVersion: 0 });
 }, 120000);
 
 afterAll(async () => {
   await app?.close();
+  await security?.stop();
   await pool?.end();
   await container?.stop();
 }, 30000);

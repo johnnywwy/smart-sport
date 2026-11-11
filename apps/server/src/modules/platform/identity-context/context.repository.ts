@@ -7,12 +7,23 @@ import {
   identityRoles,
   organizations,
   roles,
+  userSessions,
   users,
 } from "../../../schema/public.js";
 
 @Injectable()
 export class ContextRepository {
   constructor(@Inject(DRIZZLE) private readonly db: NodePgDatabase) {}
+
+  async session(sessionId: string) {
+    const [row] = await this.db
+      .select({ session: userSessions, user: users })
+      .from(userSessions)
+      .innerJoin(users, eq(users.id, userSessions.userId))
+      .where(eq(userSessions.id, sessionId))
+      .limit(1);
+    return row;
+  }
 
   async revision() {
     const result = await this.db.execute(

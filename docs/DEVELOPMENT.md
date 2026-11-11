@@ -73,3 +73,11 @@ pnpm --filter @smart-sport/server start
 迁移 `0022` 为账号、身份、身份角色、角色档位、组织及应用目录的变更维护事务内数据库版本。加载上下文前后都核对数据库和 Redis 失效版本，避免并发变更期间返回旧权限；Redis Lua 脚本拒绝旧版本回填。实例通过 `ctx:invalidate` 广播清理过期版本，清理使用 SCAN 和原子 UNLINK，不使用 KEYS。
 
 当前采用保守的全局版本：上述表的写入都会让已有上下文失效，包括账号资料和最近身份更新。缓存命中仍需查询数据库版本，优先保证权限变更立即可见。后续实现部门（T-033）时，也必须把部门调整纳入版本更新或在提交后调用 `invalidate`。本任务只提供内部服务，T-029 负责接入鉴权和 CLS，T-043 负责执行权限拦截。
+
+## 全局身份鉴权（T-029）
+
+`AuthenticatedGuard` 以全局守卫装配，接口默认要求身份级 access token。登录、刷新、退出及健康检查显式标记 `PublicRoute`；列身份、选择身份及改密标记 `AccountAllowed`。刷新和退出继续由各自服务校验 refresh Cookie，改密保留 access 与 Cookie 的双重校验。
+
+鉴权通过注入接口调用 `AuthContextService`，不让 core 反向依赖业务模块。每次请求核对数据库中的会话归属、到期及吊销状态、账号状态和 tokenVersion，身份级请求还要求令牌身份与会话当前身份一致，否则返回 401 / 11005。验证后的身份上下文及 userId、sessionId、identityId 写入 CLS；`identityContext.permissions` 保持 Map。
+
+Redis 的 `session:{sessionId}` 保存不含 refresh 哈希的会话摘要，TTL 不超过 600 秒及会话剩余有效期。它只作共享快照，不能作为跳过数据库校验的凭据，以保证退出、改密和跨标签页切换立即生效。权限动作的检查由后续 T-043 接入。

@@ -16,6 +16,7 @@ import { Logger, LoggerModule } from "nestjs-pino";
 import { ApiExceptionFilter, ApiResponseInterceptor } from "./api-response.js";
 import {
   ACCESS_TOKEN_VERIFIER,
+  AUTH_CONTEXT_LOADER,
   AuthenticatedGuard,
 } from "./core/authenticated.guard.js";
 import { DataSourceRegistry, DRIZZLE } from "./database/registry.js";
@@ -32,6 +33,7 @@ import {
   IdentitiesService,
 } from "./modules/platform/identities/index.js";
 import {
+  AuthContextService,
   ContextRepository,
   IdentityContextService,
 } from "./modules/platform/identity-context/index.js";
@@ -99,7 +101,9 @@ const databaseConfig = loadDatabaseConfig();
     IdentitiesService,
     AccessTokenSigner,
     PasswordHasher,
-    AuthenticatedGuard,
+    { provide: APP_GUARD, useClass: AuthenticatedGuard },
+    AuthContextService,
+    { provide: AUTH_CONTEXT_LOADER, useExisting: AuthContextService },
     { provide: ACCESS_TOKEN_VERIFIER, useExisting: AccessTokenSigner },
     RegionsRepository,
     RegionsService,

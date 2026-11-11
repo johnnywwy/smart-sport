@@ -13,6 +13,7 @@ import {
 } from "@smart-sport/contracts";
 import { ClsService } from "nestjs-cls";
 import { ApiException } from "../../../api-response.js";
+import { AccountAllowed, PublicRoute } from "../../../core/auth-policy.js";
 import { SERVER_CONFIG } from "../../../server-config.js";
 import { ApiZodResponse, ZodRequest } from "../../../zod-route.js";
 import { AuthService } from "./auth.service.js";
@@ -26,6 +27,7 @@ export class AuthController {
     @Inject(ClsService) private readonly cls: ClsService,
   ) {}
 
+  @PublicRoute()
   @Post("login")
   @HttpCode(200)
   @ApiZodResponse(
@@ -51,6 +53,7 @@ export class AuthController {
     );
     return result.body;
   }
+  @PublicRoute()
   @Post("refresh")
   @HttpCode(200)
   @ApiZodResponse(
@@ -84,6 +87,7 @@ export class AuthController {
     }
   }
 
+  @PublicRoute()
   @Post("logout")
   @HttpCode(200)
   @ApiZodResponse(200, successResponseSchema(emptyResultSchema), "退出当前会话")
@@ -100,6 +104,7 @@ export class AuthController {
     return null;
   }
 
+  @AccountAllowed()
   @Post("change-password")
   @HttpCode(200)
   @ApiZodResponse(

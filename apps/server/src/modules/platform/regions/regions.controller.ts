@@ -1,16 +1,14 @@
-import { Controller, Get, Inject, UseGuards } from "@nestjs/common";
+import { Controller, Get, Inject } from "@nestjs/common";
 import {
   type RegionQuery,
   regionListSchema,
   regionQuerySchema,
   successResponseSchema,
 } from "@smart-sport/contracts";
-import { AuthenticatedGuard } from "../../../core/authenticated.guard.js";
 import { ApiZodResponse, ZodRequest } from "../../../zod-route.js";
 import { RegionsService } from "./regions.service.js";
 
 @Controller("api/v1/regions")
-@UseGuards(AuthenticatedGuard)
 export class RegionsController {
   constructor(
     @Inject(RegionsService) private readonly regions: RegionsService,

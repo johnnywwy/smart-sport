@@ -57,6 +57,16 @@ export class IdentityContextService {
     return this.cache.close();
   }
 
+  /** 会话缓存只作共享快照，鉴权仍核对数据库以保证吊销立即生效。 */
+  cacheSession(session: {
+    id: string;
+    userId: string;
+    identityId: string | null;
+    expiresAt: Date;
+  }) {
+    return this.cache.session(session);
+  }
+
   /** 数据变更提交后调用；角色、部门和账号变更可整体失效，身份变更可指定 id。 */
   invalidate(identityIds: string[] = []) {
     return this.cache.invalidate(identityIds);

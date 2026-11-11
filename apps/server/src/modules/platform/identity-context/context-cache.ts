@@ -120,6 +120,30 @@ export class ContextCache {
     await this.redis.publish(channel, JSON.stringify({ identityIds }));
   }
 
+  async session(session: {
+    id: string;
+    userId: string;
+    identityId: string | null;
+    expiresAt: Date;
+  }) {
+    const ttl = Math.min(
+      600,
+      Math.floor((session.expiresAt.getTime() - Date.now()) / 1000),
+    );
+    if (ttl > 0)
+      await this.redis.set(
+        `session:${session.id}`,
+        JSON.stringify({
+          id: session.id,
+          userId: session.userId,
+          identityId: session.identityId,
+          expiresAt: session.expiresAt,
+        }),
+        "EX",
+        ttl,
+      );
+  }
+
   async close() {
     this.subscriber.disconnect();
     this.redis.disconnect();

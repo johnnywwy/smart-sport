@@ -24,7 +24,6 @@ import {
   updateOrganizationRequestSchema,
 } from "@smart-sport/contracts";
 import { ClsService } from "nestjs-cls";
-import { AuthenticatedGuard } from "../../../core/authenticated.guard.js";
 import { Idempotent } from "../../../idempotency.js";
 import { ApiZodResponse, ZodRequest } from "../../../zod-route.js";
 import {
@@ -34,7 +33,7 @@ import {
 import { OrganizationsService } from "./organizations.service.js";
 
 @Controller("api/v1/orgs")
-@UseGuards(AuthenticatedGuard, CompanyOrganizationGuard)
+@UseGuards(CompanyOrganizationGuard)
 export class OrganizationsController {
   constructor(
     @Inject(OrganizationsService)

@@ -1,6 +1,6 @@
 import "reflect-metadata";
 import { generateKeyPairSync } from "node:crypto";
-import type { INestApplication } from "@nestjs/common";
+import { Controller, Get, type INestApplication, Inject } from "@nestjs/common";
 import { APP_FILTER, APP_INTERCEPTOR } from "@nestjs/core";
 import { Test } from "@nestjs/testing";
 import type { ServerConfig } from "@smart-sport/config/env";
@@ -16,6 +16,7 @@ import {
   type StartedPostgreSqlContainer,
 } from "@testcontainers/postgresql";
 import { drizzle } from "drizzle-orm/node-postgres";
+import { Redis } from "ioredis";
 import { jwtVerify } from "jose";
 import { ClsModule, ClsService } from "nestjs-cls";
 import pg from "pg";
@@ -25,10 +26,6 @@ import {
   ApiExceptionFilter,
   ApiResponseInterceptor,
 } from "../../src/api-response.js";
-import {
-  ACCESS_TOKEN_VERIFIER,
-  AuthenticatedGuard,
-} from "../../src/core/authenticated.guard.js";
 import { migratePublic } from "../../src/database/migrate.js";
 import { DRIZZLE } from "../../src/database/registry.js";
 import { AccessTokenSigner } from "../../src/infra/auth/access-token-signer.js";
@@ -42,6 +39,7 @@ import {
   IdentitiesRepository,
   IdentitiesService,
 } from "../../src/modules/platform/identities/index.js";
+import type { IdentityContext } from "../../src/modules/platform/identity-context/index.js";
 import { importRegions } from "../../src/modules/platform/regions/region-importer.js";
 import { requestContextMiddleware } from "../../src/request-context.js";
 import {
@@ -52,9 +50,27 @@ import {
   users,
 } from "../../src/schema/public.js";
 import { SERVER_CONFIG } from "../../src/server-config.js";
+import { authentication } from "../helpers/authentication.js";
+
+@Controller("api/v1/auth")
+class ContextProbeController {
+  constructor(@Inject(ClsService) private readonly cls: ClsService) {}
+  @Get("context-probe")
+  read() {
+    const context = this.cls.get<IdentityContext>("identityContext");
+    return {
+      userId: this.cls.get("userId"),
+      sessionId: this.cls.get("sessionId"),
+      identityId: this.cls.get("identityId"),
+      orgId: context.orgId,
+      permissionsAreMap: context.permissions instanceof Map,
+    };
+  }
+}
 
 let container: StartedPostgreSqlContainer | undefined;
 let pool: pg.Pool;
+let security: Awaited<ReturnType<typeof authentication>>;
 let app: INestApplication;
 let base: string;
 const pair = generateKeyPairSync("ed25519");
@@ -80,9 +96,10 @@ beforeAll(async () => {
   await migratePublic(pool);
   await syncCatalog(pool);
   await importRegions(pool, seedFile);
+  security = await authentication(config);
   const module = await Test.createTestingModule({
     imports: [ClsModule.forRoot({ global: true })],
-    controllers: [AuthController, IdentitiesController],
+    controllers: [AuthController, IdentitiesController, ContextProbeController],
     providers: [
       AuthRepository,
       AuthService,
@@ -90,10 +107,9 @@ beforeAll(async () => {
       IdentitiesService,
       PasswordHasher,
       AccessTokenSigner,
-      AuthenticatedGuard,
-      { provide: ACCESS_TOKEN_VERIFIER, useExisting: AccessTokenSigner },
+      ...security.providers,
       { provide: DRIZZLE, useValue: drizzle(pool) },
-      { provide: SERVER_CONFIG, useValue: config },
+      { provide: SERVER_CONFIG, useValue: security.config },
       { provide: APP_FILTER, useClass: ApiExceptionFilter },
       { provide: APP_INTERCEPTOR, useClass: ApiResponseInterceptor },
     ],
@@ -106,6 +122,7 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await app?.close();
+  await security?.stop();
   await pool?.end();
   await container?.stop();
 }, 30000);
@@ -438,5 +455,149 @@ describe("身份列表、自动选择与切换", () => {
       },
     );
     expect(apiResponseSchema.parse(await forbidden.json()).code).toBe(11001);
+  });
+});
+
+describe("T-029 全局鉴权与身份上下文", () => {
+  it("未选身份的账号令牌能列身份但访问业务接口返回401", async () => {
+    await seedAccount("guard-account", []);
+    const { body } = await login("guard-account");
+    expect(
+      (await authRequest("identities", body.data.accessToken)).status,
+    ).toBe(200);
+    expect(
+      (await authRequest("context-probe", body.data.accessToken)).status,
+    ).toBe(401);
+  });
+
+  it("身份令牌写入完整CLS上下文，另一标签页切换后旧令牌返回11005", async () => {
+    const { userId, identityIds } = await seedAccount("guard-tabs", [
+      { type: "company", orgType: "company", orgName: "公司一" },
+      { type: "company", orgType: "company", orgName: "公司二" },
+    ]);
+    const { body } = await login("guard-tabs");
+    const select = async (token: string, id: string) => {
+      const result = await authRequest("select-identity", token, {
+        method: "POST",
+        body: JSON.stringify({ identityId: id }),
+      });
+      expect(result.status).toBe(201);
+      return selectIdentityResponseSchema.parse(
+        apiResponseSchema.parse(await result.json()).data,
+      ).accessToken;
+    };
+    const first = await select(body.data.accessToken, identityIds[0] ?? "");
+    const initial = await authRequest("context-probe", first);
+    expect(initial.status).toBe(200);
+    expect(apiResponseSchema.parse(await initial.json()).data).toMatchObject({
+      userId,
+      identityId: identityIds[0],
+      permissionsAreMap: true,
+    });
+    const second = await select(first, identityIds[1] ?? "");
+    const stale = await authRequest("context-probe", first);
+    expect(stale.status).toBe(401);
+    expect(apiResponseSchema.parse(await stale.json()).code).toBe(11005);
+    const current = await authRequest("context-probe", second);
+    expect(current.status).toBe(200);
+    expect(apiResponseSchema.parse(await current.json()).data).toMatchObject({
+      userId,
+      identityId: identityIds[1],
+    });
+    const claims = await app.get(AccessTokenSigner).verify(second);
+    const inspector = new Redis(security.config.REDIS_URL);
+    try {
+      const raw = await inspector.get(`session:${claims?.sessionId}`);
+      expect(raw).toBeTruthy();
+      expect(Object.keys(JSON.parse(raw ?? "{}")).sort()).toEqual([
+        "expiresAt",
+        "id",
+        "identityId",
+        "userId",
+      ]);
+    } finally {
+      inspector.disconnect();
+    }
+    const oldList = await authRequest("identities", first);
+    expect(apiResponseSchema.parse(await oldList.json()).code).toBe(11005);
+  });
+
+  it.each(["revoked", "expired", "version", "disabled"])(
+    "会话或账号%s后旧令牌立即失效",
+    async (mode) => {
+      const { userId } = await seedAccount(`guard-${mode}`, [
+        { type: "company", orgType: "company", orgName: "测试公司" },
+      ]);
+      const { body } = await login(`guard-${mode}`);
+      const token = body.data.accessToken;
+      expect((await authRequest("context-probe", token)).status).toBe(200);
+      if (mode === "revoked")
+        await pool.query(
+          "UPDATE public.user_sessions SET revoked_at=now() WHERE user_id=$1",
+          [userId],
+        );
+      if (mode === "expired")
+        await pool.query(
+          "UPDATE public.user_sessions SET expires_at=now()-interval '1 second' WHERE user_id=$1",
+          [userId],
+        );
+      if (mode === "version")
+        await pool.query(
+          "UPDATE public.users SET token_version=token_version+1 WHERE id=$1",
+          [userId],
+        );
+      if (mode === "disabled")
+        await pool.query("UPDATE public.users SET status=0 WHERE id=$1", [
+          userId,
+        ]);
+      const denied = await authRequest("context-probe", token);
+      expect(denied.status).toBe(401);
+      expect(apiResponseSchema.parse(await denied.json()).code).toBe(10005);
+    },
+  );
+
+  it("真实退出接口吊销会话后原access令牌不能继续使用", async () => {
+    await seedAccount("guard-logout", [
+      { type: "company", orgType: "company", orgName: "退出测试" },
+    ]);
+    const { response, body } = await login("guard-logout");
+    const cookie = response.headers.get("set-cookie")?.split(";")[0];
+    expect(cookie).toBeTruthy();
+    const logout = await fetch(`${base}/api/v1/auth/logout`, {
+      method: "POST",
+      headers: { Cookie: cookie ?? "" },
+    });
+    expect(logout.status).toBe(200);
+    const denied = await authRequest("context-probe", body.data.accessToken);
+    expect(denied.status).toBe(401);
+    expect(apiResponseSchema.parse(await denied.json()).code).toBe(10005);
+  });
+
+  it("伪造另一个账号会话和身份的有效签名仍不能越权", async () => {
+    const owner = await seedAccount("guard-owner", [
+      { type: "company", orgType: "company", orgName: "公司甲" },
+    ]);
+    const other = await seedAccount("guard-other", [
+      { type: "company", orgType: "company", orgName: "公司乙" },
+    ]);
+    const { body } = await login("guard-owner");
+    const claims = await app
+      .get(AccessTokenSigner)
+      .verify(body.data.accessToken);
+    if (!claims) throw new Error("缺少测试令牌");
+    const forged = await app.get(AccessTokenSigner).signIdentity({
+      ...claims,
+      userId: other.userId,
+      identityId: owner.identityIds[0] ?? "",
+    });
+    const denied = await authRequest("context-probe", forged);
+    expect(denied.status).toBe(401);
+    expect(apiResponseSchema.parse(await denied.json()).code).toBe(10005);
+    const missing = await app.get(AccessTokenSigner).signIdentity({
+      ...claims,
+      sessionId: v7(),
+      identityId: owner.identityIds[0] ?? "",
+    });
+    expect((await authRequest("context-probe", missing)).status).toBe(401);
   });
 });

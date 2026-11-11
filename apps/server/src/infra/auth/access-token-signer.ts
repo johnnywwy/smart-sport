@@ -1,6 +1,7 @@
 import { createPrivateKey, createPublicKey, type KeyObject } from "node:crypto";
 import { Inject, Injectable } from "@nestjs/common";
 import type { ServerConfig } from "@smart-sport/config/env";
+import { idSchema } from "@smart-sport/contracts";
 import { jwtVerify, SignJWT } from "jose";
 import { SERVER_CONFIG } from "../../server-config.js";
 
@@ -61,7 +62,7 @@ export class AccessTokenSigner {
       .sign(this.key);
   }
 
-  /** 全局 AuthGuard 上线前，只供认证模块验证自身接口所需的核心字段。 */
+  /** 验证签名、有效期及后台令牌声明。 */
   async verify(token: string | undefined) {
     if (!token) return undefined;
     try {
@@ -69,15 +70,24 @@ export class AccessTokenSigner {
         algorithms: ["EdDSA"],
       });
       if (
+        !idSchema.safeParse(payload.sub).success ||
+        !idSchema.safeParse(payload.sid).success ||
         typeof payload.sub !== "string" ||
         typeof payload.sid !== "string" ||
+        typeof payload.exp !== "number" ||
         typeof payload.tv !== "number" ||
+        !Number.isSafeInteger(payload.tv) ||
+        Number(payload.tv) < 0 ||
         payload.client !== "admin" ||
         (payload.stage !== "account" && payload.stage !== "identity")
       ) {
         return undefined;
       }
-      if (payload.stage === "identity" && typeof payload.iid !== "string") {
+      if (
+        payload.stage === "identity" &&
+        (typeof payload.iid !== "string" ||
+          !idSchema.safeParse(payload.iid).success)
+      ) {
         return undefined;
       }
       return {

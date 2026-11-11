@@ -1,5 +1,5 @@
 import type { IncomingMessage } from "node:http";
-import { Controller, Get, Inject, Post, Req, UseGuards } from "@nestjs/common";
+import { Controller, Get, Inject, Post, Req } from "@nestjs/common";
 import {
   identityListSchema,
   type SelectIdentityRequest,
@@ -8,15 +8,13 @@ import {
   successResponseSchema,
 } from "@smart-sport/contracts";
 import { ClsService } from "nestjs-cls";
-import {
-  AuthenticatedGuard,
-  type AuthenticatedRequest,
-} from "../../../core/authenticated.guard.js";
+import { AccountAllowed } from "../../../core/auth-policy.js";
+import type { AuthenticatedRequest } from "../../../core/authenticated.guard.js";
 import { ApiZodResponse, ZodRequest } from "../../../zod-route.js";
 import { IdentitiesService } from "./identities.service.js";
 
 @Controller("api/v1/auth")
-@UseGuards(AuthenticatedGuard)
+@AccountAllowed()
 export class IdentitiesController {
   constructor(
     @Inject(IdentitiesService) private readonly identities: IdentitiesService,

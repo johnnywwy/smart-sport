@@ -1,6 +1,6 @@
 import { generateKeyPairSync } from "node:crypto";
 import type { ServerConfig } from "@smart-sport/config/env";
-import { decodeJwt, decodeProtectedHeader, jwtVerify } from "jose";
+import { decodeJwt, decodeProtectedHeader, jwtVerify, SignJWT } from "jose";
 import { v7 } from "uuid";
 import { describe, expect, it } from "vitest";
 import { AccessTokenSigner } from "../../src/infra/auth/access-token-signer.js";
@@ -91,5 +91,54 @@ describe("账号级 access token", () => {
     await expect(jwtVerify(token, pair.publicKey)).rejects.toMatchObject({
       code: "ERR_JWS_SIGNATURE_VERIFICATION_FAILED",
     });
+  });
+});
+
+describe("后台令牌声明验证", () => {
+  it("拒绝未设置过期时间的签名令牌", async () => {
+    const token = await new SignJWT({
+      sub: input.userId,
+      sid: input.sessionId,
+      tv: 3,
+      client: "admin",
+      stage: "account",
+    })
+      .setProtectedHeader({ alg: "EdDSA" })
+      .sign(pair.privateKey);
+    expect(await signer.verify(token)).toBeUndefined();
+  });
+
+  it("还原账号和身份阶段，只接受合法UUID和版本", async () => {
+    expect(await signer.verify(await signer.signAccount(input))).toEqual({
+      ...input,
+      stage: "account",
+    });
+    const identityId = v7();
+    expect(
+      await signer.verify(await signer.signIdentity({ ...input, identityId })),
+    ).toEqual({ ...input, identityId, stage: "identity" });
+  });
+  it.each([
+    { tv: -1 },
+    { tv: 0.5 },
+    { sid: "invalid" },
+    { sub: "invalid" },
+    { client: "mobile" },
+    { stage: "identity" },
+    { stage: "unknown" },
+    { exp: 1 },
+  ])("拒绝签名正确但声明无效的令牌：%j", async (override) => {
+    const token = await new SignJWT({
+      sub: input.userId,
+      sid: input.sessionId,
+      tv: 3,
+      client: "admin",
+      stage: "account",
+      exp: Math.floor(Date.now() / 1000) + 600,
+      ...override,
+    })
+      .setProtectedHeader({ alg: "EdDSA" })
+      .sign(pair.privateKey);
+    expect(await signer.verify(token)).toBeUndefined();
   });
 });

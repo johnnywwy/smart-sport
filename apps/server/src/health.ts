@@ -9,8 +9,8 @@ import {
 } from "@smart-sport/contracts";
 import { Redis } from "ioredis";
 import pg from "pg";
-
 import { RawResponse } from "./api-response.js";
+import { PublicRoute } from "./core/auth-policy.js";
 import { SkipRateLimit } from "./rate-limit.js";
 import { SERVER_CONFIG } from "./server-config.js";
 import { ApiZodResponse } from "./zod-route.js";
@@ -80,6 +80,7 @@ async function check(probe: Promise<void>) {
   }
 }
 
+@PublicRoute()
 @SkipRateLimit()
 @RawResponse()
 @Controller("health")
