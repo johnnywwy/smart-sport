@@ -53,6 +53,9 @@ export function responseSchema<Data extends z.ZodType>(data: Data) {
   return z.union([successResponseSchema(data), errorResponseSchema(z.json())]);
 }
 
+// 客户端先校验统一信封，再用各接口契约解析 data。
+export const apiResponseSchema = responseSchema(z.unknown());
+
 export const livenessSchema = z.object({ status: z.literal("alive") });
 
 export const readinessSchema = z.object({
@@ -65,5 +68,6 @@ export const readinessSchema = z.object({
 });
 export type Readiness = z.infer<typeof readinessSchema>;
 
+export * from "./auth.js";
 export * from "./permissions.js";
 export * from "./scope.js";
