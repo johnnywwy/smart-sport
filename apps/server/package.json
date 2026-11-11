@@ -5,11 +5,12 @@
   "type": "module",
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit && tsc -p tsconfig.test.json",
     "start": "node --env-file-if-exists=../../.env dist/main.js",
     "check:infra": "node --env-file-if-exists=../../.env scripts/check-infra.mjs",
     "db:migrate": "node --env-file-if-exists=../../.env dist/database/migrate-cli.js",
-    "test": "vitest run tests/unit"
+    "test": "vitest run tests/unit",
+    "test:integration": "vitest run tests/integration"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "3.1164.0",

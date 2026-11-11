@@ -29,6 +29,7 @@
 
 - 需要身份拥有对应功能模块的 `sensitive`（查看敏感信息）动作才能点击显示全文，每次写 `sensitive.view` 审计。
 - 加密数据格式：`v{keyVersion}:{iv}:{ciphertext}:{tag}`。
+- 账号手机号的 `users.phone` 为 `text` 密文；`phone_hash` 为 HMAC-SHA-256 的 64 位小写十六进制字符串（`varchar(64)`），用于登录与查重。两列同时为空或同时有值；对未删除账号的哈希建立唯一索引。
 
 ## 3. 密钥管理
 

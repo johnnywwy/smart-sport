@@ -13,20 +13,23 @@
 
 **users**
 
-| 字段                 | 类型         | 说明                          |
-| -------------------- | ------------ | ----------------------------- |
-| username             | varchar(64)  | 唯一（未删除）                |
-| phone                | varchar(20)  | 唯一，可空                    |
-| email                | varchar(128) | 唯一，可空；用于邮箱验证码    |
-| real_name            | varchar(64)  |                               |
-| password_hash        | varchar(255) | argon2id                      |
-| must_change_password | bool         | 首次登录、管理员重置后为 true |
-| password_changed_at  | timestamptz  | 用于定期改密                  |
-| status               | smallint     | 1 启用 · 0 停用               |
-| failed_attempts      | int          | 连续失败次数                  |
-| locked_until         | timestamptz  | 锁定截止                      |
-| last_identity_id     | uuid         | 上次使用的身份                |
-| token_version        | int          | +1 后所有令牌失效             |
+| 字段                 | 类型         | 说明                                  |
+| -------------------- | ------------ | ------------------------------------- |
+| username             | varchar(64)  | 唯一（未删除）                        |
+| phone                | text         | AES-256-GCM 密文，可空                |
+| phone_hash           | varchar(64)  | HMAC-SHA-256，64 位小写十六进制，可空 |
+| email                | varchar(128) | 唯一，可空；用于邮箱验证码            |
+| real_name            | varchar(64)  |                                       |
+| password_hash        | varchar(255) | argon2id                              |
+| must_change_password | bool         | 首次登录、管理员重置后为 true         |
+| password_changed_at  | timestamptz  | 用于定期改密                          |
+| status               | smallint     | 1 启用 · 0 停用                       |
+| failed_attempts      | int          | 连续失败次数                          |
+| locked_until         | timestamptz  | 锁定截止                              |
+| last_identity_id     | uuid         | 上次使用的身份                        |
+| token_version        | int          | +1 后所有令牌失效                     |
+
+手机号明文不入库。`phone` 保存 `v{keyVersion}:{iv}:{ciphertext}:{tag}`；`phone_hash` 用于登录查找与查重。两列必须同时有值或同时为空；哈希非空时必须符合 `^[0-9a-f]{64}$`。用户名、手机号哈希、邮箱的唯一索引均只约束 `deleted_at IS NULL` 的账号，软删除后允许复用。
 
 **user_sessions**
 
