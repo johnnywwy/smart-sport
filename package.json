@@ -27,7 +27,8 @@
     "test:unit": "turbo run test",
     "check:deps": "depcruise --config .dependency-cruiser.cjs apps/server/src apps/worker/src apps/web/src packages/contracts/src packages/domain/src packages/config/src",
     "test:deps": "node --test scripts/dependency-rules.test.mjs",
-    "regions:import": "turbo run build --filter=@smart-sport/server && pnpm --filter @smart-sport/server regions:import"
+    "regions:import": "turbo run build --filter=@smart-sport/server && pnpm --filter @smart-sport/server regions:import",
+    "seed:admin-identity": "turbo run build --filter=@smart-sport/server && pnpm --filter @smart-sport/server seed:admin-identity"
   },
   "devDependencies": {
     "@biomejs/biome": "2.6.6",

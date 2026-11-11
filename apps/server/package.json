@@ -11,7 +11,8 @@
     "db:migrate": "node --env-file-if-exists=../../.env dist/database/migrate-cli.js",
     "test": "vitest run tests/unit",
     "test:integration": "vitest run tests/integration",
-    "regions:import": "node --env-file-if-exists=../../.env dist/modules/platform/regions/import-cli.js ../../deploy/seed/regions.csv"
+    "regions:import": "node --env-file-if-exists=../../.env dist/modules/platform/regions/import-cli.js ../../deploy/seed/regions.csv",
+    "seed:admin-identity": "node --env-file-if-exists=../../.env dist/modules/platform/identities/seed-admin-cli.js"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "3.1164.0",
