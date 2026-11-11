@@ -36,6 +36,7 @@ import { PasswordHasher } from "../../src/infra/crypto/password-hasher.js";
 import { AuthController } from "../../src/modules/platform/auth/auth.controller.js";
 import { AuthRepository } from "../../src/modules/platform/auth/auth.repository.js";
 import { AuthService } from "../../src/modules/platform/auth/auth.service.js";
+import { syncCatalog } from "../../src/modules/platform/catalog/catalog-sync.js";
 import {
   IdentitiesController,
   IdentitiesRepository,
@@ -47,6 +48,7 @@ import {
   identities,
   identityRoles,
   organizations,
+  roles,
   users,
 } from "../../src/schema/public.js";
 import { SERVER_CONFIG } from "../../src/server-config.js";
@@ -76,6 +78,7 @@ beforeAll(async () => {
   ).start();
   pool = new pg.Pool({ connectionString: container.getConnectionUri() });
   await migratePublic(pool);
+  await syncCatalog(pool);
   await importRegions(pool, seedFile);
   const module = await Test.createTestingModule({
     imports: [ClsModule.forRoot({ global: true })],
@@ -275,7 +278,11 @@ describe("身份列表、自动选择与切换", () => {
         sort: 6,
       },
     ]);
-    const roleId = v7();
+    const [role] = await drizzle(pool)
+      .select({ id: roles.id })
+      .from(roles)
+      .limit(1);
+    const roleId = role?.id ?? "";
     await drizzle(pool)
       .insert(identityRoles)
       .values({

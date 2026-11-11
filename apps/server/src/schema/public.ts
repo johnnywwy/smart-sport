@@ -2,6 +2,7 @@ import { sql } from "drizzle-orm";
 import {
   boolean,
   check,
+  foreignKey,
   index,
   integer,
   jsonb,
@@ -247,10 +248,140 @@ export const identityRoles = pgTable(
     identityId: uuid("identity_id")
       .notNull()
       .references(() => identities.id, { onDelete: "cascade" }),
-    roleId: uuid("role_id").notNull(),
+    roleId: uuid("role_id")
+      .notNull()
+      .references(() => roles.id, { onDelete: "cascade" }),
   },
   (table) => [
     primaryKey({ columns: [table.identityId, table.roleId] }),
     index("identity_roles_role_index").on(table.roleId),
+  ],
+);
+
+export const applications = pgTable("apps", {
+  code: varchar("code", { length: 32 }).primaryKey(),
+  name: varchar("name", { length: 64 }).notNull(),
+  description: text("description").notNull(),
+  icon: varchar("icon", { length: 64 }).notNull(),
+  identityTypes: text("identity_types").array().notNull(),
+  sort: integer("sort").notNull().default(0),
+  status: smallint("status").notNull().default(1),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
+export const features = pgTable(
+  "features",
+  {
+    appCode: varchar("app_code", { length: 32 })
+      .notNull()
+      .references(() => applications.code),
+    code: varchar("code", { length: 32 }).notNull(),
+    name: varchar("name", { length: 64 }).notNull(),
+    actions: text("actions").array().notNull(),
+    status: smallint("status").notNull().default(1),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [primaryKey({ columns: [table.appCode, table.code] })],
+);
+
+export const menus = pgTable(
+  "menus",
+  {
+    appCode: varchar("app_code", { length: 32 }).notNull(),
+    parentKey: varchar("parent_key", { length: 64 }),
+    key: varchar("key", { length: 64 }).notNull(),
+    name: varchar("name", { length: 64 }).notNull(),
+    path: varchar("path", { length: 255 }).notNull(),
+    icon: varchar("icon", { length: 64 }),
+    featureCode: varchar("feature_code", { length: 32 }).notNull(),
+    client: varchar("client", { length: 16 }).notNull().default("admin"),
+    sort: integer("sort").notNull().default(0),
+    status: smallint("status").notNull().default(1),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.appCode, table.key] }),
+    uniqueIndex("menus_app_path_unique").on(table.appCode, table.path),
+    foreignKey({
+      columns: [table.appCode, table.featureCode],
+      foreignColumns: [features.appCode, features.code],
+    }),
+    foreignKey({
+      columns: [table.appCode, table.parentKey],
+      foreignColumns: [table.appCode, table.key],
+    }),
+  ],
+);
+
+export const menuOverrides = pgTable(
+  "menu_overrides",
+  {
+    appCode: varchar("app_code", { length: 32 }).notNull(),
+    menuKey: varchar("menu_key", { length: 64 }).notNull(),
+    displayName: varchar("display_name", { length: 64 }),
+    sort: integer("sort"),
+    icon: varchar("icon", { length: 64 }),
+    hidden: boolean("hidden"),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.appCode, table.menuKey] }),
+    foreignKey({
+      columns: [table.appCode, table.menuKey],
+      foreignColumns: [menus.appCode, menus.key],
+    }).onDelete("cascade"),
+  ],
+);
+
+export const roles = pgTable(
+  "roles",
+  {
+    ...commonColumns(),
+    kind: varchar("kind", { length: 16 }).notNull(),
+    baseRoleId: uuid("base_role_id"),
+    identityType: varchar("identity_type", { length: 16 }).notNull(),
+    orgId: uuid("org_id").references(() => organizations.id),
+    code: varchar("code", { length: 64 }).notNull(),
+    name: varchar("name", { length: 64 }).notNull(),
+    dataScope: varchar("data_scope", { length: 32 }).notNull(),
+    defaultDepartment: varchar("default_department", { length: 64 }),
+    remark: text("remark"),
+    status: smallint("status").notNull().default(1),
+  },
+  (table) => [
+    uniqueIndex("roles_preset_code_unique")
+      .on(table.code)
+      .where(sql`${table.kind}='preset' AND ${table.deletedAt} IS NULL`),
+    uniqueIndex("roles_org_code_unique")
+      .on(table.orgId, table.code)
+      .where(sql`${table.kind}='custom' AND ${table.deletedAt} IS NULL`),
+  ],
+);
+
+export const roleGrants = pgTable(
+  "role_grants",
+  {
+    roleId: uuid("role_id")
+      .notNull()
+      .references(() => roles.id, { onDelete: "cascade" }),
+    appCode: varchar("app_code", { length: 32 }).notNull(),
+    featureCode: varchar("feature_code", { length: 32 }).notNull(),
+    level: varchar("level", { length: 16 }).notNull(),
+    actions: text("actions").array(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.roleId, table.appCode, table.featureCode] }),
+    foreignKey({
+      columns: [table.appCode, table.featureCode],
+      foreignColumns: [features.appCode, features.code],
+    }),
   ],
 );
