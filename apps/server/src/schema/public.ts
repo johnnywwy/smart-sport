@@ -385,3 +385,17 @@ export const roleGrants = pgTable(
     }),
   ],
 );
+
+export const presetRoleOverrides = pgTable("preset_role_overrides", {
+  roleId: uuid("role_id")
+    .primaryKey()
+    .references(() => roles.id, { onDelete: "cascade" }),
+  dataScope: varchar("data_scope", { length: 32 }),
+  remark: text("remark"),
+  grants: jsonb("grants").notNull().default([]),
+  updatedBy: uuid("updated_by"),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  version: integer("version").notNull().default(0),
+});
