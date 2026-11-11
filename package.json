@@ -21,11 +21,23 @@
     "test:config": "pnpm --filter @smart-sport/config test",
     "infra:check": "pnpm --filter @smart-sport/config build && pnpm --filter @smart-sport/server check:infra",
     "test:config-startup": "turbo run build --filter=@smart-sport/server --filter=@smart-sport/worker && node scripts/check-config-startup.mjs",
-    "db:migrate": "turbo run build --filter=@smart-sport/server && pnpm --filter @smart-sport/server db:migrate"
+    "db:migrate": "turbo run build --filter=@smart-sport/server && pnpm --filter @smart-sport/server db:migrate",
+    "prepare": "node scripts/setup-git.mjs",
+    "commit": "cz"
   },
   "devDependencies": {
     "@biomejs/biome": "2.6.6",
+    "@commitlint/cli": "21.2.4",
+    "@commitlint/config-conventional": "21.2.4",
+    "commitizen": "4.3.2",
+    "cz-git": "1.14.0",
+    "husky": "9.1.7",
     "turbo": "2.11.10",
     "typescript": "5.9.3"
+  },
+  "config": {
+    "commitizen": {
+      "path": "cz-git"
+    }
   }
 }
