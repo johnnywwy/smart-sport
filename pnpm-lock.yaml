@@ -345,6 +345,10 @@ importers:
         version: link:../config
 
   packages/domain:
+    dependencies:
+      '@smart-sport/contracts':
+        specifier: workspace:*
+        version: link:../contracts
     devDependencies:
       '@smart-sport/config':
         specifier: workspace:*
