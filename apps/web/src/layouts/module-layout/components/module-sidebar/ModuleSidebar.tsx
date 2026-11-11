@@ -44,49 +44,29 @@ export function ModuleSidebar({
             </Sidebar.MenuItemContent>
           </Sidebar.MenuItem>
         </Sidebar.Menu>
-        {!collapsed &&
-          groups.map((group) => (
-            <Sidebar.Group key={group.key}>
-              <Sidebar.GroupLabel>{group.name}</Sidebar.GroupLabel>
-              <Sidebar.Menu aria-label={group.name}>
-                {group.children.map((menu) => (
-                  <Sidebar.MenuItem
-                    key={menu.key}
-                    id={menu.key}
-                    textValue={menu.name}
-                    href={`${root}${menu.path}`}
-                    isCurrent={pathname === `${root}${menu.path}`}
-                  >
-                    <Sidebar.MenuItemContent>
-                      <Sidebar.MenuIcon>
-                        <SidebarIcon name={menu.key} />
-                      </Sidebar.MenuIcon>
-                      <Sidebar.MenuLabel>{menu.name}</Sidebar.MenuLabel>
-                    </Sidebar.MenuItemContent>
-                  </Sidebar.MenuItem>
-                ))}
-              </Sidebar.Menu>
-            </Sidebar.Group>
-          ))}
-        {collapsed && (
-          <Sidebar.Menu aria-label="可用模块">
-            {modules.map((item) => (
-              <Sidebar.MenuItem
-                key={item.code}
-                id={item.code}
-                textValue={item.name}
-                href={`/m/${item.code}/workbench`}
-              >
-                <Sidebar.MenuItemContent>
-                  <Sidebar.MenuIcon>
-                    <SidebarIcon name={item.code} />
-                  </Sidebar.MenuIcon>
-                  <Sidebar.MenuLabel>{item.name}</Sidebar.MenuLabel>
-                </Sidebar.MenuItemContent>
-              </Sidebar.MenuItem>
-            ))}
-          </Sidebar.Menu>
-        )}
+        {groups.map((group) => (
+          <Sidebar.Group key={group.key}>
+            <Sidebar.GroupLabel>{group.name}</Sidebar.GroupLabel>
+            <Sidebar.Menu aria-label={group.name}>
+              {group.children.map((menu) => (
+                <Sidebar.MenuItem
+                  key={menu.key}
+                  id={menu.key}
+                  textValue={menu.name}
+                  href={`${root}${menu.path}`}
+                  isCurrent={pathname === `${root}${menu.path}`}
+                >
+                  <Sidebar.MenuItemContent>
+                    <Sidebar.MenuIcon>
+                      <SidebarIcon name={menu.key} />
+                    </Sidebar.MenuIcon>
+                    <Sidebar.MenuLabel>{menu.name}</Sidebar.MenuLabel>
+                  </Sidebar.MenuItemContent>
+                </Sidebar.MenuItem>
+              ))}
+            </Sidebar.Menu>
+          </Sidebar.Group>
+        ))}
       </Sidebar.Content>
       <Sidebar.Footer
         className={collapsed ? "module-sidebar-footer-collapsed" : undefined}

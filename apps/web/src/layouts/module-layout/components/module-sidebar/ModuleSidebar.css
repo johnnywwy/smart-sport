@@ -167,3 +167,12 @@
     transition: none;
   }
 }
+
+/* 保留分组标题占位，使每一个菜单图标折叠前后纵向位置不变。 */
+.module-sidebar[data-state="collapsed"] [data-slot="sidebar-group-label"] {
+  display: block;
+  height: 36px;
+  flex: none;
+  opacity: 0;
+  pointer-events: none;
+}
