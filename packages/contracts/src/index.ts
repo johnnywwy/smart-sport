@@ -70,4 +70,5 @@ export type Readiness = z.infer<typeof readinessSchema>;
 
 export * from "./auth.js";
 export * from "./permissions.js";
+export * from "./regions.js";
 export * from "./scope.js";
