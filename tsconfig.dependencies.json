@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@smart-sport/contracts": ["packages/contracts/src/index.ts"],
+      "@smart-sport/contracts/examples/auth": [
+        "packages/contracts/src/auth-examples.ts"
+      ],
+      "@smart-sport/domain": ["packages/domain/src/index.ts"],
+      "@smart-sport/config/*": ["packages/config/src/*"]
+    }
+  }
+}

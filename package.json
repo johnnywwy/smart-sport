@@ -24,7 +24,9 @@
     "db:migrate": "turbo run build --filter=@smart-sport/server && pnpm --filter @smart-sport/server db:migrate",
     "prepare": "node scripts/setup-git.mjs",
     "commit": "cz",
-    "test:unit": "turbo run test"
+    "test:unit": "turbo run test",
+    "check:deps": "depcruise --config .dependency-cruiser.cjs apps/server/src apps/worker/src apps/web/src packages/contracts/src packages/domain/src packages/config/src",
+    "test:deps": "node --test scripts/dependency-rules.test.mjs"
   },
   "devDependencies": {
     "@biomejs/biome": "2.6.6",
@@ -32,6 +34,7 @@
     "@commitlint/config-conventional": "21.2.4",
     "commitizen": "4.3.2",
     "cz-git": "1.14.0",
+    "dependency-cruiser": "18.7.2",
     "husky": "9.1.7",
     "turbo": "2.11.10",
     "typescript": "5.9.3"

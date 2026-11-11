@@ -47,6 +47,9 @@ jobs:
       - name: 格式和组件约束检查
         run: pnpm lint
 
+      - name: 依赖方向与规则验收
+        run: pnpm check:deps && pnpm test:deps
+
       - name: 类型检查
         run: pnpm typecheck
 
