@@ -18,5 +18,18 @@ export const authErrors = {
   10005: { status: 401, message: "登录已过期，请重新登录" },
   10006: { status: 400, message: "新密码不符合要求" },
 } as const;
-export const apiErrors = { ...systemErrors, ...authErrors } as const;
+
+export const identityErrors = {
+  11001: { status: 404, message: "身份不存在或不属于当前账号" },
+  11002: { status: 403, message: "身份已停用" },
+  11003: { status: 403, message: "组织已停用" },
+  11004: { status: 403, message: "该身份暂不支持登录后台" },
+  11005: { status: 401, message: "已在其他页面切换身份，请刷新" },
+} as const;
+
+export const apiErrors = {
+  ...systemErrors,
+  ...authErrors,
+  ...identityErrors,
+} as const;
 export type ApiErrorCode = keyof typeof apiErrors;

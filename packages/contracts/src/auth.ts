@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { identitySummarySchema } from "./identities.js";
 
 // refresh 的令牌阶段由服务端会话决定，客户端不自行推断身份。
 export const refreshAccessTokenSchema = z.object({
@@ -16,6 +17,7 @@ export const loginResponseSchema = z.object({
   accessToken: z.string().min(1),
   mustChangePassword: z.boolean(),
   identityCount: z.int().nonnegative(),
+  selectedIdentity: identitySummarySchema.nullable(),
 });
 export const captchaResponseSchema = z.object({
   captchaId: z.string().min(1),
