@@ -75,6 +75,8 @@ describe("用户表 PostgreSQL 17 迁移与约束", () => {
       "0012_create_refresh_tokens.sql",
       "0013_refresh_tokens_session_index.sql",
       "0014_backfill_refresh_tokens.sql",
+      "0015_create_password_history.sql",
+      "0016_password_history_user_index.sql",
     ]);
     expect(await migratePublic(pool)).toEqual([]);
   });

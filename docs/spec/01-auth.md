@@ -116,3 +116,13 @@ T-021 提前建立会话、身份和审计的最小表结构；登录成功在�
 - refresh Cookie 沿用登录的路径及安全属性。刷新不延长原会话的 7 天截止时间；Cookie 剩余寿命随会话截止时间缩短。失败的无效凭据清理 Cookie，不向浏览器返回旧值。
 - 刷新阶段由会话 `identity_id` 决定：为空返回 10 分钟账号级令牌，否则校验身份归属、启用状态和后台身份类型后返回 30 分钟身份级令牌。组织状态检查随 T-027 接入。
 - 退出通过 Cookie 定位并吊销当前会话，事务内写 `auth.logout` 审计，再清理同路径 Cookie。没有 Cookie、未知值或重复退出返回成功，且不重复记录退出审计。access 令牌按会话吊销后的请求拒绝由 T-029 AuthGuard 接入。
+
+### 修改密码与强制改密（T-024）
+
+- `POST /auth/change-password` 同时校验 Bearer access token 和 refresh Cookie，两者必须指向同一账号、同一会话及同一 `token_version`。完整的全局令牌守卫仍由 T-029 提供。
+- 成功改密后 `token_version + 1`、`must_change_password=false`、写入 `password_changed_at`，清除失败次数和锁定时间，并写 `auth.password.change` 审计；审计只记录“密码已修改”，不记录密码或哈希。
+- 当前会话保留，并把它尚未消费的 refresh 历史更新到新版本，前端随后调用 refresh 获取新 access token；同一账号的其他会话全部吊销。
+- `password_history` 保存历史 argon2id 哈希。校验范围为当前密码加最近两条历史，共最近 3 次；修改成功时把原密码哈希写入历史。历史表不保存明文。
+- 生产环境新密码至少 8 位、同时包含字母和数字、不能为 `123456`、不能与用户名相同、不能与最近 3 次相同。开发和测试环境允许 `123456`，但仍禁止与用户名及最近 3 次密码相同。
+- `password.expire_days` 默认 0，本任务按“不启用定期改密”实现。系统参数任务接入非零配置后，登录依据 `password_changed_at` 返回 `mustChangePassword=true`。
+- 生产环境随机初始密码由后续账号创建任务调用同一密码策略生成；T-024 保证生产策略本身不能接受 `123456`。

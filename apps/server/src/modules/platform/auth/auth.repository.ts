@@ -6,6 +6,7 @@ import {
   auditLogs,
   identities,
   loginLogs,
+  passwordHistory,
   refreshTokens,
   userSessions,
   users,
@@ -209,6 +210,100 @@ export class AuthRepository {
       userAgent: metadata.userAgent,
       traceId: metadata.traceId,
       createdAt: date,
+    });
+  }
+
+  async findSessionForPasswordChange(tx: AuthTransaction, sessionId: string) {
+    const [session] = await tx
+      .select()
+      .from(userSessions)
+      .where(eq(userSessions.id, sessionId))
+      .for("update");
+    if (!session) return undefined;
+    const [user] = await tx
+      .select()
+      .from(users)
+      .where(eq(users.id, session.userId))
+      .for("update");
+    return user ? { session, user } : undefined;
+  }
+
+  recentPasswordHashes(tx: AuthTransaction, userId: string, limit: number) {
+    return tx
+      .select({ passwordHash: passwordHistory.passwordHash })
+      .from(passwordHistory)
+      .where(eq(passwordHistory.userId, userId))
+      .orderBy(sql`${passwordHistory.createdAt} DESC`)
+      .limit(limit);
+  }
+
+  async changePassword(
+    tx: AuthTransaction,
+    data: {
+      userId: string;
+      sessionId: string;
+      previousHash: string;
+      passwordHash: string;
+      tokenVersion: number;
+      date: Date;
+      metadata: LoginMetadata;
+    },
+  ) {
+    await tx.insert(passwordHistory).values({
+      userId: data.userId,
+      passwordHash: data.previousHash,
+      createdAt: data.date,
+    });
+    await tx
+      .update(users)
+      .set({
+        passwordHash: data.passwordHash,
+        mustChangePassword: false,
+        passwordChangedAt: data.date,
+        tokenVersion: data.tokenVersion,
+        failedAttempts: 0,
+        lockedUntil: null,
+        updatedAt: data.date,
+        version: sql`${users.version} + 1`,
+      })
+      .where(eq(users.id, data.userId));
+    await tx
+      .update(userSessions)
+      .set({
+        revokedAt: data.date,
+        updatedAt: data.date,
+        version: sql`${userSessions.version} + 1`,
+      })
+      .where(
+        and(
+          eq(userSessions.userId, data.userId),
+          sql`${userSessions.id} <> ${data.sessionId}`,
+          isNull(userSessions.revokedAt),
+        ),
+      );
+    await tx
+      .update(userSessions)
+      .set({ updatedAt: data.date, version: sql`${userSessions.version} + 1` })
+      .where(eq(userSessions.id, data.sessionId));
+    await tx
+      .update(refreshTokens)
+      .set({ tokenVersion: data.tokenVersion })
+      .where(
+        and(
+          eq(refreshTokens.sessionId, data.sessionId),
+          isNull(refreshTokens.consumedAt),
+        ),
+      );
+    await tx.insert(auditLogs).values({
+      userId: data.userId,
+      action: "auth.password.change",
+      targetType: "user",
+      targetId: data.userId,
+      changes: { password: "已修改" },
+      ip: data.metadata.ip,
+      userAgent: data.metadata.userAgent,
+      traceId: data.metadata.traceId,
+      createdAt: data.date,
     });
   }
 }

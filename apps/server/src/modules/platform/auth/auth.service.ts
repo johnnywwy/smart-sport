@@ -1,13 +1,18 @@
 import { createHash, createHmac, randomBytes } from "node:crypto";
 import { Inject, Injectable } from "@nestjs/common";
 import type { ServerConfig } from "@smart-sport/config/env";
-import { type LoginRequest, loginResponseSchema } from "@smart-sport/contracts";
+import {
+  type ChangePasswordRequest,
+  type LoginRequest,
+  loginResponseSchema,
+} from "@smart-sport/contracts";
 import { v7 } from "uuid";
 import { ApiException } from "../../../api-response.js";
 import { AccessTokenSigner } from "../../../infra/auth/access-token-signer.js";
 import { PasswordHasher } from "../../../infra/crypto/password-hasher.js";
 import { SERVER_CONFIG } from "../../../server-config.js";
 import { AuthRepository, type LoginMetadata } from "./auth.repository.js";
+import { validateNewPassword } from "./password-policy.js";
 
 @Injectable()
 export class AuthService {
@@ -191,5 +196,90 @@ export class AuthService {
         date,
       );
     });
+  }
+
+  /** 改密保留当前会话，但升级账号版本并吊销该账号的其他会话。 */
+  async changePassword(
+    refreshToken: string | undefined,
+    accessToken: string | undefined,
+    input: ChangePasswordRequest,
+    metadata: LoginMetadata,
+  ) {
+    if (!refreshToken) throw new ApiException(10005);
+    const claims = await this.signer.verify(accessToken);
+    if (!claims) throw new ApiException(10005);
+    const tokenHash = createHash("sha256").update(refreshToken).digest("hex");
+    const result = await this.repository.transaction(async (tx) => {
+      const refresh = await this.repository.findRefresh(tx, tokenHash);
+      if (
+        !refresh ||
+        refresh.session.revokedAt ||
+        refresh.session.deletedAt ||
+        refresh.session.expiresAt <= new Date() ||
+        refresh.session.refreshTokenHash !== tokenHash ||
+        refresh.token.consumedAt ||
+        refresh.user.deletedAt ||
+        refresh.user.status !== 1 ||
+        refresh.user.tokenVersion !== refresh.token.tokenVersion ||
+        claims.userId !== refresh.user.id ||
+        claims.sessionId !== refresh.session.id ||
+        claims.tokenVersion !== refresh.user.tokenVersion
+      ) {
+        return { error: 10005 } as const;
+      }
+      if (
+        !(await this.hasher.verify(
+          refresh.user.passwordHash,
+          input.oldPassword,
+        ))
+      ) {
+        return { error: 10001 } as const;
+      }
+      const fields = validateNewPassword(
+        this.config,
+        refresh.user.username,
+        input.newPassword,
+      );
+      const previous = await this.repository.recentPasswordHashes(
+        tx,
+        refresh.user.id,
+        2,
+      );
+      const reused = await Promise.all(
+        [
+          refresh.user.passwordHash,
+          ...previous.map((row) => row.passwordHash),
+        ].map((passwordHash) =>
+          this.hasher.verify(passwordHash, input.newPassword),
+        ),
+      );
+      if (reused.some(Boolean)) fields.push("不能与最近 3 次密码相同");
+      if (fields.length) {
+        return {
+          error: 10006,
+          data: { fields: { newPassword: fields } },
+        } as const;
+      }
+      const tokenVersion = refresh.user.tokenVersion + 1;
+      const passwordHash = await this.hasher.hash(input.newPassword);
+      const date = new Date();
+      await this.repository.changePassword(tx, {
+        userId: refresh.user.id,
+        sessionId: refresh.session.id,
+        previousHash: refresh.user.passwordHash,
+        passwordHash,
+        tokenVersion,
+        date,
+        metadata,
+      });
+      return { tokenVersion, sessionId: refresh.session.id };
+    });
+    if ("error" in result) {
+      throw new ApiException(
+        result.error,
+        "data" in result ? result.data : null,
+      );
+    }
+    return result;
   }
 }

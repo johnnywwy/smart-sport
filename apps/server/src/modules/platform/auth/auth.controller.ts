@@ -2,6 +2,8 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 import { Controller, HttpCode, Inject, Post, Req, Res } from "@nestjs/common";
 import type { ServerConfig } from "@smart-sport/config/env";
 import {
+  type ChangePasswordRequest,
+  changePasswordRequestSchema,
   emptyResultSchema,
   type LoginRequest,
   loginRequestSchema,
@@ -97,4 +99,50 @@ export class AuthController {
     writeRefreshCookie(response, null, this.config.NODE_ENV === "production");
     return null;
   }
+
+  @Post("change-password")
+  @HttpCode(200)
+  @ApiZodResponse(
+    200,
+    successResponseSchema(emptyResultSchema),
+    "修改当前账号密码",
+  )
+  async changePassword(
+    @ZodRequest("body", changePasswordRequestSchema)
+    input: ChangePasswordRequest,
+    @Req() request: IncomingMessage,
+    @Res({ passthrough: true }) response: ServerResponse,
+  ) {
+    try {
+      await this.auth.changePassword(
+        readRefreshCookie(request.headers.cookie),
+        readBearerToken(request.headers.authorization),
+        input,
+        {
+          ip: request.socket.remoteAddress ?? "unknown",
+          userAgent: request.headers["user-agent"] ?? "",
+          traceId: this.cls.getId(),
+        },
+      );
+      response.setHeader("Cache-Control", "no-store");
+      return null;
+    } catch (error) {
+      if (error instanceof ApiException && error.code === 10005) {
+        writeRefreshCookie(
+          response,
+          null,
+          this.config.NODE_ENV === "production",
+        );
+      }
+      throw error;
+    }
+  }
+}
+
+function readBearerToken(header: string | undefined) {
+  const match =
+    /^Bearer ([A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+)$/.exec(
+      header ?? "",
+    );
+  return match?.[1];
 }

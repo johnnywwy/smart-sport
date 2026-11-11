@@ -1,7 +1,7 @@
-import { createPrivateKey, type KeyObject } from "node:crypto";
+import { createPrivateKey, createPublicKey, type KeyObject } from "node:crypto";
 import { Inject, Injectable } from "@nestjs/common";
 import type { ServerConfig } from "@smart-sport/config/env";
-import { SignJWT } from "jose";
+import { jwtVerify, SignJWT } from "jose";
 import { SERVER_CONFIG } from "../../server-config.js";
 
 type AccountTokenInput = {
@@ -13,6 +13,7 @@ type AccountTokenInput = {
 @Injectable()
 export class AccessTokenSigner {
   private readonly key: KeyObject;
+  private readonly publicKey: KeyObject;
   private readonly keyId: string;
 
   constructor(@Inject(SERVER_CONFIG) config: ServerConfig) {
@@ -25,6 +26,7 @@ export class AccessTokenSigner {
     if (this.key.asymmetricKeyType !== "ed25519") {
       throw new Error("令牌签名需要 Ed25519 密钥");
     }
+    this.publicKey = createPublicKey(this.key);
   }
 
   /** 登录成功后签发账号级令牌；会话必须由业务层先持久化。 */
@@ -57,5 +59,31 @@ export class AccessTokenSigner {
       .setIssuedAt()
       .setExpirationTime("30m")
       .sign(this.key);
+  }
+
+  /** 全局 AuthGuard 上线前，只供认证模块验证自身接口所需的核心字段。 */
+  async verify(token: string | undefined) {
+    if (!token) return undefined;
+    try {
+      const { payload } = await jwtVerify(token, this.publicKey, {
+        algorithms: ["EdDSA"],
+      });
+      if (
+        typeof payload.sub !== "string" ||
+        typeof payload.sid !== "string" ||
+        typeof payload.tv !== "number" ||
+        payload.client !== "admin" ||
+        (payload.stage !== "account" && payload.stage !== "identity")
+      ) {
+        return undefined;
+      }
+      return {
+        userId: payload.sub,
+        sessionId: payload.sid,
+        tokenVersion: payload.tv,
+      };
+    } catch {
+      return undefined;
+    }
   }
 }

@@ -177,3 +177,23 @@ export const refreshTokens = pgTable(
     index("refresh_tokens_session_index").on(t.sessionId),
   ],
 );
+
+export const passwordHistory = pgTable(
+  "password_history",
+  {
+    id: uuid("id").primaryKey().$defaultFn(v7),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id),
+    passwordHash: varchar("password_hash", { length: 255 }).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    index("password_history_user_index").on(
+      table.userId,
+      table.createdAt.desc(),
+    ),
+  ],
+);

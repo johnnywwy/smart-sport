@@ -270,6 +270,34 @@ function sessionRequest(path: string, cookie: string) {
   });
 }
 
+function changePassword(
+  cookie: string,
+  accessToken: string,
+  oldPassword: string,
+  newPassword: string,
+) {
+  return fetch(`${base}/api/v1/auth/change-password`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      Cookie: cookie,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ oldPassword, newPassword }),
+  });
+}
+
+async function loginSession(password: string) {
+  const response = await login("demo", password);
+  const body = successResponseSchema(loginResponseSchema).parse(
+    await response.json(),
+  );
+  return {
+    accessToken: body.data.accessToken,
+    cookie: cookieValue(response),
+  };
+}
+
 describe("refresh 轮换与退出", () => {
   it("刷新轮换 Cookie，保持会话 id 和账号阶段", async () => {
     const initial = await login("demo");
@@ -400,5 +428,174 @@ describe("refresh 轮换与退出", () => {
       iid: identity.rows[0].id,
     });
     expect((claims.exp ?? 0) - (claims.iat ?? 0)).toBe(1800);
+  });
+});
+
+describe("修改密码与强制改密", () => {
+  it("修改密码升级账号版本、保留当前会话并吊销其他会话", async () => {
+    const current = await loginSession("123456");
+    const other = cookieValue(await login("demo"));
+    const response = await changePassword(
+      current.cookie,
+      current.accessToken,
+      "123456",
+      "Sport2026",
+    );
+    expect(response.status).toBe(200);
+    expect(apiResponseSchema.parse(await response.json())).toMatchObject({
+      code: 0,
+      data: null,
+    });
+
+    const refreshed = await sessionRequest("refresh", current.cookie);
+    expect(refreshed.status).toBe(200);
+    const refreshedBody = apiResponseSchema.parse(await refreshed.json());
+    const accessToken = (refreshedBody.data as { accessToken: string })
+      .accessToken;
+    const claims = (await jwtVerify(accessToken, pair.publicKey)).payload;
+    expect(claims.tv).toBeGreaterThan(0);
+    expect((await sessionRequest("refresh", other)).status).toBe(401);
+
+    expect((await login("demo", "123456")).status).toBe(401);
+    const relogin = await login("demo", "Sport2026");
+    expect(relogin.status).toBe(200);
+    expect(
+      successResponseSchema(loginResponseSchema).parse(await relogin.json())
+        .data.mustChangePassword,
+    ).toBe(false);
+
+    const account = await pool.query(
+      "SELECT password_changed_at, must_change_password, token_version FROM public.users WHERE id=$1",
+      [userId],
+    );
+    expect(account.rows[0].password_changed_at).toBeInstanceOf(Date);
+    expect(account.rows[0].must_change_password).toBe(false);
+    const audit = await pool.query(
+      "SELECT changes FROM public.audit_logs WHERE action='auth.password.change' AND user_id=$1 ORDER BY created_at DESC LIMIT 1",
+      [userId],
+    );
+    expect(audit.rows).toEqual([{ changes: { password: "已修改" } }]);
+  });
+
+  it("旧密码错误不改密、不吊销其他会话且不写密码审计", async () => {
+    const current = await loginSession("Sport2026");
+    const other = cookieValue(await login("demo", "Sport2026"));
+    const before = await pool.query(
+      "SELECT count(*)::int AS count FROM public.audit_logs WHERE action='auth.password.change'",
+    );
+    const response = await changePassword(
+      current.cookie,
+      current.accessToken,
+      "wrong",
+      "Sport2027",
+    );
+    expect(response.status).toBe(401);
+    expect(apiResponseSchema.parse(await response.json()).code).toBe(10001);
+    expect((await sessionRequest("refresh", current.cookie)).status).toBe(200);
+    expect((await sessionRequest("refresh", other)).status).toBe(200);
+    const after = await pool.query(
+      "SELECT count(*)::int AS count FROM public.audit_logs WHERE action='auth.password.change'",
+    );
+    expect(after.rows).toEqual(before.rows);
+  });
+
+  it("拒绝与当前及最近 3 次相同的密码", async () => {
+    let password = "Sport2026";
+    const previous = [password];
+    for (const next of ["Sport2027", "Sport2028", "Sport2029"]) {
+      const session = await loginSession(password);
+      expect(
+        (
+          await changePassword(
+            session.cookie,
+            session.accessToken,
+            password,
+            next,
+          )
+        ).status,
+      ).toBe(200);
+      password = next;
+      previous.push(password);
+    }
+    const current = await loginSession(password);
+    for (const reused of previous.slice(-3)) {
+      const response = await changePassword(
+        current.cookie,
+        current.accessToken,
+        password,
+        reused,
+      );
+      expect(response.status).toBe(400);
+      const body = apiResponseSchema.parse(await response.json());
+      expect(body.code).toBe(10006);
+      expect(body.data).toMatchObject({
+        fields: { newPassword: ["不能与最近 3 次密码相同"] },
+      });
+    }
+  });
+
+  it("测试环境允许默认密码，但仍禁止与用户名相同", async () => {
+    const currentPassword = "Sport2029";
+    const current = await loginSession(currentPassword);
+    expect(
+      (
+        await changePassword(
+          current.cookie,
+          current.accessToken,
+          currentPassword,
+          "123456",
+        )
+      ).status,
+    ).toBe(200);
+    const next = await loginSession("123456");
+    const response = await changePassword(
+      next.cookie,
+      next.accessToken,
+      "123456",
+      "demo",
+    );
+    expect(response.status).toBe(400);
+    expect(apiResponseSchema.parse(await response.json()).data).toMatchObject({
+      fields: { newPassword: ["不能与用户名相同"] },
+    });
+  });
+
+  it("缺失、伪造或已吊销 Cookie 不能修改密码", async () => {
+    const valid = await loginSession("123456");
+    for (const cookie of ["", `refresh_token=${"x".repeat(43)}`]) {
+      const response = await changePassword(
+        cookie,
+        valid.accessToken,
+        "123456",
+        "Sport2030",
+      );
+      expect(response.status).toBe(401);
+      expect(response.headers.get("set-cookie")).toContain("Max-Age=0");
+    }
+    await sessionRequest("logout", valid.cookie);
+    expect(
+      (
+        await changePassword(
+          valid.cookie,
+          valid.accessToken,
+          "123456",
+          "Sport2030",
+        )
+      ).status,
+    ).toBe(401);
+  });
+
+  it("缺失、伪造或其他会话的 access token 不能修改密码", async () => {
+    const current = await loginSession("123456");
+    const other = await loginSession("123456");
+    for (const accessToken of ["", "invalid.token.value", other.accessToken]) {
+      const response = await changePassword(
+        current.cookie,
+        accessToken,
+        "123456",
+        "Sport2030",
+      );
+      expect(response.status).toBe(401);
+    }
   });
 });
