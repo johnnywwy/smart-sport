@@ -1,0 +1,38 @@
+.portal-app-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+}
+
+.portal-app-icon svg {
+  width: 24px;
+  height: 24px;
+}
+
+.portal-app-icon-system {
+  background: #ebebec;
+  color: #3f3f46;
+}
+
+.portal-app-icon-platform {
+  background: #f2eafa;
+  color: #6020a0;
+}
+
+.portal-app-icon-org {
+  background: #daedfe;
+  color: #0a64b5;
+}
+
+.portal-app-icon-ops {
+  background: #fef2de;
+  color: #8d6320;
+}
+
+.portal-app-icon-school {
+  background: #dcf7e8;
+  color: #177d45;
+}

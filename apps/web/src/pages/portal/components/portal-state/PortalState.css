@@ -1,0 +1,25 @@
+.portal-state {
+  min-height: 220px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 32px;
+  gap: 12px;
+  border-radius: 20px;
+  background: #fff;
+}
+
+.portal-state [data-slot="card-title"] {
+  font-size: 16px;
+}
+
+.portal-state [data-slot="card-description"] {
+  font-size: 13px;
+  color: #63636b;
+}
+
+.dark .portal-state {
+  background: #27272a;
+  color: #f4f4f5;
+}

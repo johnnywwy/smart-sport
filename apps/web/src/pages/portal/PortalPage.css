@@ -1,0 +1,33 @@
+.portal-section-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  gap: 16px;
+}
+
+.portal-section-heading h2 {
+  font-size: 17px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.portal-section-heading > span {
+  color: #63636b;
+  font-size: 12px;
+}
+
+.portal-bottom-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+@media (max-width: 760px) {
+  .portal-section-heading > span {
+    display: none;
+  }
+  .portal-bottom-grid {
+    grid-template-columns: 1fr;
+  }
+}

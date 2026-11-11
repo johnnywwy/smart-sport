@@ -1,0 +1,39 @@
+.portal-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.portal-kpi-card {
+  padding: 20px 22px;
+  gap: 10px;
+  border-radius: 20px;
+  background: #fff;
+  box-shadow:
+    0 2px 4px #0000000a,
+    0 1px 2px #0000000f,
+    0 0 1px #0000000f;
+}
+
+.portal-kpi-card [data-slot="kpi-title"] {
+  font-size: 13px;
+  font-weight: 500;
+  color: #63636b;
+}
+
+.portal-kpi-value {
+  font-size: 32px;
+  line-height: 1.3;
+  color: #a1a1aa;
+}
+
+.dark .portal-kpi-card {
+  background: #27272a;
+  color: #f4f4f5;
+}
+
+@media (max-width: 760px) {
+  .portal-kpi-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

@@ -1,0 +1,77 @@
+.portal-application-card {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  height: auto;
+  min-height: 218px;
+  padding: 24px;
+  gap: 0;
+  border-radius: 20px;
+  background: #fff;
+  color: #18181b;
+  white-space: normal;
+  text-align: left;
+  box-shadow:
+    0 2px 4px #0000000a,
+    0 1px 2px #0000000f,
+    0 0 1px #0000000f;
+  transition:
+    transform 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.portal-application-card:hover {
+  transform: translateY(-3px);
+  box-shadow:
+    0 8px 22px #0000000d,
+    0 0 1px #00000026;
+}
+
+.portal-app-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+}
+
+.portal-card-arrow {
+  color: #63636b;
+}
+
+.portal-app-name {
+  font-size: 18px;
+  line-height: 26px;
+  font-weight: 600;
+}
+
+.portal-app-description {
+  font-size: 13px;
+  line-height: 21px;
+  color: #63636b;
+  margin-top: 6px;
+  min-height: 42px;
+}
+
+.portal-app-entry {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 18px;
+  font-size: 12px;
+  color: #63636b;
+}
+
+.dark .portal-application-card {
+  background: #27272a;
+  color: #f4f4f5;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .portal-application-card {
+    transition: none;
+  }
+  .portal-application-card:hover {
+    transform: none;
+  }
+}
