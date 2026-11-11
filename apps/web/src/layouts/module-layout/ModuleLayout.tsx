@@ -56,6 +56,7 @@ export function ModuleLayout({
   return (
     <AppLayout
       className="module-layout"
+      scrollMode="content"
       navigate={navigate}
       sidebarOpen={sidebarOpen}
       onSidebarOpenChange={setSidebarOpen}
