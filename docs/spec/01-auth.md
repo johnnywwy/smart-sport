@@ -48,14 +48,16 @@ Redis：`login:fail:{username}` 失败计数；`captcha:{id}`；`email-code:{pur
 
 ## 4. 令牌
 
-| 令牌          | 有效期  | 内容                                   | 可调用                                        |
-| ------------- | ------- | -------------------------------------- | --------------------------------------------- |
-| 账号级 access | 10 分钟 | `sub, tv, client, stage=account`       | 仅 spec 02 的“列出身份”“选择身份”、改密、退出 |
-| 身份级 access | 30 分钟 | `sub, iid, tv, client, stage=identity` | 全部业务接口                                  |
-| refresh       | 7 天    | 随机串，库中存哈希                     | 刷新接口；每次刷新轮换                        |
+| 令牌          | 有效期  | 内容                                        | 可调用                                        |
+| ------------- | ------- | ------------------------------------------- | --------------------------------------------- |
+| 账号级 access | 10 分钟 | `sub, sid, tv, client, stage=account`       | 仅 spec 02 的“列出身份”“选择身份”、改密、退出 |
+| 身份级 access | 30 分钟 | `sub, sid, iid, tv, client, stage=identity` | 全部业务接口                                  |
+| refresh       | 7 天    | 随机串，库中存哈希                          | 刷新接口；每次刷新轮换                        |
 
 - 签名算法 EdDSA（jose），密钥由环境注入，支持多密钥轮换（`kid`）。
-- refresh token 放 HttpOnly + Secure + SameSite=Strict Cookie，路径 `/api/v1/auth/refresh`；access token 放内存。
+- `sid` 是会话 id（`user_sessions.id`）。登录时创建会话（`identity_id` 为空），选择身份时把身份写入该会话。
+- refresh token 放 HttpOnly + SameSite=Strict Cookie，路径 `/api/v1/auth`（刷新与退出接口都要能收到）；生产环境加 Secure，开发环境 http 下不加。access token 只放前端内存，不写入 localStorage。
+- 刷新接口返回的令牌阶段跟随会话：会话已选身份则返回身份级令牌，否则返回账号级令牌。页面刷新后前端靠它恢复登录状态。
 
 ## 5. 接口
 
