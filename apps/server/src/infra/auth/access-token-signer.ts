@@ -41,4 +41,21 @@ export class AccessTokenSigner {
       .setExpirationTime("10m")
       .sign(this.key);
   }
+  /** 刷新时阶段以数据库会话为准，不接受客户端指定身份。 */
+  signIdentity(
+    input: AccountTokenInput & { identityId: string },
+  ): Promise<string> {
+    return new SignJWT({
+      sid: input.sessionId,
+      tv: input.tokenVersion,
+      iid: input.identityId,
+      client: "admin",
+      stage: "identity",
+    })
+      .setProtectedHeader({ alg: "EdDSA", kid: this.keyId, typ: "JWT" })
+      .setSubject(input.userId)
+      .setIssuedAt()
+      .setExpirationTime("30m")
+      .sign(this.key);
+  }
 }

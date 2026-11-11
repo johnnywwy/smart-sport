@@ -72,6 +72,9 @@ describe("用户表 PostgreSQL 17 迁移与约束", () => {
       "0009_create_audit_logs.sql",
       "0010_audit_logs_initial_partitions.sql",
       "0011_audit_logs_fallback_partition.sql",
+      "0012_create_refresh_tokens.sql",
+      "0013_refresh_tokens_session_index.sql",
+      "0014_backfill_refresh_tokens.sql",
     ]);
     expect(await migratePublic(pool)).toEqual([]);
   });

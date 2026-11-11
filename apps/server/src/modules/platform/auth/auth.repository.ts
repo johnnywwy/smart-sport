@@ -6,6 +6,7 @@ import {
   auditLogs,
   identities,
   loginLogs,
+  refreshTokens,
   userSessions,
   users,
 } from "../../../schema/public.js";
@@ -103,6 +104,111 @@ export class AuthRepository {
       userAgent: data.metadata.userAgent,
       traceId: data.metadata.traceId,
       createdAt: data.date,
+    });
+  }
+  async findRefresh(tx: AuthTransaction, tokenHash: string) {
+    // 先只查历史定位账号，再按账号→会话→历史的固定顺序加锁，避免与登录互锁。
+    const [token] = await tx
+      .select()
+      .from(refreshTokens)
+      .where(eq(refreshTokens.tokenHash, tokenHash));
+    if (!token) return undefined;
+    const [reference] = await tx
+      .select({ userId: userSessions.userId })
+      .from(userSessions)
+      .where(eq(userSessions.id, token.sessionId));
+    if (!reference) return undefined;
+    const [user] = await tx
+      .select()
+      .from(users)
+      .where(eq(users.id, reference.userId))
+      .for("update");
+    const [session] = await tx
+      .select()
+      .from(userSessions)
+      .where(eq(userSessions.id, token.sessionId))
+      .for("update");
+    const [currentToken] = await tx
+      .select()
+      .from(refreshTokens)
+      .where(eq(refreshTokens.tokenHash, tokenHash))
+      .for("update");
+    return user && session && currentToken
+      ? { user, session, token: currentToken }
+      : undefined;
+  }
+
+  addRefresh(tx: AuthTransaction, value: typeof refreshTokens.$inferInsert) {
+    return tx.insert(refreshTokens).values(value);
+  }
+
+  async rotateRefresh(
+    tx: AuthTransaction,
+    sessionId: string,
+    oldHash: string,
+    newHash: string,
+    date: Date,
+  ) {
+    await tx
+      .update(refreshTokens)
+      .set({ consumedAt: date })
+      .where(eq(refreshTokens.tokenHash, oldHash));
+    await tx
+      .update(userSessions)
+      .set({
+        refreshTokenHash: newHash,
+        lastActiveAt: date,
+        updatedAt: date,
+        version: sql`${userSessions.version} + 1`,
+      })
+      .where(eq(userSessions.id, sessionId));
+  }
+
+  async revokeSession(tx: AuthTransaction, sessionId: string, date: Date) {
+    await tx
+      .update(userSessions)
+      .set({
+        revokedAt: date,
+        updatedAt: date,
+        version: sql`${userSessions.version} + 1`,
+      })
+      .where(
+        and(eq(userSessions.id, sessionId), isNull(userSessions.revokedAt)),
+      );
+  }
+
+  async findIdentity(tx: AuthTransaction, identityId: string, userId: string) {
+    const [identity] = await tx
+      .select()
+      .from(identities)
+      .where(
+        and(
+          eq(identities.id, identityId),
+          eq(identities.userId, userId),
+          eq(identities.status, 1),
+          isNull(identities.deletedAt),
+          notInArray(identities.type, ["student", "parent"]),
+        ),
+      );
+    return identity;
+  }
+
+  recordLogout(
+    tx: AuthTransaction,
+    userId: string,
+    sessionId: string,
+    metadata: LoginMetadata,
+    date: Date,
+  ) {
+    return tx.insert(auditLogs).values({
+      userId,
+      action: "auth.logout",
+      targetType: "session",
+      targetId: sessionId,
+      ip: metadata.ip,
+      userAgent: metadata.userAgent,
+      traceId: metadata.traceId,
+      createdAt: date,
     });
   }
 }

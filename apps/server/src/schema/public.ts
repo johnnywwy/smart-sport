@@ -2,6 +2,7 @@ import { sql } from "drizzle-orm";
 import {
   boolean,
   check,
+  index,
   integer,
   jsonb,
   pgTable,
@@ -151,4 +152,28 @@ export const auditLogs = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true }).notNull(),
   },
   (t) => [primaryKey({ columns: [t.id, t.createdAt] })],
+);
+
+// 令牌历史是会话关联记录，只保存不可逆哈希；消费后保留以识别重放。
+export const refreshTokens = pgTable(
+  "refresh_tokens",
+  {
+    tokenHash: varchar("token_hash", { length: 64 }).primaryKey(),
+    sessionId: uuid("session_id")
+      .notNull()
+      .references(() => userSessions.id),
+    tokenVersion: integer("token_version").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    consumedAt: timestamp("consumed_at", { withTimezone: true }),
+  },
+  (t) => [
+    check(
+      "refresh_tokens_token_hash_check",
+      sql`${t.tokenHash} ~ '^[0-9a-f]{64}$'`,
+    ),
+    check("refresh_tokens_token_version_check", sql`${t.tokenVersion} >= 0`),
+    index("refresh_tokens_session_index").on(t.sessionId),
+  ],
 );

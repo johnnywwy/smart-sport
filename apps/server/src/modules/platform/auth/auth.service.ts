@@ -89,6 +89,11 @@ export class AuthService {
         userAgent: metadata.userAgent,
         lastActiveAt: date,
       });
+      await this.repository.addRefresh(tx, {
+        tokenHash: createHash("sha256").update(refreshToken).digest("hex"),
+        sessionId,
+        tokenVersion: user.tokenVersion,
+      });
       return {
         body: loginResponseSchema.parse({
           accessToken,
@@ -101,5 +106,90 @@ export class AuthService {
     // 失败记录先提交，再抛出 HTTP 错误，避免事务回滚丢失日志。
     if ("error" in result) throw new ApiException(result.error);
     return result;
+  }
+  /** 原值消费后仍保留哈希；重放吊销结果必须提交后再返回 401。 */
+  async refresh(refreshToken: string | undefined) {
+    if (!refreshToken) throw new ApiException(10005);
+    const oldHash = createHash("sha256").update(refreshToken).digest("hex");
+    const result = await this.repository.transaction(async (tx) => {
+      const found = await this.repository.findRefresh(tx, oldHash);
+      if (!found) return null;
+      const { user, session, token } = found;
+      const date = new Date();
+      if (session.revokedAt || session.deletedAt) return null;
+      if (
+        token.consumedAt ||
+        session.refreshTokenHash !== oldHash ||
+        session.expiresAt <= date ||
+        user.deletedAt ||
+        user.status !== 1 ||
+        user.tokenVersion !== token.tokenVersion ||
+        session.client !== "admin"
+      ) {
+        await this.repository.revokeSession(tx, session.id, date);
+        return null;
+      }
+      const input = {
+        userId: user.id,
+        sessionId: session.id,
+        tokenVersion: user.tokenVersion,
+      };
+      if (
+        session.identityId &&
+        !(await this.repository.findIdentity(tx, session.identityId, user.id))
+      ) {
+        await this.repository.revokeSession(tx, session.id, date);
+        return null;
+      }
+      const accessToken = session.identityId
+        ? await this.signer.signIdentity({
+            ...input,
+            identityId: session.identityId,
+          })
+        : await this.signer.signAccount(input);
+      const nextToken = randomBytes(32).toString("base64url");
+      const nextHash = createHash("sha256").update(nextToken).digest("hex");
+      await this.repository.rotateRefresh(
+        tx,
+        session.id,
+        oldHash,
+        nextHash,
+        date,
+      );
+      await this.repository.addRefresh(tx, {
+        tokenHash: nextHash,
+        sessionId: session.id,
+        tokenVersion: user.tokenVersion,
+      });
+      return {
+        body: { accessToken },
+        refreshToken: nextToken,
+        maxAge: Math.max(
+          0,
+          Math.floor((session.expiresAt.getTime() - date.getTime()) / 1000),
+        ),
+      };
+    });
+    if (!result) throw new ApiException(10005);
+    return result;
+  }
+
+  /** 退出只依赖 HttpOnly Cookie，账号级或身份级 access 过期仍可退出。 */
+  async logout(refreshToken: string | undefined, metadata: LoginMetadata) {
+    if (!refreshToken) return;
+    const tokenHash = createHash("sha256").update(refreshToken).digest("hex");
+    await this.repository.transaction(async (tx) => {
+      const found = await this.repository.findRefresh(tx, tokenHash);
+      if (!found || found.session.revokedAt || found.session.deletedAt) return;
+      const date = new Date();
+      await this.repository.revokeSession(tx, found.session.id, date);
+      await this.repository.recordLogout(
+        tx,
+        found.user.id,
+        found.session.id,
+        metadata,
+        date,
+      );
+    });
   }
 }

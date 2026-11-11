@@ -2,15 +2,19 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 import { Controller, HttpCode, Inject, Post, Req, Res } from "@nestjs/common";
 import type { ServerConfig } from "@smart-sport/config/env";
 import {
+  emptyResultSchema,
   type LoginRequest,
   loginRequestSchema,
   loginResponseSchema,
+  refreshAccessTokenSchema,
   successResponseSchema,
 } from "@smart-sport/contracts";
 import { ClsService } from "nestjs-cls";
+import { ApiException } from "../../../api-response.js";
 import { SERVER_CONFIG } from "../../../server-config.js";
 import { ApiZodResponse, ZodRequest } from "../../../zod-route.js";
 import { AuthService } from "./auth.service.js";
+import { readRefreshCookie, writeRefreshCookie } from "./refresh-cookie.js";
 
 @Controller("api/v1/auth")
 export class AuthController {
@@ -38,10 +42,59 @@ export class AuthController {
       userAgent: request.headers["user-agent"] ?? "",
       traceId: this.cls.getId(),
     });
-    response.setHeader(
-      "Set-Cookie",
-      `refresh_token=${result.refreshToken}; Path=/api/v1/auth; HttpOnly; SameSite=Strict; Max-Age=604800${this.config.NODE_ENV === "production" ? "; Secure" : ""}`,
+    writeRefreshCookie(
+      response,
+      result.refreshToken,
+      this.config.NODE_ENV === "production",
     );
     return result.body;
+  }
+  @Post("refresh")
+  @HttpCode(200)
+  @ApiZodResponse(
+    200,
+    successResponseSchema(refreshAccessTokenSchema),
+    "轮换刷新令牌",
+  )
+  async refresh(
+    @Req() request: IncomingMessage,
+    @Res({ passthrough: true }) response: ServerResponse,
+  ) {
+    try {
+      const result = await this.auth.refresh(
+        readRefreshCookie(request.headers.cookie),
+      );
+      writeRefreshCookie(
+        response,
+        result.refreshToken,
+        this.config.NODE_ENV === "production",
+        result.maxAge,
+      );
+      return result.body;
+    } catch (error) {
+      if (error instanceof ApiException && error.code === 10005)
+        writeRefreshCookie(
+          response,
+          null,
+          this.config.NODE_ENV === "production",
+        );
+      throw error;
+    }
+  }
+
+  @Post("logout")
+  @HttpCode(200)
+  @ApiZodResponse(200, successResponseSchema(emptyResultSchema), "退出当前会话")
+  async logout(
+    @Req() request: IncomingMessage,
+    @Res({ passthrough: true }) response: ServerResponse,
+  ) {
+    await this.auth.logout(readRefreshCookie(request.headers.cookie), {
+      ip: request.socket.remoteAddress ?? "unknown",
+      userAgent: request.headers["user-agent"] ?? "",
+      traceId: this.cls.getId(),
+    });
+    writeRefreshCookie(response, null, this.config.NODE_ENV === "production");
+    return null;
   }
 }

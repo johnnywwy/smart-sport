@@ -259,3 +259,146 @@ describe("真实 HTTP 登录", () => {
     expect(after.rows).toEqual(before.rows);
   });
 });
+
+function cookieValue(response: Response) {
+  return (response.headers.get("set-cookie") ?? "").split(";")[0] ?? "";
+}
+function sessionRequest(path: string, cookie: string) {
+  return fetch(`${base}/api/v1/auth/${path}`, {
+    method: "POST",
+    headers: { Cookie: cookie },
+  });
+}
+
+describe("refresh 轮换与退出", () => {
+  it("刷新轮换 Cookie，保持会话 id 和账号阶段", async () => {
+    const initial = await login("demo");
+    const oldCookie = cookieValue(initial);
+    const initialBody = successResponseSchema(loginResponseSchema).parse(
+      await initial.json(),
+    );
+    const original = (
+      await jwtVerify(initialBody.data.accessToken, pair.publicKey)
+    ).payload;
+    const response = await sessionRequest("refresh", oldCookie);
+    expect(response.status).toBe(200);
+    const body = apiResponseSchema.parse(await response.json());
+    if (body.code !== 0) throw new Error("刷新失败");
+    const token = (body.data as { accessToken: string }).accessToken;
+    const payload = (await jwtVerify(token, pair.publicKey)).payload;
+    expect(payload).toMatchObject({
+      sid: original.sid,
+      sub: userId,
+      stage: "account",
+    });
+    expect(cookieValue(response)).not.toBe(oldCookie);
+    expect(response.headers.get("cache-control")).toBe("no-store");
+    const history = await pool.query(
+      "SELECT consumed_at FROM public.refresh_tokens WHERE session_id=$1",
+      [original.sid],
+    );
+    expect(history.rowCount).toBe(2);
+    expect(history.rows.filter((row) => row.consumed_at !== null)).toHaveLength(
+      1,
+    );
+  });
+  it("旧值重放吊销整个会话，新值随后也失效", async () => {
+    const first = cookieValue(await login("demo"));
+    const fresh = cookieValue(await sessionRequest("refresh", first));
+    const replay = await sessionRequest("refresh", first);
+    expect(replay.status).toBe(401);
+    expect(cookieValue(replay)).toBe("refresh_token=");
+    expect((await sessionRequest("refresh", fresh)).status).toBe(401);
+  });
+  it("并发刷新只有一个成功，重放分支提交吊销", async () => {
+    const initial = cookieValue(await login("demo"));
+    const responses = await Promise.all([
+      sessionRequest("refresh", initial),
+      sessionRequest("refresh", initial),
+    ]);
+    expect(responses.map((r) => r.status).sort()).toEqual([200, 401]);
+    const successful = responses.find((r) => r.status === 200);
+    if (!successful) throw new Error("没有成功刷新请求");
+    expect(
+      (await sessionRequest("refresh", cookieValue(successful))).status,
+    ).toBe(401);
+  });
+  it("退出吊销会话、清理 Cookie 并记录审计，重复退出无副作用", async () => {
+    const initial = cookieValue(await login("demo"));
+    const response = await sessionRequest("logout", initial);
+    expect(response.status).toBe(200);
+    expect(response.headers.get("set-cookie")).toContain("Max-Age=0");
+    const body = apiResponseSchema.parse(await response.json());
+    const audit = await pool.query(
+      "SELECT action FROM public.audit_logs WHERE trace_id=$1",
+      [body.traceId],
+    );
+    expect(audit.rows).toEqual([{ action: "auth.logout" }]);
+    expect((await sessionRequest("refresh", initial)).status).toBe(401);
+    expect((await sessionRequest("logout", initial)).status).toBe(200);
+  });
+  it("缺失、重复或伪造 Cookie 不能刷新，无凭据退出可重试", async () => {
+    for (const cookie of [
+      "",
+      "refresh_token=invalid",
+      `refresh_token=${"a".repeat(43)}`,
+      `refresh_token=${"b".repeat(43)}; refresh_token=${"c".repeat(43)}`,
+    ]) {
+      expect((await sessionRequest("refresh", cookie)).status).toBe(401);
+    }
+    expect((await sessionRequest("logout", "")).status).toBe(200);
+  });
+  it("会话过期与账号版本变更均使刷新失效", async () => {
+    for (const invalidate of ["expiry", "version"]) {
+      const response = await login("demo");
+      const cookie = cookieValue(response);
+      const body = successResponseSchema(loginResponseSchema).parse(
+        await response.json(),
+      );
+      const payload = (await jwtVerify(body.data.accessToken, pair.publicKey))
+        .payload;
+      if (invalidate === "expiry")
+        await pool.query(
+          "UPDATE public.user_sessions SET expires_at=now()-interval '1 second' WHERE id=$1",
+          [payload.sid],
+        );
+      else
+        await pool.query(
+          "UPDATE public.users SET token_version=token_version+1 WHERE id=$1",
+          [userId],
+        );
+      expect((await sessionRequest("refresh", cookie)).status).toBe(401);
+    }
+  });
+  it("已选择身份的会话刷新返回 30 分钟身份级令牌", async () => {
+    const response = await login("demo");
+    const cookie = cookieValue(response);
+    const body = successResponseSchema(loginResponseSchema).parse(
+      await response.json(),
+    );
+    const payload = (await jwtVerify(body.data.accessToken, pair.publicKey))
+      .payload;
+    const identity = await pool.query(
+      "SELECT id FROM public.identities WHERE user_id=$1 AND type='school'",
+      [userId],
+    );
+    await pool.query(
+      "UPDATE public.user_sessions SET identity_id=$1 WHERE id=$2",
+      [identity.rows[0].id, payload.sid],
+    );
+    const refreshed = await sessionRequest("refresh", cookie);
+    const result = apiResponseSchema.parse(await refreshed.json());
+    expect(refreshed.status).toBe(200);
+    const claims = (
+      await jwtVerify(
+        (result.data as { accessToken: string }).accessToken,
+        pair.publicKey,
+      )
+    ).payload;
+    expect(claims).toMatchObject({
+      stage: "identity",
+      iid: identity.rows[0].id,
+    });
+    expect((claims.exp ?? 0) - (claims.iat ?? 0)).toBe(1800);
+  });
+});
