@@ -146,4 +146,98 @@ describe("角色最终档位", () => {
     await pool.query("UPDATE public.roles SET status=0 WHERE id=$1", [id]);
     expect(await service.resolve([id])).toEqual([]);
   });
+  it("模板覆盖处于代码默认与自定义差异之间，范围不串用且可恢复", async () => {
+    const preset = (
+      await pool.query<{ id: string }>(
+        "SELECT id FROM public.roles WHERE code='teacher-pe'",
+      )
+    ).rows[0];
+    const custom = (
+      await pool.query<{ id: string }>(
+        "SELECT id FROM public.roles WHERE code='ROLE_CUSTOM_TEST'",
+      )
+    ).rows[0];
+    await pool.query(
+      `INSERT INTO public.preset_role_overrides(role_id,data_scope,grants) VALUES($1,'dept',$2)`,
+      [
+        preset?.id,
+        JSON.stringify([
+          { app: "school", feature: "class", grant: { level: "edit" } },
+          { app: "school", feature: "student", grant: { level: "none" } },
+        ]),
+      ],
+    );
+    const presetResult = await service.resolve([preset?.id ?? ""]);
+    expect(presetResult).toContainEqual({
+      roleId: preset?.id,
+      scope: "dept",
+      app: "school",
+      feature: "class",
+      grant: { level: "edit" },
+    });
+    expect(presetResult).toContainEqual({
+      roleId: preset?.id,
+      scope: "dept",
+      app: "school",
+      feature: "student",
+      grant: { level: "none" },
+    });
+    const customResult = await service.resolve([custom?.id ?? ""]);
+    expect(customResult).toContainEqual({
+      roleId: custom?.id,
+      scope: "personal",
+      app: "school",
+      feature: "class",
+      grant: { level: "edit" },
+    });
+    expect(customResult).toContainEqual({
+      roleId: custom?.id,
+      scope: "personal",
+      app: "school",
+      feature: "student",
+      grant: { level: "edit" },
+    });
+    await syncCatalog(pool);
+    expect(await service.resolve([custom?.id ?? ""])).toContainEqual({
+      roleId: custom?.id,
+      scope: "personal",
+      app: "school",
+      feature: "class",
+      grant: { level: "edit" },
+    });
+    await pool.query(
+      "DELETE FROM public.preset_role_overrides WHERE role_id=$1",
+      [preset?.id],
+    );
+    expect(await service.resolve([preset?.id ?? ""])).toContainEqual({
+      roleId: preset?.id,
+      scope: "personal",
+      app: "school",
+      feature: "class",
+      grant: { level: "view" },
+    });
+  });
+  it("超级管理员不接受异常模板覆盖", async () => {
+    const preset = (
+      await pool.query<{ id: string }>(
+        "SELECT id FROM public.roles WHERE code='company-super-admin'",
+      )
+    ).rows[0];
+    await pool.query(
+      `INSERT INTO public.preset_role_overrides(role_id,data_scope,grants) VALUES($1,'personal',$2)`,
+      [
+        preset?.id,
+        JSON.stringify([
+          { app: "system", feature: "preset-role", grant: { level: "none" } },
+        ]),
+      ],
+    );
+    expect(await service.resolve([preset?.id ?? ""])).toContainEqual({
+      roleId: preset?.id,
+      scope: "all",
+      app: "system",
+      feature: "preset-role",
+      grant: { level: "manage" },
+    });
+  });
 });

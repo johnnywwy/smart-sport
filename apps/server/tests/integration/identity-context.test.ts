@@ -164,4 +164,56 @@ describe("身份上下文与跨实例失效", () => {
     await pool.query("UPDATE public.users SET status=0 WHERE id=$1", [userId]);
     await expect(first.load(identityId)).rejects.toMatchObject({ code: 10005 });
   });
+  it("模板覆盖与恢复使两个实例的缓存立即失效", async () => {
+    const newIdentity = v7();
+    const newUser = v7();
+    await pool.query(
+      "INSERT INTO public.users(id,username,real_name,password_hash) VALUES($1,$2,'模板缓存测试','test')",
+      [newUser, `template-${newUser}`],
+    );
+    const role = (
+      await pool.query<{ id: string }>(
+        "SELECT id FROM public.roles WHERE code='company-sales'",
+      )
+    ).rows[0];
+    await pool.query(
+      "INSERT INTO public.identities(id,user_id,org_id,type) VALUES($1,$2,$3,'company')",
+      [newIdentity, newUser, orgId],
+    );
+    await pool.query(
+      "INSERT INTO public.identity_roles(identity_id,role_id) VALUES($1,$2)",
+      [newIdentity, role?.id],
+    );
+    expect(
+      (await first.load(newIdentity)).permissions.has("system:param:view"),
+    ).toBe(false);
+    expect(
+      (await second.load(newIdentity)).permissions.has("system:param:view"),
+    ).toBe(false);
+    await pool.query(
+      `INSERT INTO public.preset_role_overrides(role_id,data_scope,grants) VALUES($1,'personal',$2)`,
+      [
+        role?.id,
+        JSON.stringify([
+          { app: "system", feature: "param", grant: { level: "view" } },
+        ]),
+      ],
+    );
+    expect(
+      (await first.load(newIdentity)).permissions.get("system:param:view"),
+    ).toBe("personal");
+    expect(
+      (await second.load(newIdentity)).permissions.get("system:param:view"),
+    ).toBe("personal");
+    await pool.query(
+      "DELETE FROM public.preset_role_overrides WHERE role_id=$1",
+      [role?.id],
+    );
+    expect(
+      (await first.load(newIdentity)).permissions.has("system:param:view"),
+    ).toBe(false);
+    expect(
+      (await second.load(newIdentity)).permissions.has("system:param:view"),
+    ).toBe(false);
+  });
 });

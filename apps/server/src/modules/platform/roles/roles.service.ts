@@ -4,6 +4,7 @@ import {
   dataScopeSchema,
   type FeatureGrant,
   grantSchema,
+  presetFeatureGrantSchema,
 } from "@smart-sport/contracts";
 import { type FeatureGrantEntry, resolveRoleGrants } from "@smart-sport/domain";
 import { RolesRepository } from "./roles.repository.js";
@@ -53,6 +54,24 @@ export class RolesService {
       });
       byRole.set(row.roleId, entries);
     }
+    const templates = await this.repository.templateOverrides(allRoleIds);
+    const preset = new Map(
+      [...assignedRoles, ...bases]
+        .filter((r) => r.kind === "preset")
+        .map((r) => [r.id, r]),
+    );
+    for (const template of templates) {
+      if (
+        !preset.has(template.roleId) ||
+        preset.get(template.roleId)?.code === "company-super-admin"
+      )
+        continue;
+      const overrides = presetFeatureGrantSchema.array().parse(template.grants);
+      byRole.set(
+        template.roleId,
+        resolveRoleGrants(byRole.get(template.roleId) ?? [], overrides),
+      );
+    }
     return assignedRoles.flatMap((role) => {
       const base = role.baseRoleId
         ? validBases.get(role.baseRoleId)
@@ -71,7 +90,12 @@ export class RolesService {
       return entries.map((entry) => ({
         ...entry,
         roleId: role.id,
-        scope: dataScopeSchema.parse(role.dataScope),
+        scope: dataScopeSchema.parse(
+          role.kind === "preset" && role.code !== "company-super-admin"
+            ? (templates.find((t) => t.roleId === role.id)?.dataScope ??
+                role.dataScope)
+            : role.dataScope,
+        ),
       }));
     });
   }
