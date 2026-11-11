@@ -10,7 +10,6 @@ import { useSession } from "../../shared/stores/session";
 import { PortalKpiGroup } from "../portal/components/portal-kpi-group/PortalKpiGroup";
 import { RecentTodos } from "../portal/components/recent-todos/RecentTodos";
 import { WelcomePanel } from "../portal/components/welcome-panel/WelcomePanel";
-import { OrganizationScrollPreview } from "./components/organization-scroll-preview/OrganizationScrollPreview";
 import { WorkbenchRecentVisits } from "./components/workbench-recent-visits/WorkbenchRecentVisits";
 import "./WorkbenchPage.css";
 export function WorkbenchPage() {
@@ -19,7 +18,7 @@ export function WorkbenchPage() {
   const identity = useSession((state) => state.currentIdentity);
   const modules = useAvailableModules();
   const menus = useModuleMenus(parsed.success ? parsed.data : undefined);
-  const { pathname, search } = useLocation();
+  const { pathname } = useLocation();
   if (!identity) return <Navigate to="/login" replace />;
   if (modules.isPending || (parsed.success && menus.isPending))
     return <NavigationState state="loading" />;
@@ -62,10 +61,6 @@ export function WorkbenchPage() {
             />
           </div>
         </main>
-      ) : import.meta.env.DEV &&
-        selected?.key === "organizations" &&
-        new URLSearchParams(search).get("preview") === "long" ? (
-        <OrganizationScrollPreview />
       ) : (
         <section className="workbench-unavailable">
           <h1>{selected?.name ?? "页面不存在"}</h1>
