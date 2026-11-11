@@ -36,7 +36,7 @@ function openApiSchema(
 
 export function ZodRequest(
   source: "body" | "query" | "params",
-  schema: z.ZodObject,
+  schema: z.ZodType,
 ): ParameterDecorator {
   const pipe = new ZodRoutePipe(schema);
   const binding =
@@ -56,7 +56,10 @@ export function ZodRequest(
       ApiBody({ schema: document, required: true })(target, key, descriptor);
       return;
     }
-    for (const [name, property] of Object.entries(document.properties ?? {})) {
+    if (!document.properties) {
+      throw new Error("query 和 params 的 Zod schema 必须是对象");
+    }
+    for (const [name, property] of Object.entries(document.properties)) {
       const decorator =
         source === "params"
           ? ApiParam({ name, required: true, schema: property as SchemaObject })

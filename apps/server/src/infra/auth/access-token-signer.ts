@@ -77,10 +77,15 @@ export class AccessTokenSigner {
       ) {
         return undefined;
       }
+      if (payload.stage === "identity" && typeof payload.iid !== "string") {
+        return undefined;
+      }
       return {
         userId: payload.sub,
         sessionId: payload.sid,
         tokenVersion: payload.tv,
+        stage: payload.stage,
+        ...(payload.stage === "identity" ? { identityId: payload.iid } : {}),
       };
     } catch {
       return undefined;

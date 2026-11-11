@@ -27,6 +27,12 @@ import { AuthController } from "./modules/platform/auth/auth.controller.js";
 import { AuthRepository } from "./modules/platform/auth/auth.repository.js";
 import { AuthService } from "./modules/platform/auth/auth.service.js";
 import {
+  CompanyOrganizationGuard,
+  OrganizationsController,
+  OrganizationsRepository,
+  OrganizationsService,
+} from "./modules/platform/organizations/index.js";
+import {
   RegionsController,
   RegionsRepository,
   RegionsService,
@@ -66,7 +72,12 @@ const databaseConfig = loadDatabaseConfig();
       },
     }),
   ],
-  controllers: [HealthController, AuthController, RegionsController],
+  controllers: [
+    HealthController,
+    AuthController,
+    RegionsController,
+    OrganizationsController,
+  ],
   providers: [
     AuthRepository,
     AuthService,
@@ -76,6 +87,9 @@ const databaseConfig = loadDatabaseConfig();
     { provide: ACCESS_TOKEN_VERIFIER, useExisting: AccessTokenSigner },
     RegionsRepository,
     RegionsService,
+    OrganizationsRepository,
+    OrganizationsService,
+    CompanyOrganizationGuard,
     { provide: APP_GUARD, useClass: RateLimitGuard },
     { provide: APP_INTERCEPTOR, useClass: ApiResponseInterceptor },
     { provide: APP_INTERCEPTOR, useClass: IdempotencyInterceptor },
