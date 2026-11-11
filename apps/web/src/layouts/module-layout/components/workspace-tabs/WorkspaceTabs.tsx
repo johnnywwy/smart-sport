@@ -1,4 +1,5 @@
 import { Button } from "@heroui/react";
+import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router";
 import type { WorkspaceTab } from "../../../../shared/stores/workspace-tabs";
 import "./WorkspaceTabs.css";
@@ -14,9 +15,34 @@ export function WorkspaceTabs({
   onClose: (path: string) => void;
 }) {
   const navigate = useNavigate();
+  const barRef = useRef<HTMLElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const bar = barRef.current;
+    const list = listRef.current;
+    if (!bar || !list) return;
+    const onWheel = (event: WheelEvent) => {
+      if (
+        event.ctrlKey ||
+        Math.abs(event.deltaX) >= Math.abs(event.deltaY) ||
+        list.scrollWidth <= list.clientWidth
+      )
+        return;
+      event.preventDefault();
+      const unit =
+        event.deltaMode === WheelEvent.DOM_DELTA_LINE
+          ? 36
+          : event.deltaMode === WheelEvent.DOM_DELTA_PAGE
+            ? list.clientWidth
+            : 1;
+      list.scrollLeft += event.deltaY * unit;
+    };
+    bar.addEventListener("wheel", onWheel, { passive: false });
+    return () => bar.removeEventListener("wheel", onWheel);
+  }, []);
   return (
-    <nav className="workspace-tabs" aria-label="已打开的页面">
-      <div className="workspace-tabs-list">
+    <nav ref={barRef} className="workspace-tabs" aria-label="已打开的页面">
+      <div ref={listRef} className="workspace-tabs-list">
         <Button
           variant="ghost"
           className={
