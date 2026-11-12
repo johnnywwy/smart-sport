@@ -108,7 +108,7 @@ describe("角色模板草稿和预览", () => {
     );
     expect(menus).toEqual([]);
   });
-  it("实时预览的动作跟随草稿，班级管理保留三个真实子功能", () => {
+  it("实时预览的动作跟随草稿，院系专业独立于两类班级", () => {
     const values = templateValues(role);
     values.grants = values.grants.map((entry) =>
       entry.app === "school" && entry.feature === "student"
@@ -128,8 +128,11 @@ describe("角色模板草稿和预览", () => {
     expect(classes?.children.map((feature) => feature.name)).toEqual([
       "行政班",
       "教学班",
-      "院系",
     ]);
+    expect(menus.find((menu) => menu.name === "院系专业")).toBeDefined();
+    expect(menus.findIndex((menu) => menu.name === "院系专业")).toBeLessThan(
+      menus.findIndex((menu) => menu.name === "班级管理"),
+    );
     expect(menus.some((menu) => menu.name === "学校档案")).toBe(false);
     const next = {
       ...values,
@@ -139,13 +142,11 @@ describe("角色模板草稿和预览", () => {
           : entry,
       ),
     };
-    const nextClasses = permissionPreviewTree(role, next)
-      .flatMap((group) => group.children)
-      .find((menu) => menu.name === "班级管理");
-    expect(nextClasses?.children.map((feature) => feature.name)).toEqual([
-      "行政班",
-      "教学班",
-    ]);
+    const nextMenus = permissionPreviewTree(role, next).flatMap(
+      (group) => group.children,
+    );
+    expect(nextMenus.some((menu) => menu.name === "院系专业")).toBe(false);
+    expect(nextMenus.find((menu) => menu.name === "班级管理")).toEqual(classes);
   });
   it("自定义权限直接显示在菜单名称旁，只读时禁用勾选且没有档位或细调控件", () => {
     const feature = role.grants.find(
@@ -168,7 +169,7 @@ describe("角色模板草稿和预览", () => {
     expect(html).toContain("disabled");
     expect(html).not.toContain("细调按钮");
   });
-  it("同一菜单的多个功能归为一行，细调仍保留所有功能，提交不会漏项", () => {
+  it("班级菜单只配置两类班级，院系专业单独配置，完整提交不会漏项", () => {
     const groups = configurationGroups(role);
     const classes = groups
       .flatMap((group) => group.items)
@@ -176,6 +177,11 @@ describe("角色模板草稿和预览", () => {
     expect(classes?.features.map((feature) => feature.feature)).toEqual([
       "class",
       "teaching-class",
+    ]);
+    const colleges = groups
+      .flatMap((group) => group.items)
+      .find((item) => item.name === "院系专业");
+    expect(colleges?.features.map((feature) => feature.feature)).toEqual([
       "college",
     ]);
     const keys = groups.flatMap((group) =>
@@ -233,7 +239,7 @@ describe("角色模板草稿和预览", () => {
     expect(html).not.toContain("学校档案");
     expect(html).not.toContain("学校列表");
   });
-  it("同一菜单细调时只向每个功能提交它声明的动作，其他菜单保持原值", () => {
+  it("编辑班级按钮权限不改动院系专业权限，只提交功能已声明的动作", () => {
     const classes = configurationGroups(role)
       .flatMap((group) => group.items)
       .find((item) => item.key === "classes");
@@ -249,7 +255,7 @@ describe("角色模板草稿和预览", () => {
     const administrative = grants.find(
       (entry) => entry.app === "school" && entry.feature === "class",
     );
-    expect(college?.grant).toEqual({ level: "custom", actions: ["view"] });
+    expect(college?.grant).toEqual({ level: "manage" });
     expect(administrative?.grant).toEqual({
       level: "custom",
       actions: ["view", "import"],
@@ -259,6 +265,29 @@ describe("角色模板草稿和预览", () => {
         (entry) => entry.app === "school" && entry.feature === "student",
       )?.grant,
     ).toEqual({ level: "manage" });
+    expect(savePresetRoleSchema.safeParse({ ...values, grants }).success).toBe(
+      true,
+    );
+  });
+  it("编辑院系专业权限不改动行政班和教学班", () => {
+    const colleges = configurationGroups(role)
+      .flatMap((group) => group.items)
+      .find((item) => item.key === "colleges");
+    if (!colleges) throw new Error("缺少院系专业");
+    const values = templateValues(role);
+    const grants = applyMenuGrant(values, colleges.features, {
+      level: "custom",
+      actions: ["view", "import"],
+    });
+    expect(grants.find((entry) => entry.feature === "college")?.grant).toEqual({
+      level: "custom",
+      actions: ["view"],
+    });
+    for (const feature of ["class", "teaching-class"]) {
+      expect(grants.find((entry) => entry.feature === feature)?.grant).toEqual({
+        level: "manage",
+      });
+    }
     expect(savePresetRoleSchema.safeParse({ ...values, grants }).success).toBe(
       true,
     );

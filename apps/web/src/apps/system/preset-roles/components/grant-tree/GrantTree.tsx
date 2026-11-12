@@ -154,6 +154,9 @@ export function GrantTree({
       </FileTree>
       <p className="template-grant-help">
         勾选菜单旁的按钮权限即可授权；分组标题右侧的箭头可展开或收起菜单。
+        {groups.some((group) =>
+          group.items.some((item) => item.key === "colleges"),
+        ) && "院系专业独立配置，仅适用于大学；班级管理包含行政班和教学班。"}
       </p>
     </section>
   );

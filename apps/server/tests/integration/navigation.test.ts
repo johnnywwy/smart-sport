@@ -301,6 +301,54 @@ describe("当前身份的可用应用与菜单", () => {
 });
 
 describe("新版模块导航", () => {
+  it("院系专业与班级管理分别按自己的查看权限及功能状态显示", async () => {
+    const readSchoolMenus = async () => {
+      const response = await request("menus/current?module=base");
+      expect(response.status).toBe(200);
+      return (
+        successResponseSchema(moduleMenusSchema)
+          .parse(await response.json())
+          .data.find((group) => group.key === "school")?.children ?? []
+      );
+    };
+    try {
+      const initial = await readSchoolMenus();
+      const colleges = initial.findIndex((menu) => menu.key === "colleges");
+      const classes = initial.findIndex((menu) => menu.key === "classes");
+      expect(colleges).toBeGreaterThanOrEqual(0);
+      expect(colleges).toBeLessThan(classes);
+      expect(initial[colleges]).toMatchObject({
+        name: "院系专业",
+        path: "/colleges",
+      });
+      await pool.query(
+        "UPDATE public.features SET status=0 WHERE app_code='school' AND code IN ('class','teaching-class')",
+      );
+      const withoutClasses = await readSchoolMenus();
+      expect(withoutClasses.some((menu) => menu.key === "classes")).toBe(false);
+      expect(withoutClasses.some((menu) => menu.key === "colleges")).toBe(true);
+      await syncCatalog(pool);
+      await pool.query(
+        "UPDATE public.features SET status=0 WHERE app_code='school' AND code='college'",
+      );
+      const withoutColleges = await readSchoolMenus();
+      expect(withoutColleges.some((menu) => menu.key === "colleges")).toBe(
+        false,
+      );
+      expect(withoutColleges.some((menu) => menu.key === "classes")).toBe(true);
+      const teacherResponse = await request(
+        "menus/current?module=base",
+        teacherToken,
+      );
+      const teacherMenus = successResponseSchema(moduleMenusSchema)
+        .parse(await teacherResponse.json())
+        .data.flatMap((group) => group.children);
+      expect(teacherMenus.some((menu) => menu.key === "colleges")).toBe(false);
+    } finally {
+      await syncCatalog(pool);
+    }
+  });
+
   it("模块菜单应用覆盖与启停后重新计算可见性", async () => {
     await pool.query(
       "INSERT INTO public.menu_overrides (app_code,menu_key,display_name,sort) VALUES ('school','student','本校学生',0)",

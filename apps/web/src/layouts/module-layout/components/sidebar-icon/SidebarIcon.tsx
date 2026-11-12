@@ -65,6 +65,11 @@ const icons: Record<string, ReactNode> = {
       <path d="M3 21h18M5 21V8l7-4 7 4v13M10 21v-5h4v5" />
     </>
   ),
+  colleges: (
+    <>
+      <path d="M3 21h18M9 21V3h6v18M3 21V9h6M15 9h6v12M11 7h2M11 11h2M11 15h2M5 13h1M5 17h1M18 13h1M18 17h1" />
+    </>
+  ),
   classes: (
     <>
       <rect x="3" y="4" width="18" height="13" rx="2" />
