@@ -1,0 +1,65 @@
+.preset-roles-page {
+  --template-surface: #f5f5f5;
+  --template-white: #fff;
+  --template-muted: #63636b;
+  --template-border: #ebebec;
+  --template-selected: #eef6ff;
+  --template-accent: #006fee;
+  --template-blue-text: #0a64b5;
+  --template-strong: #18181b;
+  padding: 0;
+  display: grid;
+  gap: 16px;
+  color: var(--foreground);
+}
+.preset-roles-page h1,
+.preset-roles-page h2,
+.preset-roles-page h3,
+.preset-roles-page p {
+  margin: 0;
+}
+.preset-roles-heading {
+  display: grid;
+  gap: 4px;
+}
+.preset-roles-heading h1 {
+  font-size: 20px;
+  font-weight: 600;
+}
+.preset-roles-heading p {
+  font-size: 13px;
+  color: var(--template-muted);
+  line-height: 1.7;
+}
+.preset-roles-workspace {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+.preset-roles-page h2 {
+  font-size: 15px;
+  font-weight: 600;
+}
+.preset-roles-state {
+  padding: 48px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: var(--template-muted);
+}
+.dark .preset-roles-page {
+  --template-surface: #27272a;
+  --template-white: #18181b;
+  --template-muted: #a1a1aa;
+  --template-border: #3f3f46;
+  --template-selected: #142b45;
+  --template-blue-text: #74b9ff;
+  --template-strong: #f4f4f5;
+}
+@media (max-width: 1050px) {
+  .preset-roles-workspace {
+    grid-template-columns: 190px minmax(0, 1fr);
+  }
+}

@@ -1,0 +1,15 @@
+.template-action-permissions {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 16px;
+  padding: 4px 0;
+}
+.template-action-permissions .label {
+  font-size: 12px;
+  line-height: 20px;
+}
+.template-action-permissions [data-slot="checkbox"] {
+  margin: 0;
+}

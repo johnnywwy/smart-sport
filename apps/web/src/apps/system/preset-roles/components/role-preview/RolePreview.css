@@ -1,0 +1,22 @@
+.template-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+.template-preview > section {
+  padding: 14px;
+  border-radius: 16px;
+  background: var(--template-surface);
+  display: grid;
+  gap: 10px;
+}
+.template-preview p {
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--template-muted);
+}
+.template-preview h3 {
+  font-size: 12px;
+  font-weight: 600;
+}

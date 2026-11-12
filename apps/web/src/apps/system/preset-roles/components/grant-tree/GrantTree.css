@@ -1,0 +1,103 @@
+.template-grant-matrix {
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+}
+.template-grant-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.template-grant-presets {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: var(--template-muted);
+}
+.template-grant-presets .button {
+  min-width: 0;
+  height: 28px;
+  padding: 0 8px;
+  font-size: 12px;
+}
+.template-grant-tree {
+  --template-tree-row-height: 44px;
+  width: 100%;
+  padding: 6px;
+  border-radius: 16px;
+  border: 1px solid var(--template-border);
+  background: var(--template-surface);
+}
+.template-grant-tree [data-slot="file-tree-item"] {
+  padding-block: 0;
+}
+.template-grant-tree [data-level="1"]:not(:last-child) {
+  border-bottom: 1px solid var(--template-border);
+}
+.template-grant-tree [data-slot="file-tree-item-content"] {
+  height: auto;
+  min-height: var(--template-tree-row-height);
+  align-items: flex-start;
+}
+.template-grant-tree [data-slot="file-tree-label"] {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+  min-height: var(--template-tree-row-height);
+  overflow: visible;
+  white-space: normal;
+}
+.template-grant-tree [data-slot="file-tree-item-content"] > button {
+  margin-top: 12px;
+}
+.template-grant-tree .template-grant-group .file-tree__chevron {
+  order: 2;
+  margin: 0 0 0 auto;
+}
+.template-grant-tree .template-grant-group .file-tree__indicator {
+  rotate: 90deg;
+}
+.template-grant-tree
+  .template-grant-group[data-expanded]
+  .file-tree__indicator {
+  rotate: 270deg;
+}
+.template-grant-group [data-slot="file-tree-item-content"] {
+  align-items: center;
+}
+.template-grant-tree .template-grant-row {
+  width: 100%;
+  padding: 2px 0;
+  border-bottom: 0;
+}
+.template-grant-tree .template-grant-main {
+  min-height: 40px;
+}
+.template-grant-group [data-slot="file-tree-label"] {
+  font-weight: 600;
+  font-size: 13px;
+}
+.template-grant-tree [data-level="2"],
+.template-grant-tree [data-level="3"] {
+  border-radius: 0;
+  border-bottom: 1px solid var(--template-border);
+  background: var(--template-white);
+}
+.template-grant-tree .template-grant-first {
+  border-start-start-radius: 10px;
+  border-start-end-radius: 10px;
+}
+.template-grant-tree .template-grant-last {
+  border-bottom: 0;
+  border-end-start-radius: 10px;
+  border-end-end-radius: 10px;
+}
+.template-grant-help {
+  color: var(--template-muted);
+  font-size: 12px;
+  line-height: 1.7;
+}

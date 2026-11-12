@@ -1,0 +1,14 @@
+.template-preview-tree {
+  padding: 6px;
+  border-radius: 12px;
+  background: var(--template-white);
+}
+.template-preview-tree [data-slot="file-tree-item-content"] {
+  min-height: 28px;
+}
+.template-preview-tree [data-slot="file-tree-label"] {
+  font-size: 12px;
+}
+.template-preview-tree [data-level="1"] [data-slot="file-tree-label"] {
+  font-weight: 600;
+}

@@ -1,0 +1,19 @@
+.template-confirmation {
+  max-width: 560px;
+}
+.template-confirmation p {
+  font-size: 14px;
+  line-height: 1.8;
+  margin-block: 8px;
+}
+.template-reset-consequence {
+  color: var(--danger);
+}
+.template-impact-menus {
+  max-height: 280px;
+  overflow-y: auto;
+}
+.template-impact-menus > div {
+  padding-block: 10px;
+  border-top: 1px solid var(--separator);
+}

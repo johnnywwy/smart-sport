@@ -32,6 +32,9 @@
 .module-content {
   padding: 28px;
 }
+.module-content-compact {
+  padding: 20px;
+}
 .dark .module-layout {
   background: #18181b;
   color: #f4f4f5;

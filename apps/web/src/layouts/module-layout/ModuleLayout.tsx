@@ -22,6 +22,7 @@ export function ModuleLayout({
   identity,
   pageName,
   children,
+  contentPadding = "default",
 }: {
   module: AvailableModule;
   modules: AvailableModule[];
@@ -29,6 +30,7 @@ export function ModuleLayout({
   identity: IdentitySummary;
   pageName: string;
   children: ReactNode;
+  contentPadding?: "default" | "compact";
 }) {
   const navigate = useNavigate();
   const { pathname } = useLocation();
@@ -90,7 +92,11 @@ export function ModuleLayout({
         }}
       />
       <div className="module-workspace">
-        <div className="module-content">{children}</div>
+        <div
+          className={`module-content${contentPadding === "compact" ? " module-content-compact" : ""}`}
+        >
+          {children}
+        </div>
       </div>
     </AppLayout>
   );

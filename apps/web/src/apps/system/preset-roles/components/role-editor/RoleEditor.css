@@ -1,0 +1,73 @@
+.template-editor {
+  min-width: 0;
+  position: relative;
+  container-type: inline-size;
+}
+.template-editor .schema-form {
+  gap: 18px;
+}
+.template-editor .schema-form-fields {
+  order: 1;
+  max-width: 640px;
+}
+.template-editor-header,
+.template-editor-header > div {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.template-editor-header {
+  justify-content: space-between;
+  padding-right: 76px;
+  min-height: 36px;
+}
+.template-editor-header h2 {
+  font-size: 18px;
+}
+.template-editor-header span[role="status"] {
+  color: var(--template-muted);
+  font-size: 12px;
+}
+.template-editor-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 260px;
+  align-items: start;
+  gap: 16px;
+}
+.template-editor-fields,
+.template-scope-section {
+  display: grid;
+  gap: 18px;
+  min-width: 0;
+}
+.template-scope-section {
+  gap: 12px;
+}
+.template-readonly {
+  padding: 12px;
+  border-radius: 10px;
+  background: var(--template-surface);
+  color: var(--template-muted);
+  font-size: 13px;
+}
+.template-reset-error {
+  color: var(--danger);
+  font-size: 13px;
+}
+.template-editor .schema-form-actions {
+  position: absolute;
+  right: 276px;
+  top: 0;
+}
+.template-editor[data-readonly="true"] .schema-form-actions {
+  display: none;
+}
+@container (max-width: 795px) {
+  .template-editor-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .template-editor .schema-form-actions {
+    right: 0;
+  }
+}
