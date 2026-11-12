@@ -1,0 +1,32 @@
+.data-table-pagination {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  color: var(--table-muted);
+  font-size: 14px;
+}
+.data-table-pagination .pagination__link,
+.data-table-pagination .pagination__previous,
+.data-table-pagination .pagination__next {
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+}
+.data-table-pagination .pagination__link[data-active="true"],
+.data-table-pagination .pagination__link[aria-current="page"] {
+  background: var(--table-accent);
+  color: var(--table-on-accent);
+}
+.data-table-page-size {
+  width: 124px;
+}
+.data-table-page-size .select__trigger {
+  min-height: 36px;
+  height: 36px;
+  border-radius: 999px;
+  background: var(--table-secondary);
+  box-shadow: none;
+  color: var(--table-foreground);
+}
