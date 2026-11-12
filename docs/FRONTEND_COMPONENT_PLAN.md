@@ -2,6 +2,16 @@
 
 分析依据为 `智慧体育云后台设计稿.html` 的 13 张画板，以及 `architecture-diagram.html` 中的角色配置、组织架构、范围选择器和人员抽屉。实现边界以 spec 13、spec 16 及各业务规格为准。
 
+## 2026-11-12 第二次设计稿更新（sports-cloud(2)）
+
+新版共 13 张画板，实质调整集中于基础信息模块、平台管理模块、超管角色权限。已同步 HTML（仅清理行尾空白），SHA-256：`042d77d65f8901723f8334dab71fb3683298e2caf3f12bd5f89c1153e4b34918`。
+
+- WorkspaceTabs：独立白色圆角条、32px 页签、各自关闭；关闭当前后进入剩余最后一个。保留用户确认的浅蓝选中、滚轮横移、隐藏滚动条和内容独立滚动。
+- TablePagination：总数在左，条数选择与页码在右；TableConfirmAction：红色后果说明和确认按钮。
+- 后续学校上下文拆为 SchoolContextPicker、SchoolSelectionPrompt、ActingOnSchoolNotice，归 T-166/T-167，依赖真实学校范围接口。
+- 后续部门交互拆为 DepartmentForm、ParentTreePicker、DepartmentLocationPreview，归 T-162；树底与行内新增复用表单。
+- 各业务页面补齐查看、编辑、危险操作、必填原因、导出确认与保存反馈，按 spec 13 验收；不生成无行为按钮。
+
 ## 2026-11-12 设计稿更新
 
 本次采用用户覆盖后的 HTML（仅清理行尾空白；源文件6,887,494 字节，SHA-256：`5cbd0c12b1754947b5b9a8cbab5f0958a7220b1aa16f9d0cd1e359b0d1af64f4`）。画板由 8 张增加到 13 张；工作台改为模块内侧栏布局，基础信息补充成员账号及角色分配，平台端统一称为角色模板。
