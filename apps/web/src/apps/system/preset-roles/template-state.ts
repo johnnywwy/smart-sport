@@ -6,6 +6,8 @@ import {
   moduleDefinitions,
   type presetRoleImpactSchema,
   type presetRoleSchema,
+  type ResetPresetRole,
+  resetPresetRoleSchema,
   type SavePresetRole,
 } from "@smart-sport/contracts";
 
@@ -46,6 +48,19 @@ export function templateValues(role: PresetRole): SavePresetRole {
       grant,
     })),
   };
+}
+
+/** 仅提交恢复契约需要的标识，不把功能展示字段带进 strict 请求体。 */
+export function templateResetInput(
+  version: number,
+  feature?: { app: string; feature: string },
+): ResetPresetRole {
+  return resetPresetRoleSchema.parse({
+    version,
+    ...(feature
+      ? { feature: { app: feature.app, feature: feature.feature } }
+      : {}),
+  });
 }
 
 export function declaredActions(

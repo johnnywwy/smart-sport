@@ -4,12 +4,13 @@ import {
   type SavePresetRole,
   savePresetRoleSchema,
 } from "@smart-sport/contracts";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { SchemaForm } from "../../../../../shared/components/schema-form/SchemaForm";
 import type {
   FormSnapshot,
   FormSubmissionContext,
 } from "../../../../../shared/components/schema-form/types";
+import { useTemplateReset } from "../../hooks/use-template-reset";
 import {
   changedCount,
   identityLabels,
@@ -45,47 +46,13 @@ export function RoleEditor({
   onDirty: (dirty: boolean) => void;
 }) {
   const [revision, setRevision] = useState(0);
-  const [resetting, setResetting] = useState(false);
-  const [resetError, setResetError] = useState("");
-  const [resetAttempt, setResetAttempt] = useState<{
-    input: string;
-    key: string;
-  } | null>(null);
-  const controller = useRef<AbortController | null>(null);
-  useEffect(() => () => controller.current?.abort(), []);
-  useEffect(() => () => onBusy(false), [onBusy]);
+  const resetState = useTemplateReset({
+    version: role.version,
+    onReset,
+    onReload,
+    onBusy,
+  });
   const editable = role.editable && role.allowedActions.includes("update");
-  const reset = async (
-    feature?: { app: string; feature: string },
-    name?: string,
-  ) => {
-    if (resetting) return;
-    setResetting(true);
-    controller.current = new AbortController();
-    setResetError("");
-    onBusy(true);
-    const input = { version: role.version, ...(feature ? { feature } : {}) };
-    const fingerprint = JSON.stringify(input);
-    const key =
-      resetAttempt?.input === fingerprint
-        ? resetAttempt.key
-        : crypto.randomUUID();
-    setResetAttempt({ input: fingerprint, key });
-    try {
-      await onReset(
-        input,
-        { idempotencyKey: key, signal: controller.current.signal },
-        name,
-      );
-    } catch (error) {
-      setResetError(
-        error instanceof Error ? error.message : "恢复失败，请重新加载后重试。",
-      );
-    } finally {
-      setResetting(false);
-      onBusy(false);
-    }
-  };
   return (
     <div className="template-editor" data-readonly={!editable}>
       <SchemaForm
@@ -103,7 +70,7 @@ export function RoleEditor({
         initialValues={templateValues(role)}
         version={role.version}
         submitLabel="保存"
-        disabled={!editable || resetting}
+        disabled={!editable || resetState.pending}
         onSubmit={onSave}
         onReload={onReload}
         onPendingChange={onBusy}
@@ -145,7 +112,7 @@ export function RoleEditor({
                             variant="ghost"
                             size="sm"
                             isDisabled={disabled || !canReset}
-                            onPress={() => void reset()}
+                            onPress={() => void resetState.reset()}
                           >
                             恢复全部默认
                           </Button>
@@ -173,7 +140,9 @@ export function RoleEditor({
                     disabled={disabled}
                     canReset={canReset}
                     onChange={(grants) => setValue("grants", grants)}
-                    onReset={(feature, name) => void reset(feature, name)}
+                    onReset={(feature, name) =>
+                      void resetState.reset(feature, name)
+                    }
                   />
                 </div>
                 <RolePreview role={role} values={values} />
@@ -182,19 +151,16 @@ export function RoleEditor({
           );
         }}
       </SchemaForm>
-      {resetError && (
+      {resetState.error && (
         <p role="alert" className="template-reset-error">
-          {resetError} 请重新加载最新模板后重试。
+          {resetState.error} 请重新加载最新模板后重试。
         </p>
       )}
-      {resetError && (
+      {resetState.error && (
         <Button
           variant="secondary"
-          onPress={async () => {
-            await onReload();
-            setResetError("");
-            setRevision(revision + 1);
-          }}
+          isDisabled={resetState.pending}
+          onPress={() => void resetState.reload()}
         >
           重新加载模板
         </Button>

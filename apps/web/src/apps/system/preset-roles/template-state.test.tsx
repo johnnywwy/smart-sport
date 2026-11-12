@@ -1,6 +1,7 @@
 import {
   appDefinitions,
   presetRoleSchema,
+  resetPresetRoleSchema,
   savePresetRoleSchema,
 } from "@smart-sport/contracts";
 import { renderToStaticMarkup } from "react-dom/server";
@@ -14,6 +15,7 @@ import {
   configurationGroups,
   previewActions,
   sameGrant,
+  templateResetInput,
   templateValues,
 } from "./template-state";
 
@@ -52,6 +54,17 @@ describe("角色模板草稿和预览", () => {
       true,
     );
     expect(values.grants[0]).not.toHaveProperty("featureName");
+  });
+  it("单项恢复只提交应用和功能标识，整条展示数据不会污染严格契约", () => {
+    const feature = role.grants.find((entry) => entry.feature === "student");
+    if (!feature) throw new Error("缺少学生功能");
+    const input = templateResetInput(role.version, feature);
+    expect(input).toEqual({
+      version: 3,
+      feature: { app: "school", feature: "student" },
+    });
+    expect(resetPresetRoleSchema.parse(input)).toEqual(input);
+    expect(templateResetInput(0)).toEqual({ version: 0 });
   });
   it("草稿比较不把自定义动作顺序视作权限变化", () => {
     expect(
