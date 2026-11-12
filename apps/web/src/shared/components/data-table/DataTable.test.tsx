@@ -1,5 +1,6 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
+import { TablePagination } from "./components/table-pagination/TablePagination";
 import { TableRowActions } from "./components/table-row-actions/TableRowActions";
 import { DataTable } from "./DataTable";
 import type { DataTableProps, TableRecord } from "./types";
@@ -134,5 +135,26 @@ describe("通用列表渲染", () => {
       );
       expect(markup.includes("恢复")).toBe(allowedActions.includes("restore"));
     }
+  });
+});
+
+describe("列表分页布局", () => {
+  it("总数在左侧组外，右侧先每页条数再页码", () => {
+    const markup = renderToStaticMarkup(
+      <TablePagination
+        query={props.query}
+        total={1234}
+        disabled={false}
+        onChange={() => {}}
+      />,
+    );
+    const summary = markup.indexOf("共 1,234 条");
+    const controls = markup.indexOf('class="data-table-pagination-controls"');
+    const pageSize = markup.indexOf('aria-label="每页条数"');
+    const previous = markup.indexOf('aria-label="上一页"');
+    expect(summary).toBeGreaterThan(-1);
+    expect(controls).toBeGreaterThan(summary);
+    expect(pageSize).toBeGreaterThan(controls);
+    expect(previous).toBeGreaterThan(pageSize);
   });
 });

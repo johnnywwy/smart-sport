@@ -2,7 +2,7 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: space-between;
   gap: 10px;
   color: var(--table-muted);
   font-size: 14px;
@@ -29,4 +29,13 @@
   background: var(--table-secondary);
   box-shadow: none;
   color: var(--table-foreground);
+}
+
+.data-table-pagination-controls {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-left: auto;
 }

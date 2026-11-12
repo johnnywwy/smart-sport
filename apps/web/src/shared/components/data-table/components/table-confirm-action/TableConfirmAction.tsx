@@ -1,5 +1,6 @@
 import { AlertDialog, Button } from "@heroui/react";
 import { useState } from "react";
+import "./TableConfirmAction.css";
 
 export function TableConfirmAction({
   label,
@@ -26,7 +27,9 @@ export function TableConfirmAction({
             <AlertDialog.Header>
               <AlertDialog.Heading>确认{label}？</AlertDialog.Heading>
             </AlertDialog.Header>
-            <AlertDialog.Body>{description}</AlertDialog.Body>
+            <AlertDialog.Body className="table-confirm-consequence">
+              {description}
+            </AlertDialog.Body>
             <AlertDialog.Footer>
               <Button variant="secondary" onPress={() => setOpen(false)}>
                 取消
