@@ -6,6 +6,7 @@ import { Test } from "@nestjs/testing";
 import type { ServerConfig } from "@smart-sport/config/env";
 import {
   apiResponseSchema,
+  organizationListSchema,
   presetRoleImpactSchema,
   presetRoleListSchema,
   presetRoleSchema,
@@ -30,6 +31,12 @@ import { DRIZZLE } from "../../src/database/registry.js";
 import { IdempotencyInterceptor } from "../../src/idempotency.js";
 import { AccessTokenSigner } from "../../src/infra/auth/access-token-signer.js";
 import { syncCatalog } from "../../src/modules/platform/catalog/catalog-sync.js";
+import {
+  CompanyOrganizationGuard,
+  OrganizationsController,
+  OrganizationsRepository,
+  OrganizationsService,
+} from "../../src/modules/platform/organizations/index.js";
 import {
   PresetRolesController,
   PresetRolesRepository,
@@ -115,18 +122,21 @@ beforeAll(async () => {
   security = await authentication(config);
   const module = await Test.createTestingModule({
     imports: [ClsModule.forRoot({ global: true })],
-    controllers: [PresetRolesController],
+    controllers: [PresetRolesController, OrganizationsController],
     providers: [
       ...security.providers,
       PresetRolesRepository,
       PresetRolesService,
       TemplateReader,
-      { provide: APP_INTERCEPTOR, useClass: IdempotencyInterceptor },
+      CompanyOrganizationGuard,
+      OrganizationsRepository,
+      OrganizationsService,
       AccessTokenSigner,
       { provide: DRIZZLE, useValue: drizzle(pool) },
       { provide: SERVER_CONFIG, useValue: security.config },
       { provide: APP_FILTER, useClass: ApiExceptionFilter },
       { provide: APP_INTERCEPTOR, useClass: ApiResponseInterceptor },
+      { provide: APP_INTERCEPTOR, useClass: IdempotencyInterceptor },
     ],
   }).compile();
   app = module.createNestApplication();
@@ -151,13 +161,14 @@ const request = (
   token = companyToken,
   method = "GET",
   body?: unknown,
+  idempotencyKey = v7(),
 ) =>
   fetch(`${base}/api/v1/preset-roles${path}`, {
     method,
     headers: {
       Authorization: `Bearer ${token}`,
       "Content-Type": "application/json",
-      "Idempotency-Key": v7(),
+      "Idempotency-Key": idempotencyKey,
     },
     ...(body ? { body: JSON.stringify(body) } : {}),
   });
@@ -314,15 +325,34 @@ describe("平台内置角色模板管理", () => {
     ).data;
     expect(partial.dataScope).toBe("personal");
     expect(partial.grants.some((g) => g.modified)).toBe(false);
-    r = await request(`/${row.id}/reset`, companyToken, "POST", {
+    const resetKey = v7();
+    const resetBody = {
       version: partial.version,
-    });
+    };
+    r = await request(
+      `/${row.id}/reset`,
+      companyToken,
+      "POST",
+      resetBody,
+      resetKey,
+    );
     expect(r.status).toBe(201);
     const reset = successResponseSchema(presetRoleSchema).parse(
       await r.json(),
     ).data;
     expect(reset.modified).toBe(false);
     expect(reset.version).toBe(saved.version + 2);
+    const replay = await request(
+      `/${row.id}/reset`,
+      companyToken,
+      "POST",
+      resetBody,
+      resetKey,
+    );
+    expect(replay.status).toBe(409);
+    const repeated = apiResponseSchema.parse(await replay.json());
+    expect(repeated.code).toBe(90003);
+    expect(presetRoleSchema.parse(repeated.data)).toEqual(reset);
     expect(
       (
         await pool.query(
@@ -356,5 +386,85 @@ describe("平台内置角色模板管理", () => {
     expect(
       (await request(`/${v7()}`, companyToken, "PUT", payload(row))).status,
     ).toBe(404);
+  });
+  it("同一令牌随模板授权与撤权控制真实写入，只读角色始终不能修改", async () => {
+    const production = (await seed("company", "company-production")).token;
+    const auditor = (await seed("company", "company-readonly-auditor")).token;
+    const targetId = v7();
+    await pool.query(
+      "INSERT INTO public.orgs(id,type,name,code) VALUES($1,'agent','权限回归机构',$2)",
+      [targetId, `CONTROL_${targetId.replaceAll("-", "")}`],
+    );
+    const organization = (token: string, method = "GET", body?: unknown) =>
+      fetch(`${base}/api/v1/orgs${method === "PATCH" ? `/${targetId}` : ""}`, {
+        method,
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        ...(body ? { body: JSON.stringify(body) } : {}),
+      });
+    const check = async (canRead: boolean, canWrite: boolean) => {
+      for (const [token, read, write] of [
+        [production, canRead, canWrite],
+        [auditor, true, false],
+      ] as const) {
+        const before = (
+          await pool.query("SELECT version FROM public.orgs WHERE id=$1", [
+            targetId,
+          ])
+        ).rows[0].version as number;
+        const response = await organization(token);
+        expect(response.status).toBe(read ? 200 : 403);
+        if (read) {
+          const list = successResponseSchema(organizationListSchema).parse(
+            await response.json(),
+          ).data;
+          expect(
+            list.items.find((r) => r.id === targetId)?.allowedActions,
+          ).toEqual(write ? ["update", "toggle"] : []);
+        }
+        const update = await organization(token, "PATCH", {
+          name: "权限回归机构",
+          regionCode: null,
+          version: before,
+        });
+        expect(update.status).toBe(write ? 200 : 403);
+        const after = (
+          await pool.query("SELECT version FROM public.orgs WHERE id=$1", [
+            targetId,
+          ])
+        ).rows[0].version;
+        expect(after).toBe(before + (write ? 1 : 0));
+      }
+    };
+    const original = await template("生产");
+    try {
+      await check(false, false);
+      for (const level of ["manage", "view"] as const) {
+        const row = await template("生产");
+        const input = payload(row);
+        input.grants = input.grants.map((g) =>
+          g.app === "platform" && g.feature === "org"
+            ? { ...g, grant: { level } }
+            : g,
+        );
+        expect(
+          (await request(`/${row.id}`, companyToken, "PUT", input)).status,
+        ).toBe(200);
+        await check(true, level === "manage");
+      }
+    } finally {
+      const row = await template("生产");
+      expect(
+        (
+          await request(`/${row.id}/reset`, companyToken, "POST", {
+            version: row.version,
+          })
+        ).status,
+      ).toBe(201);
+    }
+    expect((await template("生产")).grants).toEqual(original.grants);
+    await check(false, false);
   });
 });

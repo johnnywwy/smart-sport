@@ -371,7 +371,15 @@ describe("组织接口功能权限", () => {
   it("研发角色能查看组织，不能新增、修改和启停", async () => {
     await assign("company-developer");
     try {
-      expect((await request("")).status).toBe(200);
+      const response = await request("");
+      expect(response.status).toBe(200);
+      const result = successResponseSchema(organizationListSchema).parse(
+        await response.json(),
+      ).data;
+      expect(result.items.length).toBeGreaterThan(0);
+      expect(result.items.every((row) => row.allowedActions.length === 0)).toBe(
+        true,
+      );
       for (const [path, method] of [
         ["", "POST"],
         [`/${companyOrgId}`, "PATCH"],

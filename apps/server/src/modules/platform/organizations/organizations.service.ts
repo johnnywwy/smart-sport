@@ -6,8 +6,10 @@ import type {
   ToggleOrganizationRequest,
   UpdateOrganizationRequest,
 } from "@smart-sport/contracts";
+import { ClsService } from "nestjs-cls";
 import { v7 } from "uuid";
 import { ApiException } from "../../../api-response.js";
+import type { IdentityContext } from "../identity-context/index.js";
 import type { CompanyOrganizationRequest } from "./company-organization.guard.js";
 import { OrganizationsRepository } from "./organizations.repository.js";
 
@@ -23,6 +25,7 @@ export class OrganizationsService {
   constructor(
     @Inject(OrganizationsRepository)
     private readonly organizations: OrganizationsRepository,
+    @Inject(ClsService) private readonly cls: ClsService,
   ) {}
 
   async list(query: OrganizationListQuery) {
@@ -195,7 +198,10 @@ export class OrganizationsService {
       status: row.status as Organization["status"],
       version: row.version,
       allowedActions:
-        row.type === "bureau" || row.type === "agent"
+        (row.type === "bureau" || row.type === "agent") &&
+        this.cls
+          .get<IdentityContext | undefined>("identityContext")
+          ?.permissions.has("platform:org:update")
           ? ["update", "toggle"]
           : [],
     };
