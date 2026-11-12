@@ -6,6 +6,7 @@ type ChangePasswordFormProps = { state: ReturnType<typeof useChangePassword> };
 export function ChangePasswordForm({ state }: ChangePasswordFormProps) {
   return (
     <SchemaForm
+      appearance="auth"
       schema={changePasswordRequestSchema}
       fields={[
         {

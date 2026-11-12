@@ -1,0 +1,12 @@
+.schema-form-feedback {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  color: var(--danger);
+  font-size: 13px;
+  line-height: 1.6;
+}
+.schema-form-feedback p {
+  margin: 0;
+}

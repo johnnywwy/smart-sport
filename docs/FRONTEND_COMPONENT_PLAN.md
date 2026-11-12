@@ -280,3 +280,9 @@ apps/web/src/
 5. 再接 T-151 API 客户端与通知、版本提示组件，随后按功能切片接入具体页面。
 
 先实现当前页面需要的组件，每个组件拥有上述独立目录；后续任务逐步补齐对应组件。
+
+## T-158 通用表单实现记录
+
+SchemaForm 拆为 FormContent、FormField、FormActions、FormFeedback 和 useSchemaForm，FormDialog 单独管理弹窗。契约解析、版本和幂等周期均有测试，不引入第二套业务校验。认证外观继续复用原登录样式；表单字段的校验提示保留占位和动画。
+
+所属地区复用 RegionPicker（HeroUI Popover + Pro FileTree），省、市、区县按现有接口逐级查询，useRegionTree 管理按身份隔离的 Query 数据；custom 字段扩展支持此类树选择控件。表单和地区树各自管理 CSS。后续 T-164 角色模板页可使用复杂控件扩展；本次不提前开放业务页面。

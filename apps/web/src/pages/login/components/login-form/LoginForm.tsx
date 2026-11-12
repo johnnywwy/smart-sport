@@ -16,6 +16,7 @@ export function LoginForm({ state }: LoginFormProps) {
   return (
     <div className="auth-form-wrapper">
       <SchemaForm
+        appearance="auth"
         schema={loginRequestSchema}
         fields={[
           {

@@ -1,0 +1,25 @@
+.schema-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.schema-form-actions-auth {
+  width: 100%;
+}
+.schema-form-default .schema-form-submit,
+.schema-form-default .schema-form-cancel {
+  min-height: 36px;
+  height: 36px;
+  padding-inline: 18px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 500;
+}
+.schema-form-default .schema-form-submit {
+  background: var(--form-accent);
+  color: var(--form-on-accent);
+}
+.schema-form-default .schema-form-cancel {
+  background: var(--form-secondary);
+  color: var(--form-foreground);
+}

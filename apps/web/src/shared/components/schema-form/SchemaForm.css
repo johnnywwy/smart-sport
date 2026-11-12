@@ -1,44 +1,74 @@
-.schema-form-field {
-  position: relative;
-  padding-bottom: 18px;
+.schema-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+.schema-form-fields {
+  display: grid;
+  gap: 12px 16px;
+  min-width: 0;
+}
+.schema-form-fields-two {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.schema-form-auth .schema-form-fields {
+  gap: 8px;
+}
+.schema-form-default {
+  --form-accent: #006fee;
+  --form-on-accent: #fff;
+  --form-foreground: #18181b;
+  --form-muted: #63636b;
+  --form-surface: #f5f5f5;
+  --form-secondary: #ebebec;
+  color: var(--form-foreground);
+}
+.schema-form-default .schema-form-field {
+  gap: 6px;
+}
+.schema-form-default .label {
+  font-size: 14px;
+  font-weight: 500;
+}
+.schema-form-default .input,
+.schema-form-default .textarea,
+.schema-form-default .select__trigger {
+  min-height: 40px;
+  border-radius: 12px;
+  font-size: 14px;
+}
+.schema-form-default .input {
+  height: 40px;
+  padding-inline: 14px;
+}
+.schema-form-default .textarea {
+  min-height: 88px;
+}
+.schema-form-default .description,
+.schema-form-rule {
+  margin: 0;
+  color: var(--form-muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+.dark .schema-form-default {
+  --form-accent: #006fee;
+  --form-on-accent: #fff;
+  --form-foreground: #f4f4f5;
+  --form-muted: #a1a1aa;
+  --form-surface: #27272a;
+  --form-secondary: #3f3f46;
+}
+@media (max-width: 640px) {
+  .schema-form-fields-two {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
-.schema-form-field-error {
-  position: absolute;
-  z-index: 1;
-  inset-inline: 4px;
-  bottom: 0;
-  overflow: hidden;
-  font-size: 12px;
-  line-height: 14px;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  pointer-events: none;
-  animation: schema-field-error-enter 180ms ease-out both;
-}
-
-.schema-form-field [data-slot="input"] {
-  transition:
-    border-color 160ms ease-out,
-    box-shadow 160ms ease-out;
-}
-
-@keyframes schema-field-error-enter {
-  from {
-    opacity: 0;
-    transform: translateY(-3px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .schema-form-field-error {
-    animation: none;
-  }
-  .schema-form-field [data-slot="input"] {
-    transition: none;
-  }
+.schema-form-default
+  .schema-form-field:not([data-invalid="true"]):not([data-focus-within="true"])
+  :is(.input, .textarea, .select__trigger) {
+  background: var(--form-surface);
+  box-shadow: none;
 }
