@@ -83,6 +83,13 @@ export const moduleDefinitions = [
             ],
           },
           {
+            key: "colleges",
+            name: "院系专业",
+            path: "/colleges",
+            icon: "building",
+            features: [{ app: "school", feature: "college" }],
+          },
+          {
             key: "classes",
             name: "班级管理",
             path: "/classes",
@@ -90,7 +97,6 @@ export const moduleDefinitions = [
             features: [
               { app: "school", feature: "class" },
               { app: "school", feature: "teaching-class" },
-              { app: "school", feature: "college" },
             ],
           },
           {

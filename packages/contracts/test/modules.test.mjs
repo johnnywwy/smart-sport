@@ -18,7 +18,7 @@ test("两个模块使用现有权限功能，菜单名、路径和分组符合�
   assert.deepEqual(moduleDefinitions[1].identityTypes, ["company"]);
   assert.equal(
     moduleDefinitions[0].groups.flatMap(({ menus }) => menus).length,
-    11,
+    12,
   );
   assert.equal(
     moduleDefinitions[1].groups.flatMap(({ menus }) => menus).length,
@@ -37,6 +37,26 @@ test("两个模块使用现有权限功能，菜单名、路径和分组符合�
       }
     }
   }
+});
+
+test("院系专业为独立菜单，位于班级管理之前且不混入班级权限", () => {
+  const school = moduleDefinitions[0].groups.find(
+    (group) => group.key === "school",
+  );
+  assert.deepEqual(
+    school.menus.map(({ key }) => key),
+    ["schools", "colleges", "classes", "students", "teachers"],
+  );
+  const colleges = school.menus.find(({ key }) => key === "colleges");
+  assert.equal(colleges.name, "院系专业");
+  assert.equal(colleges.path, "/colleges");
+  assert.deepEqual(colleges.features, [{ app: "school", feature: "college" }]);
+  const classes = school.menus.find(({ key }) => key === "classes");
+  assert.deepEqual(classes.features, [
+    { app: "school", feature: "class" },
+    { app: "school", feature: "teaching-class" },
+  ]);
+  assert.equal(appRegistry.school.features.college.name, colleges.name);
 });
 
 test("模块查询拒绝旧应用参数、未知模块和混合参数", () => {

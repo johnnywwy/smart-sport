@@ -18,7 +18,10 @@ export const schoolApp = defineApp({
       name: "教学班",
       actions: ["view", "create", "update", "delete", "import", "export"],
     },
-    college: { name: "院系", actions: ["view", "create", "update", "delete"] },
+    college: {
+      name: "院系专业",
+      actions: ["view", "create", "update", "delete"],
+    },
     student: {
       name: "学生",
       actions: [
