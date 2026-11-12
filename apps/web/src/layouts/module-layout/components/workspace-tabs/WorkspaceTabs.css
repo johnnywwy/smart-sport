@@ -2,8 +2,8 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 10px 12px;
-  margin: 4px 0 16px;
+  padding: 8px 10px;
+  margin: 4px 0 12px;
   background: #fff;
   border-radius: 16px;
   box-shadow:
@@ -25,11 +25,11 @@
 }
 .workspace-tab,
 .workspace-tab-item {
-  height: 36px;
+  height: 32px;
   flex: none;
   border-radius: 999px;
   background: #ebebec;
-  font-size: 14px;
+  font-size: 13px;
   color: #3f3f46;
 }
 .workspace-tab {
@@ -42,18 +42,18 @@
   padding: 0 6px 0 16px;
 }
 .workspace-tab-item .workspace-tab-link {
-  height: 36px;
+  height: 32px;
   min-width: 0;
   padding: 0;
   border-radius: 999px;
   background: transparent;
   color: inherit;
-  font-size: 14px;
+  font-size: 13px;
 }
 .workspace-tab-item .workspace-tab-close {
-  width: 24px;
-  min-width: 24px;
-  height: 24px;
+  width: 20px;
+  min-width: 20px;
+  height: 20px;
   padding: 0;
   border-radius: 999px;
   color: inherit;

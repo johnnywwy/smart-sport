@@ -1,6 +1,15 @@
 import { create } from "zustand";
 import { useSession } from "./session";
 export type WorkspaceTab = { path: string; name: string };
+export function pathAfterClosingTab(
+  tabs: WorkspaceTab[],
+  closed: string,
+  current: string,
+  home: string,
+): string {
+  if (closed !== current) return current;
+  return tabs.filter((tab) => tab.path !== closed).at(-1)?.path ?? home;
+}
 type WorkspaceTabsState = {
   tabs: Record<string, WorkspaceTab[]>;
   recent: Record<string, WorkspaceTab[]>;

@@ -7,7 +7,10 @@ import type {
 import { type ReactNode, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router";
 import { usePreferences } from "../../shared/stores/preferences";
-import { useWorkspaceTabs } from "../../shared/stores/workspace-tabs";
+import {
+  pathAfterClosingTab,
+  useWorkspaceTabs,
+} from "../../shared/stores/workspace-tabs";
 import { ModuleHeader } from "./components/module-header/ModuleHeader";
 import { ModuleSidebar } from "./components/module-sidebar/ModuleSidebar";
 import { WorkspaceTabs } from "./components/workspace-tabs/WorkspaceTabs";
@@ -82,7 +85,8 @@ export function ModuleLayout({
         current={pathname}
         onClose={(path) => {
           useWorkspaceTabs.getState().close(scope, path);
-          if (path === pathname) navigate(home);
+          if (path === pathname)
+            navigate(pathAfterClosingTab(visible, path, pathname, home));
         }}
       />
       <div className="module-workspace">

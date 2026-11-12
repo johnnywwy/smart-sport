@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { useSession } from "./session";
-import { useWorkspaceTabs } from "./workspace-tabs";
+import { pathAfterClosingTab, useWorkspaceTabs } from "./workspace-tabs";
 
 beforeEach(() => useWorkspaceTabs.getState().clear());
 describe("模块页签", () => {
@@ -35,5 +35,33 @@ describe("模块页签", () => {
       .open("new:base", { path: "/m/base/students", name: "学生管理" });
     useSession.getState().startSession("new-session");
     expect(useWorkspaceTabs.getState().tabs).toEqual({});
+  });
+});
+
+describe("关闭页签后的导航", () => {
+  const home = "/m/base/workbench";
+  const tabs = [
+    { path: "/m/base/students", name: "学生管理" },
+    { path: "/m/base/teachers", name: "教师管理" },
+    { path: "/m/base/classes", name: "班级管理" },
+  ] satisfies [unknown, unknown, unknown];
+  it("关闭当前页签跳剩余最后一个，而不是总回工作台", () => {
+    expect(pathAfterClosingTab(tabs, tabs[0].path, tabs[0].path, home)).toBe(
+      tabs[2].path,
+    );
+    expect(pathAfterClosingTab(tabs, tabs[2].path, tabs[2].path, home)).toBe(
+      tabs[1].path,
+    );
+  });
+  it("关闭非当前页签不切页，最后一个关闭后回工作台", () => {
+    expect(pathAfterClosingTab(tabs, tabs[0].path, tabs[1].path, home)).toBe(
+      tabs[1].path,
+    );
+    expect(
+      pathAfterClosingTab([tabs[0]], tabs[0].path, tabs[0].path, home),
+    ).toBe(home);
+    expect(pathAfterClosingTab([], tabs[0].path, tabs[0].path, home)).toBe(
+      home,
+    );
   });
 });
