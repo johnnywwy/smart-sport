@@ -1,0 +1,108 @@
+.organization-role-editor {
+  position: relative;
+  min-width: 0;
+  container-type: inline-size;
+}
+.organization-role-editor .schema-form {
+  gap: 16px;
+}
+.organization-role-editor .schema-form-fields:empty {
+  display: none;
+}
+.organization-role-editor-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 260px;
+  gap: 16px;
+  align-items: start;
+}
+.organization-role-fields {
+  display: grid;
+  gap: 18px;
+  min-width: 0;
+}
+.organization-role-editor-heading {
+  position: relative;
+  min-height: 56px;
+  padding-right: 80px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 6px 12px;
+}
+.organization-role-editor-heading > div:first-child {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.organization-role-editor-heading h2 {
+  font-size: 17px;
+  font-weight: 600;
+}
+.organization-role-editor-heading p {
+  grid-column: 1;
+  font-size: 12px;
+  color: var(--template-muted);
+}
+.organization-role-editor-controls {
+  grid-column: 2;
+  grid-row: 1 / 3;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.organization-role-editor-controls span[role="status"] {
+  font-size: 12px;
+  color: var(--template-muted);
+}
+.organization-role-editor-controls .button {
+  height: 32px;
+  padding-inline: 12px;
+  border-radius: 999px;
+  font-size: 12px;
+}
+.organization-role-scope {
+  display: grid;
+  gap: 12px;
+}
+.organization-role-readonly {
+  padding: 12px;
+  border-radius: 10px;
+  background: var(--template-surface);
+  color: var(--template-muted);
+  font-size: 13px;
+  line-height: 1.7;
+}
+.organization-role-editor .schema-form-actions {
+  position: absolute;
+  top: 0;
+  right: 276px;
+}
+.organization-role-editor .schema-form-submit {
+  height: 36px;
+  border-radius: 999px;
+}
+.organization-role-editor[data-readonly="true"] .schema-form-actions {
+  display: none;
+}
+.organization-role-editor[data-readonly="true"]
+  :is(.template-scope-option, .template-action-permissions .checkbox, .label) {
+  opacity: 1;
+}
+.organization-role-editor[data-readonly="true"]
+  :is(.radio__control, .checkbox__control) {
+  opacity: 0.65;
+}
+.organization-role-reset-error {
+  display: grid;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--danger);
+}
+@container (max-width: 795px) {
+  .organization-role-editor-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .organization-role-editor .schema-form-actions {
+    right: 0;
+  }
+}

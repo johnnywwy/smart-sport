@@ -8,11 +8,13 @@ export function ScopeOptions({
   type,
   disabled,
   onChange,
+  disabledValues = [],
 }: {
   value: DataScopeOption;
   type: IdentityType;
   disabled: boolean;
   onChange: (value: DataScopeOption) => void;
+  disabledValues?: readonly DataScopeOption[];
 }) {
   const school = type === "school" || type === "teacher";
   const descriptions = {
@@ -31,7 +33,14 @@ export function ScopeOptions({
       className="template-scope-options"
     >
       {Object.entries(scopeLabels).map(([key, label]) => (
-        <Radio key={key} value={key} className="template-scope-option">
+        <Radio
+          key={key}
+          value={key}
+          className="template-scope-option"
+          isDisabled={
+            disabled || disabledValues.includes(key as DataScopeOption)
+          }
+        >
           <Radio.Content>
             <Radio.Control>
               <Radio.Indicator />

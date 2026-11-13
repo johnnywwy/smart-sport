@@ -1,0 +1,17 @@
+.organization-role-preview {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+.organization-role-preview section {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  background: var(--template-surface);
+  border-radius: 16px;
+}
+.organization-role-preview p {
+  font-size: 12px;
+  color: var(--template-muted);
+  line-height: 1.7;
+}

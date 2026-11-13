@@ -19,6 +19,7 @@ export function GrantRow({
   modified,
   availableActions,
   selectedActions,
+  grantableActions,
 }: {
   feature: PermissionRole["grants"][number];
   grant: FeatureGrant;
@@ -29,6 +30,7 @@ export function GrantRow({
   modified?: boolean;
   availableActions?: readonly Action[];
   selectedActions?: readonly Action[];
+  grantableActions?: readonly Action[] | undefined;
 }) {
   const actions =
     availableActions ?? declaredActions(feature.app, feature.feature);
@@ -48,6 +50,7 @@ export function GrantRow({
           actions={actions}
           selected={selected}
           disabled={disabled}
+          grantableActions={grantableActions}
           onChange={(actions) => onChange({ level: "custom", actions })}
         />
       </div>

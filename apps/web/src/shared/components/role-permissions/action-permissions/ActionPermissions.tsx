@@ -8,12 +8,14 @@ export function ActionPermissions({
   actions,
   selected,
   disabled,
+  grantableActions,
   onChange,
 }: {
   name: string;
   actions: readonly Action[];
   selected: readonly Action[];
   disabled: boolean;
+  grantableActions?: readonly Action[] | undefined;
   onChange: (actions: Action[]) => void;
 }) {
   return (
@@ -27,7 +29,16 @@ export function ActionPermissions({
       }
     >
       {actions.map((action) => (
-        <Checkbox key={action} value={action}>
+        <Checkbox
+          key={action}
+          value={action}
+          isDisabled={
+            disabled ||
+            (grantableActions !== undefined &&
+              !selected.includes(action) &&
+              !grantableActions.includes(action))
+          }
+        >
           <Checkbox.Content>
             <Checkbox.Control>
               <Checkbox.Indicator />

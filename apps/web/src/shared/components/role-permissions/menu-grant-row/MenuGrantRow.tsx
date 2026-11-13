@@ -1,4 +1,4 @@
-import type { PresetFeatureGrant } from "@smart-sport/contracts";
+import type { Action, PresetFeatureGrant } from "@smart-sport/contracts";
 import { GrantRow } from "../grant-row/GrantRow";
 import {
   applyMenuGrant,
@@ -16,6 +16,7 @@ export function MenuGrantRow({
   canReset,
   onChange,
   onReset,
+  canGrant,
 }: {
   item: ConfigurationItem;
   values: PermissionValues;
@@ -23,6 +24,9 @@ export function MenuGrantRow({
   canReset: boolean;
   onChange: (grants: PresetFeatureGrant[]) => void;
   onReset: (feature: { app: string; feature: string }, name: string) => void;
+  canGrant?:
+    | ((app: string, feature: string, action: Action) => boolean)
+    | undefined;
 }) {
   const first = item.features[0];
   if (!first) return null;
@@ -63,6 +67,18 @@ export function MenuGrantRow({
       onChange={update}
       availableActions={actions}
       selectedActions={selected}
+      grantableActions={
+        canGrant
+          ? actions.filter((action) =>
+              item.features.every(
+                (feature) =>
+                  !declaredActions(feature.app, feature.feature).includes(
+                    action,
+                  ) || canGrant(feature.app, feature.feature, action),
+              ),
+            )
+          : undefined
+      }
       onReset={
         item.features.length === 1 ? () => onReset(first, item.name) : undefined
       }

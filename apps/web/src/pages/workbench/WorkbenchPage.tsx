@@ -1,5 +1,6 @@
 import { moduleCodeSchema } from "@smart-sport/contracts";
 import { Navigate, useLocation, useParams } from "react-router";
+import { OrganizationRolesPage } from "../../apps/organization/roles";
 import { PresetRolesPage } from "../../apps/system/preset-roles";
 import { ModuleLayout } from "../../layouts/module-layout/ModuleLayout";
 import { NavigationState } from "../../shared/components/navigation-state/NavigationState";
@@ -47,7 +48,11 @@ export function WorkbenchPage() {
       groups={menus.data ?? []}
       identity={identity}
       pageName={home ? "工作台" : (selected?.name ?? "页面不存在")}
-      contentPadding={selected?.key === "preset-roles" ? "compact" : "default"}
+      contentPadding={
+        selected?.key === "preset-roles" || selected?.key === "roles"
+          ? "compact"
+          : "default"
+      }
     >
       {home ? (
         <main className="workbench-page">
@@ -66,6 +71,8 @@ export function WorkbenchPage() {
       ) : selected?.key === "preset-roles" &&
         module.code === "platform-admin" ? (
         <PresetRolesPage key={identity.id} identityId={identity.id} />
+      ) : selected?.key === "roles" && module.code === "base" ? (
+        <OrganizationRolesPage key={identity.id} identity={identity} />
       ) : (
         <section className="workbench-unavailable">
           <h1>{selected?.name ?? "页面不存在"}</h1>

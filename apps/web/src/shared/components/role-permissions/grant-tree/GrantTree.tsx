@@ -1,12 +1,13 @@
 import { Button } from "@heroui/react";
 import { FileTree } from "@heroui-pro/react/file-tree";
-import type { PresetFeatureGrant } from "@smart-sport/contracts";
+import type { Action, PresetFeatureGrant } from "@smart-sport/contracts";
 import { useState } from "react";
 import { GrantRow } from "../grant-row/GrantRow";
 import { MenuGrantRow } from "../menu-grant-row/MenuGrantRow";
 import {
   applyMenuGrant,
   configurationGroups,
+  declaredActions,
   type PermissionRole,
   type PermissionValues,
 } from "../permission-state";
@@ -19,6 +20,8 @@ export function GrantTree({
   canReset,
   onChange,
   onReset,
+  canGrant,
+  showPresets = true,
 }: {
   role: PermissionRole;
   values: PermissionValues;
@@ -26,6 +29,10 @@ export function GrantTree({
   canReset: boolean;
   onChange: (grants: PresetFeatureGrant[]) => void;
   onReset: (feature: { app: string; feature: string }, name: string) => void;
+  canGrant?:
+    | ((app: string, feature: string, action: Action) => boolean)
+    | undefined;
+  showPresets?: boolean;
 }) {
   const groups = configurationGroups(role);
   const [expanded, setExpanded] = useState(
@@ -42,34 +49,36 @@ export function GrantTree({
     <section className="template-grant-matrix">
       <div className="template-grant-heading">
         <h2>第 3 步 · 能做什么</h2>
-        <div className="template-grant-presets">
-          <span>一键设置</span>
-          {(
-            [
-              ["view", "全部只读"],
-              ["edit", "日常操作"],
-              ["manage", "全部管理"],
-            ] as const
-          ).map(([level, label]) => (
-            <Button
-              key={level}
-              variant="secondary"
-              size="sm"
-              isDisabled={disabled}
-              onPress={() =>
-                onChange(
-                  values.grants.map((entry) =>
-                    displayedFeatures.has(`${entry.app}:${entry.feature}`)
-                      ? { ...entry, grant: { level } }
-                      : entry,
-                  ),
-                )
-              }
-            >
-              {label}
-            </Button>
-          ))}
-        </div>
+        {showPresets && (
+          <div className="template-grant-presets">
+            <span>一键设置</span>
+            {(
+              [
+                ["view", "全部只读"],
+                ["edit", "日常操作"],
+                ["manage", "全部管理"],
+              ] as const
+            ).map(([level, label]) => (
+              <Button
+                key={level}
+                variant="secondary"
+                size="sm"
+                isDisabled={disabled}
+                onPress={() =>
+                  onChange(
+                    values.grants.map((entry) =>
+                      displayedFeatures.has(`${entry.app}:${entry.feature}`)
+                        ? { ...entry, grant: { level } }
+                        : entry,
+                    ),
+                  )
+                }
+              >
+                {label}
+              </Button>
+            ))}
+          </div>
+        )}
       </div>
       <FileTree
         aria-label="菜单权限配置"
@@ -110,6 +119,7 @@ export function GrantTree({
                     canReset={canReset}
                     onChange={onChange}
                     onReset={onReset}
+                    canGrant={canGrant}
                   />
                 }
               >
@@ -137,6 +147,20 @@ export function GrantTree({
                           }
                           disabled={disabled}
                           canReset={canReset}
+                          grantableActions={
+                            canGrant
+                              ? declaredActions(
+                                  feature.app,
+                                  feature.feature,
+                                ).filter((action) =>
+                                  canGrant(
+                                    feature.app,
+                                    feature.feature,
+                                    action,
+                                  ),
+                                )
+                              : undefined
+                          }
                           onChange={(grant) =>
                             onChange(applyMenuGrant(values, [feature], grant))
                           }

@@ -1,0 +1,55 @@
+.organization-role-list {
+  display: grid;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 16px;
+  background: var(--template-surface);
+  min-width: 0;
+}
+.organization-role-list h2 {
+  font-size: 14px;
+  font-weight: 600;
+  padding: 4px 10px;
+}
+.organization-role-items {
+  display: grid;
+  gap: 2px;
+}
+.organization-role-item.button {
+  width: 100%;
+  height: 36px;
+  padding: 0 10px;
+  border-radius: 10px;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  white-space: normal;
+}
+.organization-role-item[aria-pressed="true"] {
+  background: var(--template-white);
+  box-shadow:
+    0 2px 4px #0000000a,
+    0 1px 2px #0000000f;
+}
+.organization-role-item .chip {
+  flex-shrink: 0;
+  font-size: 10px;
+  height: 20px;
+}
+.organization-role-create.button {
+  margin-top: 10px;
+  width: 100%;
+  height: 36px;
+  border-radius: 999px;
+  background: var(--template-border);
+  color: var(--template-strong);
+  font-size: 14px;
+  font-weight: 600;
+}
+.organization-role-list p {
+  padding: 0 6px;
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--template-muted);
+}
