@@ -1,5 +1,6 @@
 import { refreshAccessTokenSchema } from "@smart-sport/contracts";
 import { ApiError, SessionChangedError } from "./api-error";
+import { withRefreshLock } from "./refresh-lock";
 import { transport } from "./transport";
 import type { ApiClientOptions, ApiRequestOptions, Parser } from "./types";
 
@@ -27,11 +28,15 @@ export function createApiClient(options: ApiClientOptions) {
     if (refreshing?.generation === generation) return refreshing.promise;
     const promise = (async () => {
       try {
-        const data = await call("/api/v1/auth/refresh", { method: "POST" });
-        assertSession(generation);
-        const { accessToken } = refreshAccessTokenSchema.parse(data);
-        options.session.refreshToken(accessToken, generation);
-        return accessToken;
+        return await withRefreshLock(async () => {
+          // 等待其他标签页轮换期间可能退出或切换身份，旧任务不能继续发请求。
+          assertSession(generation);
+          const data = await call("/api/v1/auth/refresh", { method: "POST" });
+          assertSession(generation);
+          const { accessToken } = refreshAccessTokenSchema.parse(data);
+          options.session.refreshToken(accessToken, generation);
+          return accessToken;
+        });
       } catch (error) {
         assertSession(generation);
         if (silent) options.session.clear();
