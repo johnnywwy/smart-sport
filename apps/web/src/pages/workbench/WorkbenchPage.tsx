@@ -1,5 +1,6 @@
 import { moduleCodeSchema } from "@smart-sport/contracts";
 import { Navigate, useLocation, useParams } from "react-router";
+import { DepartmentsPage } from "../../apps/organization/departments";
 import { OrganizationRolesPage } from "../../apps/organization/roles";
 import { PresetRolesPage } from "../../apps/system/preset-roles";
 import { ModuleLayout } from "../../layouts/module-layout/ModuleLayout";
@@ -49,7 +50,9 @@ export function WorkbenchPage() {
       identity={identity}
       pageName={home ? "工作台" : (selected?.name ?? "页面不存在")}
       contentPadding={
-        selected?.key === "preset-roles" || selected?.key === "roles"
+        selected?.key === "preset-roles" ||
+        selected?.key === "roles" ||
+        selected?.key === "departments"
           ? "compact"
           : "default"
       }
@@ -71,6 +74,8 @@ export function WorkbenchPage() {
       ) : selected?.key === "preset-roles" &&
         module.code === "platform-admin" ? (
         <PresetRolesPage key={identity.id} identityId={identity.id} />
+      ) : selected?.key === "departments" && module.code === "base" ? (
+        <DepartmentsPage key={identity.id} identity={identity} />
       ) : selected?.key === "roles" && module.code === "base" ? (
         <OrganizationRolesPage key={identity.id} identity={identity} />
       ) : (

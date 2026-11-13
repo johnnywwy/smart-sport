@@ -1,0 +1,9 @@
+.department-position {
+  padding: 10px 14px;
+  border-radius: 12px;
+  color: var(--form-muted);
+  background: var(--form-surface);
+  font-size: 13px;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}

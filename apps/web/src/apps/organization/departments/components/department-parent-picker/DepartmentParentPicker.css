@@ -1,0 +1,31 @@
+.department-parent-trigger {
+  width: 100%;
+  min-height: 40px;
+  justify-content: space-between;
+  padding-inline: 14px;
+  border-radius: 12px;
+  background: var(--form-surface);
+  color: var(--form-foreground);
+  font-size: 14px;
+  font-weight: 400;
+}
+.department-parent-trigger span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.department-parent-trigger svg {
+  flex: none;
+}
+.department-parent-trigger[data-invalid="true"] {
+  box-shadow: 0 0 0 1px var(--danger);
+}
+.department-parent-popover {
+  width: min(420px, calc(100vw - 48px));
+  max-height: 320px;
+  overflow: auto;
+  padding: 8px;
+  border-radius: 14px;
+  scrollbar-width: none;
+}
