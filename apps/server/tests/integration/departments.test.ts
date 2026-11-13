@@ -75,6 +75,34 @@ const remove = (row: Department, token = f.admin.token) =>
   );
 
 describe("部门树真实鉴权与事务", () => {
+  it("空树独立返回创建能力，只有部门权限而没有角色查询权限也能新建", async () => {
+    const actor = await f.seed("school", null);
+    const role = v7();
+    await f.pool.query(
+      "INSERT INTO public.roles(id,kind,base_role_id,identity_type,org_id,code,name,data_scope) SELECT $1::uuid,'custom',id,'school',$2::uuid,$1::uuid::text,'仅部门管理','personal' FROM public.roles WHERE code='school-admin'",
+      [role, actor.orgId],
+    );
+    await f.pool.query(
+      "INSERT INTO public.role_grants(role_id,app_code,feature_code,level) SELECT $1,app_code,code,CASE WHEN app_code='org' AND code='department' THEN 'manage' ELSE 'none' END FROM public.features",
+      [role],
+    );
+    await f.pool.query(
+      "INSERT INTO public.identity_roles(identity_id,role_id) VALUES($1,$2)",
+      [actor.identityId, role],
+    );
+    expect(
+      (await f.request("/roles", "GET", undefined, actor.token)).status,
+    ).toBe(403);
+    const initial = await tree(actor.token);
+    expect(initial.items).toEqual([]);
+    expect(initial.allowedActions).toEqual(["create"]);
+    expect((await create("第一个部门", undefined, actor.token)).name).toBe(
+      "第一个部门",
+    );
+    const viewer = await f.seed("company", "company-readonly-auditor");
+    expect((await tree(viewer.token)).allowedActions).toEqual([]);
+  });
+
   it("教育局与代理商各管本组织，查询和写权限撤销后同一令牌立即失效", async () => {
     const bureau = await f.seed("bureau", "bureau-admin");
     const agent = await f.seed("agent", "agent-admin");

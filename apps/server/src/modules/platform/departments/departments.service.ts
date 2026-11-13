@@ -57,6 +57,9 @@ export class DepartmentsService {
         members.map((row) => [row.departmentId, row.count]),
       );
       return {
+        allowedActions: actor.permissions.has("org:department:create")
+          ? ["create" as const]
+          : [],
         items: departmentTree(
           rows.map((row) =>
             departmentContract(
