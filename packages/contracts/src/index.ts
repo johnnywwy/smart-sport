@@ -1,6 +1,7 @@
 export * from "./apps/index.js";
 export * from "./auth.js";
 export * from "./common.js";
+export * from "./departments.js";
 export * from "./errors.js";
 export * from "./identities.js";
 export * from "./modules.js";

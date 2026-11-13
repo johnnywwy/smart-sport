@@ -36,10 +36,18 @@ export const permissionErrors = {
   11106: { status: 409, message: "角色正在使用，不能删除" },
 } as const;
 
+export const organizationErrors = {
+  12001: { status: 409, message: "部门名称在同级已存在" },
+  12002: { status: 409, message: "部门下还有成员或子部门，不能删除" },
+  12003: { status: 409, message: "不能把部门移到自己或自己的下级" },
+  12007: { status: 403, message: "预置部门不可删除" },
+} as const;
+
 export const apiErrors = {
   ...systemErrors,
   ...authErrors,
   ...identityErrors,
   ...permissionErrors,
+  ...organizationErrors,
 } as const;
 export type ApiErrorCode = keyof typeof apiErrors;
