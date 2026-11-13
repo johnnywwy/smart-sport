@@ -29,6 +29,14 @@ import { AuthController } from "./modules/platform/auth/auth.controller.js";
 import { AuthRepository } from "./modules/platform/auth/auth.repository.js";
 import { AuthService } from "./modules/platform/auth/auth.service.js";
 import {
+  DepartmentOrganizationGuard,
+  DepartmentPresetsService,
+  DepartmentStatisticsRepository,
+  DepartmentsController,
+  DepartmentsRepository,
+  DepartmentsService,
+} from "./modules/platform/departments/index.js";
+import {
   IdentitiesController,
   IdentitiesRepository,
   IdentitiesService,
@@ -116,6 +124,7 @@ const databaseConfig = loadDatabaseConfig();
     NavigationController,
     PresetRolesController,
     RoleManagementController,
+    DepartmentsController,
   ],
   providers: [
     AuthRepository,
@@ -145,6 +154,11 @@ const databaseConfig = loadDatabaseConfig();
     RoleManagementRepository,
     RoleManagementService,
     RoleReader,
+    DepartmentsRepository,
+    DepartmentsService,
+    DepartmentStatisticsRepository,
+    DepartmentPresetsService,
+    DepartmentOrganizationGuard,
     ContextRepository,
     IdentityContextService,
     { provide: APP_GUARD, useClass: RateLimitGuard },

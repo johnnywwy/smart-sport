@@ -26,6 +26,14 @@ import { IdempotencyInterceptor } from "../../src/idempotency.js";
 import { AccessTokenSigner } from "../../src/infra/auth/access-token-signer.js";
 import { syncCatalog } from "../../src/modules/platform/catalog/catalog-sync.js";
 import {
+  DepartmentOrganizationGuard,
+  DepartmentPresetsService,
+  DepartmentStatisticsRepository,
+  DepartmentsController,
+  DepartmentsRepository,
+  DepartmentsService,
+} from "../../src/modules/platform/departments/index.js";
+import {
   CompanyOrganizationGuard,
   OrganizationsController,
   OrganizationsRepository,
@@ -72,12 +80,18 @@ export async function roleManagementFixture() {
       RoleManagementController,
       PresetRolesController,
       OrganizationsController,
+      DepartmentsController,
     ],
     providers: [
       ...security.providers,
       RoleManagementRepository,
       RoleManagementService,
       RoleReader,
+      DepartmentsRepository,
+      DepartmentsService,
+      DepartmentOrganizationGuard,
+      DepartmentPresetsService,
+      DepartmentStatisticsRepository,
       PresetRolesRepository,
       PresetRolesService,
       TemplateReader,
@@ -97,7 +111,7 @@ export async function roleManagementFixture() {
   await app.listen(0, "127.0.0.1");
   const base = await app.getUrl();
   const seed = async (
-    type: "company" | "school",
+    type: "company" | "school" | "bureau" | "agent",
     roleCode: string | null,
     organizationId?: string,
   ) => {
@@ -108,7 +122,12 @@ export async function roleManagementFixture() {
     if (!organizationId)
       await pool.query(
         "INSERT INTO public.orgs(id,type,name,code,region_code) VALUES($1,$2,'角色测试组织',$3,$4)",
-        [orgId, type, orgId, type === "school" ? "990000" : null],
+        [
+          orgId,
+          type,
+          orgId,
+          type === "school" || type === "bureau" ? "990000" : null,
+        ],
       );
     await pool.query(
       "INSERT INTO public.users(id,username,real_name,password_hash,must_change_password) VALUES($1,$2,'角色测试','test',false)",
@@ -187,6 +206,7 @@ export async function roleManagementFixture() {
   };
   return {
     pool,
+    config: security.config,
     app,
     admin,
     seed,

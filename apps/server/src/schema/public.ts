@@ -103,6 +103,14 @@ export const identities = pgTable(
     sort: integer("sort").notNull().default(0),
   },
   (t) => [
+    foreignKey({
+      name: "identities_department_org_fk",
+      columns: [t.orgId, t.departmentId],
+      foreignColumns: [departments.orgId, departments.id],
+    }),
+    index("identities_department_active")
+      .on(t.departmentId)
+      .where(sql`${t.deletedAt} IS NULL`),
     uniqueIndex("identities_active_unique")
       .on(t.userId, t.orgId, t.type)
       .where(sql`${t.deletedAt} IS NULL`),
@@ -399,3 +407,60 @@ export const presetRoleOverrides = pgTable("preset_role_overrides", {
     .defaultNow(),
   version: integer("version").notNull().default(0),
 });
+
+export const departments = pgTable(
+  "departments",
+  {
+    ...commonColumns(),
+    orgId: uuid("org_id")
+      .notNull()
+      .references(() => organizations.id),
+    parentId: uuid("parent_id"),
+    path: text("path").notNull(),
+    name: varchar("name", { length: 64 }).notNull(),
+    code: varchar("code", { length: 128 }).notNull(),
+    sort: integer("sort").notNull().default(0),
+    isPreset: boolean("is_preset").notNull().default(false),
+  },
+  (t) => [
+    uniqueIndex("departments_org_id_unique").on(t.orgId, t.id),
+    uniqueIndex("departments_sibling_name_unique")
+      .on(
+        t.orgId,
+        sql`coalesce(${t.parentId},'00000000-0000-0000-0000-000000000000'::uuid)`,
+        t.name,
+      )
+      .where(sql`${t.deletedAt} IS NULL`),
+    uniqueIndex("departments_code_unique")
+      .on(t.orgId, t.code)
+      .where(sql`${t.deletedAt} IS NULL`),
+    foreignKey({
+      name: "departments_parent_org_fk",
+      columns: [t.orgId, t.parentId],
+      foreignColumns: [t.orgId, t.id],
+    }),
+    index("departments_org_path")
+      .on(t.orgId, t.path)
+      .where(sql`${t.deletedAt} IS NULL`),
+    check("departments_not_self", sql`${t.parentId} IS DISTINCT FROM ${t.id}`),
+    check("departments_name_check", sql`length(trim(${t.name})) > 0`),
+    check("departments_sort_check", sql`${t.sort} >= 0`),
+  ],
+);
+export const departmentScopes = pgTable(
+  "department_scopes",
+  {
+    departmentId: uuid("department_id")
+      .notNull()
+      .references(() => departments.id),
+    scopeType: varchar("scope_type", { length: 16 }).notNull(),
+    scopeValue: text("scope_value").notNull(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.departmentId, t.scopeType, t.scopeValue] }),
+    check(
+      "department_scopes_type_check",
+      sql`${t.scopeType} IN ('school','region','grade','college')`,
+    ),
+  ],
+);
