@@ -6,8 +6,8 @@ import {
 } from "@smart-sport/contracts";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import { GrantRow } from "./components/grant-row/GrantRow";
-import { MenuGrantRow } from "./components/menu-grant-row/MenuGrantRow";
+import { GrantRow } from "../../../shared/components/role-permissions/grant-row/GrantRow";
+import { MenuGrantRow } from "../../../shared/components/role-permissions/menu-grant-row/MenuGrantRow";
 import { permissionPreviewTree } from "./preview-tree";
 import {
   applyMenuGrant,

@@ -5,6 +5,9 @@ import {
   savePresetRoleSchema,
 } from "@smart-sport/contracts";
 import { useState } from "react";
+import { EditorDraftState } from "../../../../../shared/components/role-permissions/editor-draft-state/EditorDraftState";
+import { GrantTree } from "../../../../../shared/components/role-permissions/grant-tree/GrantTree";
+import { ScopeOptions } from "../../../../../shared/components/role-permissions/scope-options/ScopeOptions";
 import { SchemaForm } from "../../../../../shared/components/schema-form/SchemaForm";
 import type {
   FormSnapshot,
@@ -17,10 +20,7 @@ import {
   type PresetRole,
   templateValues,
 } from "../../template-state";
-import { EditorDraftState } from "../editor-draft-state/EditorDraftState";
-import { GrantTree } from "../grant-tree/GrantTree";
 import { RolePreview } from "../role-preview/RolePreview";
-import { ScopeOptions } from "../scope-options/ScopeOptions";
 import "./RoleEditor.css";
 
 export function RoleEditor({

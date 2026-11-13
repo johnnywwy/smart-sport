@@ -6,6 +6,7 @@ import { RoleEditor } from "../components/role-editor/RoleEditor";
 import { RoleSelector } from "../components/role-selector/RoleSelector";
 import { TemplateConfirmation } from "../components/template-confirmation/TemplateConfirmation";
 import { usePresetRoles } from "../hooks/use-preset-roles";
+import "../../../../shared/components/role-permissions/RolePermissions.css";
 import "./PresetRolesPage.css";
 
 export function PresetRolesPage({ identityId }: { identityId: string }) {
@@ -34,7 +35,7 @@ export function PresetRolesPage({ identityId }: { identityId: string }) {
     }
   };
   return (
-    <main className="preset-roles-page">
+    <main className="preset-roles-page role-permission-surface">
       <header className="preset-roles-heading">
         <h1>角色模板</h1>
         <p>

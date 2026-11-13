@@ -1,6 +1,6 @@
 import { Label, Radio, RadioGroup } from "@heroui/react";
 import type { DataScopeOption, IdentityType } from "@smart-sport/contracts";
-import { scopeLabels } from "../../template-state";
+import { scopeLabels } from "../permission-state";
 import "./ScopeOptions.css";
 
 export function ScopeOptions({

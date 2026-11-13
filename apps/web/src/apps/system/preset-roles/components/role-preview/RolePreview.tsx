@@ -1,7 +1,7 @@
 import type { SavePresetRole } from "@smart-sport/contracts";
+import { PreviewMenuTree } from "../../../../../shared/components/role-permissions/preview-menu-tree/PreviewMenuTree";
 import { permissionPreviewTree } from "../../preview-tree";
 import { type PresetRole, scopeLabels } from "../../template-state";
-import { PreviewMenuTree } from "../preview-menu-tree/PreviewMenuTree";
 import "./RolePreview.css";
 
 export function RolePreview({

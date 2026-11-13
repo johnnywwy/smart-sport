@@ -1,17 +1,15 @@
 import { Button } from "@heroui/react";
 import { FileTree } from "@heroui-pro/react/file-tree";
-import type {
-  PresetFeatureGrant,
-  SavePresetRole,
-} from "@smart-sport/contracts";
+import type { PresetFeatureGrant } from "@smart-sport/contracts";
 import { useState } from "react";
+import { GrantRow } from "../grant-row/GrantRow";
+import { MenuGrantRow } from "../menu-grant-row/MenuGrantRow";
 import {
   applyMenuGrant,
   configurationGroups,
-  type PresetRole,
-} from "../../template-state";
-import { GrantRow } from "../grant-row/GrantRow";
-import { MenuGrantRow } from "../menu-grant-row/MenuGrantRow";
+  type PermissionRole,
+  type PermissionValues,
+} from "../permission-state";
 import "./GrantTree.css";
 
 export function GrantTree({
@@ -22,8 +20,8 @@ export function GrantTree({
   onChange,
   onReset,
 }: {
-  role: PresetRole;
-  values: SavePresetRole;
+  role: PermissionRole;
+  values: PermissionValues;
   disabled: boolean;
   canReset: boolean;
   onChange: (grants: PresetFeatureGrant[]) => void;

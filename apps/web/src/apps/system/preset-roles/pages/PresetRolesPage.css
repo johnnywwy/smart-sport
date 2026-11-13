@@ -1,12 +1,4 @@
 .preset-roles-page {
-  --template-surface: #f5f5f5;
-  --template-white: #fff;
-  --template-muted: #63636b;
-  --template-border: #ebebec;
-  --template-selected: #eef6ff;
-  --template-accent: #006fee;
-  --template-blue-text: #0a64b5;
-  --template-strong: #18181b;
   padding: 0;
   display: grid;
   gap: 16px;
@@ -48,15 +40,6 @@
   justify-content: center;
   gap: 12px;
   color: var(--template-muted);
-}
-.dark .preset-roles-page {
-  --template-surface: #27272a;
-  --template-white: #18181b;
-  --template-muted: #a1a1aa;
-  --template-border: #3f3f46;
-  --template-selected: #142b45;
-  --template-blue-text: #74b9ff;
-  --template-strong: #f4f4f5;
 }
 @media (max-width: 1050px) {
   .preset-roles-workspace {

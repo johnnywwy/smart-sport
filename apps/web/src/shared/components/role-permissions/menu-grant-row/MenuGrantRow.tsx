@@ -1,15 +1,13 @@
-import type {
-  PresetFeatureGrant,
-  SavePresetRole,
-} from "@smart-sport/contracts";
+import type { PresetFeatureGrant } from "@smart-sport/contracts";
+import { GrantRow } from "../grant-row/GrantRow";
 import {
   applyMenuGrant,
   type ConfigurationItem,
   declaredActions,
+  type PermissionValues,
   previewActions,
   sameGrant,
-} from "../../template-state";
-import { GrantRow } from "../grant-row/GrantRow";
+} from "../permission-state";
 
 export function MenuGrantRow({
   item,
@@ -20,7 +18,7 @@ export function MenuGrantRow({
   onReset,
 }: {
   item: ConfigurationItem;
-  values: SavePresetRole;
+  values: PermissionValues;
   disabled: boolean;
   canReset: boolean;
   onChange: (grants: PresetFeatureGrant[]) => void;

@@ -1,6 +1,6 @@
 import { FileTree } from "@heroui-pro/react/file-tree";
 import type { ReactElement } from "react";
-import type { PermissionPreviewNode } from "../../preview-tree";
+import type { PermissionPreviewNode } from "../preview-tree";
 import "./PreviewMenuTree.css";
 
 function renderNode(node: PermissionPreviewNode): ReactElement {

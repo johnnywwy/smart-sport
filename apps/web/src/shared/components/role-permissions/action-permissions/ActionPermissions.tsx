@@ -1,6 +1,6 @@
 import { Checkbox, CheckboxGroup, Label } from "@heroui/react";
 import type { Action } from "@smart-sport/contracts";
-import { actionLabels } from "../../template-state";
+import { actionLabels } from "../permission-state";
 import "./ActionPermissions.css";
 
 export function ActionPermissions({

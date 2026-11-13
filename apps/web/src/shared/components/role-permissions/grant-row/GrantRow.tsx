@@ -1,12 +1,12 @@
 import { Button, Chip } from "@heroui/react";
 import type { Action, FeatureGrant } from "@smart-sport/contracts";
+import { ActionPermissions } from "../action-permissions/ActionPermissions";
 import {
   declaredActions,
-  type PresetRole,
+  type PermissionRole,
   previewActions,
   sameGrant,
-} from "../../template-state";
-import { ActionPermissions } from "../action-permissions/ActionPermissions";
+} from "../permission-state";
 import "./GrantRow.css";
 
 export function GrantRow({
@@ -20,7 +20,7 @@ export function GrantRow({
   availableActions,
   selectedActions,
 }: {
-  feature: PresetRole["grants"][number];
+  feature: PermissionRole["grants"][number];
   grant: FeatureGrant;
   disabled: boolean;
   canReset: boolean;
