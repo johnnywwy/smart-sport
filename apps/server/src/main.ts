@@ -62,6 +62,12 @@ import {
   RegionsService,
 } from "./modules/platform/regions/index.js";
 import {
+  RoleManagementController,
+  RoleManagementRepository,
+  RoleManagementService,
+  RoleReader,
+} from "./modules/platform/role-management/index.js";
+import {
   RolesRepository,
   RolesService,
 } from "./modules/platform/roles/index.js";
@@ -109,6 +115,7 @@ const databaseConfig = loadDatabaseConfig();
     IdentitiesController,
     NavigationController,
     PresetRolesController,
+    RoleManagementController,
   ],
   providers: [
     AuthRepository,
@@ -135,6 +142,9 @@ const databaseConfig = loadDatabaseConfig();
     TemplateReader,
     RolesRepository,
     RolesService,
+    RoleManagementRepository,
+    RoleManagementService,
+    RoleReader,
     ContextRepository,
     IdentityContextService,
     { provide: APP_GUARD, useClass: RateLimitGuard },
