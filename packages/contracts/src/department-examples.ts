@@ -1,6 +1,7 @@
 import { departmentTreeSchema } from "./departments.js";
 
 export const departmentTreeExample = departmentTreeSchema.parse({
+  allowedActions: ["create"],
   items: [
     {
       id: "019c1472-9e57-7000-8000-000000000001",

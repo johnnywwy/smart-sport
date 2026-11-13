@@ -57,3 +57,19 @@ test("部门树示例包含逐层子部门、真实统计和行操作能力", ()
   assert.equal(tree.unassignedMemberCount, 1);
   assert.equal(tree.items[0].allowedActions.includes("delete"), false);
 });
+
+test("空部门树独立表达创建能力，旧响应保持兼容", () => {
+  assert.deepEqual(
+    departmentTreeSchema.parse({
+      items: [],
+      unassignedMemberCount: 0,
+      allowedActions: ["create"],
+    }).allowedActions,
+    ["create"],
+  );
+  assert.deepEqual(
+    departmentTreeSchema.parse({ items: [], unassignedMemberCount: 0 })
+      .allowedActions,
+    [],
+  );
+});

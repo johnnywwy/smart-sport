@@ -50,6 +50,8 @@ export const departmentNodeSchema: z.ZodType<DepartmentNode> =
     children: z.array(z.lazy(() => departmentNodeSchema)),
   });
 export const departmentTreeSchema = z.strictObject({
+  /** 空树也能表达创建入口的权限；缺省值兼容旧版响应。 */
+  allowedActions: z.array(z.literal("create")).default([]),
   items: z.array(departmentNodeSchema),
   unassignedMemberCount: z.int().nonnegative(),
 });

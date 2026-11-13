@@ -101,7 +101,7 @@
 
 ### 部门树接口契约（T-033）
 
-- 查询返回 `{ items, unassignedMemberCount }`，节点包含 `id、parentId、name、sort、isPreset、version、memberCount、scopeSummary、allowedActions、children`。人数统计未删除身份对应的直属去重账号，包含停用成员；未分配部门按同样口径单独统计。范围摘要按类型返回实际配置条数，不等于可见学校计算结果（T-034/T-051）。
+- 查询返回 `{ items, unassignedMemberCount, allowedActions }`（T-162 补充顶层 `create` 能力，空树也能正确控制新建入口；不依赖角色管理权限），节点包含 `id、parentId、name、sort、isPreset、version、memberCount、scopeSummary、allowedActions、children`。人数统计未删除身份对应的直属去重账号，包含停用成员；未分配部门按同样口径单独统计。范围摘要按类型返回实际配置条数，不等于可见学校计算结果（T-034/T-051）。
 - 新建只接收 `{ name, parentId? }`；修改接收 `{ version, name?, parentId?, sort? }`，至少修改一项，`parentId: null` 表示根部门；删除 body 为 `{ version }`。系统编码、路径、组织归属、预置标记均不能由客户端写入。
 - 四个接口均可通过 query `orgId` 指定目标组织，但只有真实绑定平台内置超级管理员角色的公司身份允许使用；普通身份传入组织参数返回 403，访问其他组织的部门返回 404。
 - 移动时同步递增所有子孙的版本，旧版本编辑返回 90002。路径包含自身，形式为 `根ID.上级ID.自身ID`，不设业务层级上限。
