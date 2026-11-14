@@ -49,5 +49,7 @@ export const apiErrors = {
   ...identityErrors,
   ...permissionErrors,
   ...organizationErrors,
+  12008: { status: 409, message: "账号信息已存在，请使用追加身份" },
+  12009: { status: 409, message: "该账号已拥有此组织身份" },
 } as const;
 export type ApiErrorCode = keyof typeof apiErrors;
