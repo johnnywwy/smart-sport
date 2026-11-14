@@ -85,6 +85,7 @@ describe("用户表 PostgreSQL 17 迁移与约束", () => {
       "0022_identity_context_revision.sql",
       "0023_preset_role_overrides.sql",
       "0024_create_departments.sql",
+      "0025_create_identity_scopes.sql",
     ]);
     expect(await migratePublic(pool)).toEqual([]);
   });

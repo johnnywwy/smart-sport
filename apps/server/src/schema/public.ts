@@ -464,3 +464,24 @@ export const departmentScopes = pgTable(
     ),
   ],
 );
+
+/** 关联表整体替换，版本与审计归属身份；范围存在性及外边界由业务层验证。 */
+export const identityScopes = pgTable(
+  "identity_scopes",
+  {
+    identityId: uuid("identity_id")
+      .notNull()
+      .references(() => identities.id),
+    scopeType: varchar("scope_type", { length: 16 }).notNull(),
+    scopeValue: text("scope_value").notNull(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.identityId, t.scopeType, t.scopeValue] }),
+    check(
+      "identity_scopes_value_check",
+      sql`(${t.scopeType} IN ('school','college') AND ${t.scopeValue} ~ '^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$')
+        OR (${t.scopeType} = 'region' AND ${t.scopeValue} ~ '^[0-9]{6}$')
+        OR (${t.scopeType} = 'grade' AND ${t.scopeValue} ~ '^(1[1-6]|2[1-4]|3[1-3]|4[1-5])$')`,
+    ),
+  ],
+);
