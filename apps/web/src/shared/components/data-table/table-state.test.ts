@@ -83,3 +83,23 @@ describe("通用列表查询与权限边界", () => {
     expect(tablePageNumbers(1, 1)).toEqual([1]);
   });
 });
+
+describe("通用批量操作选择", () => {
+  it("按行能力选择，不把可编辑误当成可分配角色", async () => {
+    const { selectedActionableRows } = await import("./table-state");
+    const rows = [
+      { id: "a", allowedActions: ["update"] },
+      { id: "b", allowedActions: ["assignRoles"] },
+      { id: "c", allowedActions: [] },
+    ];
+    expect(
+      selectedActionableRows(rows, new Set(["a", "b", "c"]), ["assignRoles"]),
+    ).toEqual([rows[1]]);
+    expect(
+      selectedActionableRows(rows, new Set(["a", "b", "c"]), [
+        "update",
+        "assignRoles",
+      ]),
+    ).toEqual([rows[0], rows[1]]);
+  });
+});

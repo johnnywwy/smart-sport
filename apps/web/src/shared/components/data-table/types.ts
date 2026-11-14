@@ -50,6 +50,16 @@ export type TableConfig<T> = {
   permissions: readonly PermissionCode[];
   actions?: readonly TableAction[];
   rowActions?: readonly TableRowAction<T>[];
+  batchActions?: readonly {
+    id: string;
+    label: string;
+    permission: PermissionCode;
+    requiredAction: string;
+    onPress: (items: readonly T[]) => void;
+  }[];
+  /** 写入后递增，清除旧版本的选择。 */
+  selectionRevision?: number;
+  activeRowId?: string | undefined;
   batchDelete?: {
     permission: PermissionCode;
     onPress: (items: readonly T[]) => void;

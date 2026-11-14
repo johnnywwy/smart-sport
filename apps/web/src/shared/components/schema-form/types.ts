@@ -77,5 +77,6 @@ export type SchemaFormProps<T> = {
   onCancel?: () => void;
   onReload?: () => Promise<FormSnapshot<T>>;
   onPendingChange?: (pending: boolean) => void;
+  beforeFields?: ReactNode;
   children?: ReactNode | ((state: FormRenderState) => ReactNode);
 };

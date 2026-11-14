@@ -21,6 +21,7 @@ export function FormContent<T>(props: SchemaFormProps<T>) {
         void state.submit();
       }}
     >
+      {props.beforeFields}
       <div
         className={`schema-form-fields${props.columns === 2 ? " schema-form-fields-two" : ""}`}
       >

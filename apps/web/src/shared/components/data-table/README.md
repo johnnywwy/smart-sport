@@ -25,6 +25,7 @@ T-157 通用列表。控件全部使用 HeroUI 3，样式由组件目录管理�
 - `config.filters`：筛选标识、中文名称及选项。`__all` 为内部保留选项，提交“全部”时输出空字符串；hook 根据业务契约省略空值。
 - `config.actions`：配置新增、导入、导出回调及已有权限码，通过 `Can` 显示。权限集合由调用方提供，不能根据角色名称推断权限。
 - `config.rowActions`：按当前行的 `allowedActions` 显示，支持查看、编辑、删除、恢复等动作。删除和标为 `danger` 的操作自动弹出确认框，可通过 `confirmation` 说明具体后果。
+- `config.batchActions`：配置动作名称、已有权限码与行能力 `requiredAction`；只有有权执行的操作才显示。选中范围限本页可操作记录，若混选了不满足某动作能力的记录，该批量按钮禁用。业务 hook 逐条提交版本并处理部分失败。`selectionRevision` 在写入后递增，清除旧选择；`activeRowId` 仅标出正在查看的记录，不等同于勾选。
 - `config.batchDelete`：需要全局删除权限，只勾选本页拥有 `delete` 的记录，确认后回调接收仍有权限的当前记录。真正的删除请求、成功通知及列表刷新由业务 hook 负责。
 - `config.recycleBin`：启用“全部 / 回收站”，`query.deleted` 控制查询。回收站隐藏新增、导入、导出与批量删除；恢复通过行操作配置。
 - `scopeKey`：必须含当前身份 id，学校数据再含学校 id。切换后重置勾选和列设置；TanStack Query 的 key 仍需由业务 hook 单独包含这些值。

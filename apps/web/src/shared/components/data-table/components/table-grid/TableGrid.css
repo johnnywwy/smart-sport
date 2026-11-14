@@ -60,6 +60,7 @@
 .data-table-grid .table__row:last-child .table__cell:last-child {
   border-end-end-radius: 12px;
 }
+.data-table-grid .table__row[data-active] .table__cell,
 .data-table-grid .table__row[data-selected] .table__cell {
   background: var(--table-selected);
 }

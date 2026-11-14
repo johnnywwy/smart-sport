@@ -38,3 +38,15 @@ export function tablePageNumbers(page: number, pages: number) {
   const start = Math.max(1, Math.min(page - 2, pages - 4));
   return Array.from({ length: Math.min(5, pages) }, (_, i) => start + i);
 }
+
+export function selectedActionableRows<T extends TableRecord>(
+  items: readonly T[],
+  keys: ReadonlySet<string>,
+  actions: readonly string[],
+) {
+  return items.filter(
+    (item) =>
+      keys.has(item.id) &&
+      actions.some((action) => item.allowedActions.includes(action)),
+  );
+}

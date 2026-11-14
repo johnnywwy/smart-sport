@@ -1,8 +1,9 @@
+import { Button } from "@heroui/react";
 import { useState } from "react";
 import { Can } from "../../../can/Can";
 import {
   changeTableQuery,
-  selectedDeletableRows,
+  selectedActionableRows,
   visibleTableColumns,
 } from "../../table-state";
 import type { DataTableProps, TableQuery, TableRecord } from "../../types";
@@ -24,7 +25,22 @@ export function TableWorkspace<T extends TableRecord>({
   const [visible, setVisible] = useState(
     () => new Set(config.columns.map((column) => column.id)),
   );
-  const selectionScope = JSON.stringify([query, config.permissions]);
+  const batchActions = (config.batchActions ?? []).filter((action) =>
+    config.permissions.includes(action.permission),
+  );
+  const batch = config.batchDelete;
+  const requiredActions = [
+    ...batchActions.map((action) => action.requiredAction),
+    ...(batch && config.permissions.includes(batch.permission)
+      ? ["delete"]
+      : []),
+  ];
+  const selectionScope = JSON.stringify([
+    query,
+    config.permissions,
+    requiredActions,
+    config.selectionRevision,
+  ]);
   const [selected, setSelected] = useState({
     scope: selectionScope,
     keys: new Set<string>(),
@@ -32,16 +48,14 @@ export function TableWorkspace<T extends TableRecord>({
   if (selected.scope !== selectionScope) {
     setSelected({ scope: selectionScope, keys: new Set() });
   }
-  const selectedRows = selectedDeletableRows(
+  const selectedRows = selectedActionableRows(
     data.items,
     selected.scope === selectionScope ? selected.keys : new Set(),
+    requiredActions,
   );
   const keys = new Set(selectedRows.map((item) => item.id));
   const disabled = Boolean(status?.loading || status?.error);
-  const batch = config.batchDelete;
-  const selectable =
-    !query.deleted &&
-    Boolean(batch && config.permissions.includes(batch.permission));
+  const selectable = !query.deleted && requiredActions.length > 0;
   const change = (patch: Partial<TableQuery>) =>
     onQueryChange(changeTableQuery(query, patch));
   return (
@@ -72,6 +86,27 @@ export function TableWorkspace<T extends TableRecord>({
             onChange={setVisible}
           />
         </div>
+        {selectable && batchActions.length > 0 && selectedRows.length > 0 && (
+          <div className="data-table-batch">
+            <span>已选择 {selectedRows.length} 条</span>
+            {batchActions.map((action) => (
+              <Button
+                key={action.id}
+                className="data-table-button data-table-secondary"
+                isDisabled={
+                  disabled ||
+                  selectedRows.some(
+                    (row) =>
+                      !row.allowedActions.includes(action.requiredAction),
+                  )
+                }
+                onPress={() => action.onPress(selectedRows)}
+              >
+                {action.label}
+              </Button>
+            ))}
+          </div>
+        )}
         {selectable && batch && selectedRows.length > 0 && (
           <Can perm={batch.permission} permissions={config.permissions}>
             <div className="data-table-batch">
@@ -82,9 +117,21 @@ export function TableWorkspace<T extends TableRecord>({
                   batch.confirmation ??
                   `将删除当前选择的 ${selectedRows.length} 条记录，删除后将从当前列表移除。请确认后继续。`
                 }
-                disabled={disabled || selectedRows.length === 0}
+                disabled={
+                  disabled ||
+                  selectedRows.length === 0 ||
+                  selectedRows.some(
+                    (row) => !row.allowedActions.includes("delete"),
+                  )
+                }
                 className="data-table-button data-table-danger"
-                onConfirm={() => batch.onPress(selectedRows)}
+                onConfirm={() =>
+                  batch.onPress(
+                    selectedRows.filter((row) =>
+                      row.allowedActions.includes("delete"),
+                    ),
+                  )
+                }
               />
             </div>
           </Can>
@@ -97,6 +144,7 @@ export function TableWorkspace<T extends TableRecord>({
           columns={visibleTableColumns(config.columns, visible)}
           selection={{
             enabled: selectable,
+            requiredActions,
             keys,
             onChange: (next) =>
               setSelected({ scope: selectionScope, keys: next }),

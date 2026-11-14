@@ -16,6 +16,7 @@ export function TableGrid<T extends TableRecord>({
   columns: readonly TableColumn<T>[];
   selection: {
     enabled: boolean;
+    requiredActions: readonly string[];
     keys: Set<string>;
     onChange: (keys: Set<string>) => void;
   };
@@ -34,7 +35,12 @@ export function TableGrid<T extends TableRecord>({
           selectionBehavior="toggle"
           selectedKeys={selection.keys}
           disabledKeys={rows
-            .filter((item) => !item.allowedActions.includes("delete"))
+            .filter(
+              (item) =>
+                !selection.requiredActions.some((action) =>
+                  item.allowedActions.includes(action),
+                ),
+            )
             .map((item) => item.id)}
           disabledBehavior="selection"
           onSelectionChange={(keys) =>
@@ -42,7 +48,11 @@ export function TableGrid<T extends TableRecord>({
               new Set(
                 keys === "all"
                   ? rows
-                      .filter((row) => row.allowedActions.includes("delete"))
+                      .filter((row) =>
+                        selection.requiredActions.some((action) =>
+                          row.allowedActions.includes(action),
+                        ),
+                      )
                       .map((row) => row.id)
                   : Array.from(keys, String),
               ),
@@ -63,7 +73,16 @@ export function TableGrid<T extends TableRecord>({
           <Table.Header>
             {selection.enabled && (
               <Table.Column id="$selection" textValue="选择">
-                <Checkbox slot="selection" aria-label="选择本页可删除记录">
+                <Checkbox
+                  slot="selection"
+                  aria-label={
+                    selection.requiredActions.every(
+                      (action) => action === "delete",
+                    )
+                      ? "选择本页可删除记录"
+                      : "选择本页可操作记录"
+                  }
+                >
                   <Checkbox.Content>
                     <Checkbox.Control>
                       <Checkbox.Indicator />
@@ -100,7 +119,11 @@ export function TableGrid<T extends TableRecord>({
             renderEmptyState={() => <TableListState {...status} />}
           >
             {(item) => (
-              <Table.Row id={item.id} textValue={config.rowLabel(item)}>
+              <Table.Row
+                id={item.id}
+                textValue={config.rowLabel(item)}
+                data-active={config.activeRowId === item.id || undefined}
+              >
                 {selection.enabled && (
                   <Table.Cell>
                     <Checkbox
