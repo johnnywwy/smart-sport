@@ -49,6 +49,7 @@ import {
 import {
   MemberAccountService,
   MemberListRepository,
+  MemberOptionsService,
   MemberOrganizationGuard,
   MemberPolicy,
   MemberReader,
@@ -143,6 +144,7 @@ const databaseConfig = loadDatabaseConfig();
     MembersRepository,
     MembersService,
     MemberOrganizationGuard,
+    MemberOptionsService,
     MemberPolicy,
     MemberReader,
     MemberListRepository,

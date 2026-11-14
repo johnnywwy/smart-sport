@@ -17,6 +17,7 @@ import {
   memberDetailSchema,
   memberListQuerySchema,
   memberListSchema,
+  memberOptionsSchema,
   memberOrgQuerySchema,
   memberParamsSchema,
   memberSchema,
@@ -31,6 +32,7 @@ import { RequirePermissions } from "../../../core/permission.guard.js";
 import { Idempotent } from "../../../idempotency.js";
 import { ApiZodResponse, ZodRequest } from "../../../zod-route.js";
 import type { IdentityContext } from "../identity-context/index.js";
+import { MemberOptionsService } from "./member-options.service.js";
 import {
   MemberOrganizationGuard,
   type MembersRequest,
@@ -42,6 +44,8 @@ export class MembersController {
   constructor(
     @Inject(MembersService) private readonly service: MembersService,
     @Inject(ClsService) private readonly cls: ClsService,
+    @Inject(MemberOptionsService)
+    private readonly options: MemberOptionsService,
   ) {}
   @Get()
   @RequirePermissions("org:member:view")
@@ -55,6 +59,19 @@ export class MembersController {
     @Req() request: MembersRequest,
   ) {
     return this.service.list(this.orgId(request), query, this.actor());
+  }
+  @Get("options")
+  @RequirePermissions("org:member:view")
+  @ApiZodResponse(
+    200,
+    successResponseSchema(memberOptionsSchema),
+    "成员表单可授予选项",
+  )
+  formOptions(
+    @ZodRequest("query", memberOrgQuerySchema) _query: unknown,
+    @Req() request: MembersRequest,
+  ) {
+    return this.options.read(this.orgId(request), this.actor());
   }
   @Get(":id")
   @RequirePermissions("org:member:view")

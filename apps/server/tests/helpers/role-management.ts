@@ -46,6 +46,7 @@ import {
 import {
   MemberAccountService,
   MemberListRepository,
+  MemberOptionsService,
   MemberOrganizationGuard,
   MemberPolicy,
   MemberReader,
@@ -114,6 +115,7 @@ export async function roleManagementFixture(withAuth = false) {
       MembersRepository,
       MembersService,
       MemberOrganizationGuard,
+      MemberOptionsService,
       MemberPolicy,
       MemberReader,
       MemberListRepository,

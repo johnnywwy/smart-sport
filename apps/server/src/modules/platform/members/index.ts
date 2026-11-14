@@ -1,5 +1,6 @@
 export { MemberAccountService } from "./member-account.service.js";
 export { MemberListRepository } from "./member-list.repository.js";
+export { MemberOptionsService } from "./member-options.service.js";
 export { MemberOrganizationGuard } from "./member-organization.guard.js";
 export { MemberPolicy } from "./member-policy.service.js";
 export { MemberReader } from "./member-reader.service.js";

@@ -93,6 +93,34 @@ export class MembersRepository {
         )
     )[0];
   }
+  departmentOptions(tx: MemberTransaction, orgId: string) {
+    return tx
+      .select({
+        id: departments.id,
+        name: departments.name,
+        parentId: departments.parentId,
+      })
+      .from(departments)
+      .where(and(eq(departments.orgId, orgId), isNull(departments.deletedAt)))
+      .orderBy(departments.sort, departments.name, departments.id);
+  }
+  organizationRoles(tx: MemberTransaction, orgId: string, types: string[]) {
+    return tx
+      .select()
+      .from(roles)
+      .where(
+        and(
+          eq(roles.status, 1),
+          isNull(roles.deletedAt),
+          inArray(roles.identityType, types),
+          or(
+            and(eq(roles.kind, "preset"), isNull(roles.orgId)),
+            and(eq(roles.kind, "custom"), eq(roles.orgId, orgId)),
+          ),
+        ),
+      )
+      .orderBy(roles.name, roles.id);
+  }
   bindings(tx: MemberTransaction, identityId: string) {
     return tx
       .select({ id: identityRoles.roleId })
