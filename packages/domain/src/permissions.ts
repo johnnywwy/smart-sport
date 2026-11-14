@@ -1,5 +1,6 @@
 import {
   type Action,
+  appDefinitions,
   type DataScopeOption,
   dataScopeSchema,
   type FeatureDefinition,
@@ -111,5 +112,31 @@ export function diffRoleGrants(
   return submitted.filter((entry) => {
     const inherited = baseMap.get(grantKey(entry));
     return !sameGrant(inherited ?? { level: "none" }, entry.grant);
+  });
+}
+
+/** 同一身份可由多个角色合并取得成员与角色管理的完整动作。 */
+export function isOrganizationAdministrator(
+  grants: readonly FeatureGrantEntry[],
+): boolean {
+  const app = appDefinitions.find((entry) => entry.code === "org");
+  if (!app) return false;
+  return ["member", "role"].every((feature) => {
+    const definition = app.features[feature as keyof typeof app.features];
+    const required = expandGrant(
+      { app: app.code, feature, actions: [...definition.actions] },
+      { level: "manage" },
+    );
+    const granted = new Set(
+      grants
+        .filter((g) => g.app === app.code && g.feature === feature)
+        .flatMap((g) =>
+          expandGrant(
+            { app: app.code, feature, actions: [...definition.actions] },
+            g.grant,
+          ),
+        ),
+    );
+    return required.length > 0 && required.every((code) => granted.has(code));
   });
 }
