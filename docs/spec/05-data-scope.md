@@ -33,6 +33,8 @@
 
 **identity_scopes**：`(identity_id, scope_type, scope_value)`，scope_type 同部门（spec 03），用于本人额外负责。
 
+T-050 契约约定：`PUT /identities/:id/scopes` 请求为 `{ version, scopes: [{ type, value }] }`，整体替换，`scopes: []` 清空本人额外负责；使用目标身份的 `version`，成功后递增并返回 `{ identityId, version, scopes }`。范围类型为 `school / region / grade / college`，值分别为学校 UUID、六位区划码、字符串年级编码、学院 UUID，不接受重复条目。契约只校验格式；组织允许的类型、目标存在性、学校学制及组织外边界由服务端校验，格式通过不表示可授予。
+
 **agent_school_grants**
 
 | 字段                                                 | 说明                                                    |
