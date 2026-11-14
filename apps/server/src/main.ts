@@ -12,7 +12,6 @@ import { loadConfig, loadDatabaseConfig } from "@smart-sport/config/env";
 import { createLoggerOptions } from "@smart-sport/config/logger";
 import { ClsModule, ClsService } from "nestjs-cls";
 import { Logger, LoggerModule } from "nestjs-pino";
-
 import { ApiExceptionFilter, ApiResponseInterceptor } from "./api-response.js";
 import {
   ACCESS_TOKEN_VERIFIER,
@@ -24,6 +23,7 @@ import { DataSourceRegistry, DRIZZLE } from "./database/registry.js";
 import { HealthController } from "./health.js";
 import { IdempotencyInterceptor } from "./idempotency.js";
 import { AccessTokenSigner } from "./infra/auth/access-token-signer.js";
+import { MemberCredentials } from "./infra/crypto/member-credentials.js";
 import { PasswordHasher } from "./infra/crypto/password-hasher.js";
 import { AuthController } from "./modules/platform/auth/auth.controller.js";
 import { AuthRepository } from "./modules/platform/auth/auth.repository.js";
@@ -46,6 +46,16 @@ import {
   ContextRepository,
   IdentityContextService,
 } from "./modules/platform/identity-context/index.js";
+import {
+  MemberAccountService,
+  MemberListRepository,
+  MemberOrganizationGuard,
+  MemberPolicy,
+  MemberReader,
+  MembersController,
+  MembersRepository,
+  MembersService,
+} from "./modules/platform/members/index.js";
 import {
   ModuleNavigationService,
   NavigationController,
@@ -118,6 +128,7 @@ const databaseConfig = loadDatabaseConfig();
     }),
   ],
   controllers: [
+    MembersController,
     HealthController,
     AuthController,
     RegionsController,
@@ -129,6 +140,14 @@ const databaseConfig = loadDatabaseConfig();
     DepartmentsController,
   ],
   providers: [
+    MembersRepository,
+    MembersService,
+    MemberOrganizationGuard,
+    MemberPolicy,
+    MemberReader,
+    MemberListRepository,
+    MemberAccountService,
+    MemberCredentials,
     AuthRepository,
     AuthService,
     IdentitiesRepository,

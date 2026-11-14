@@ -1,6 +1,5 @@
 import {
   appDefinitions,
-  type DataScopeOption,
   type PresetFeatureGrant,
 } from "@smart-sport/contracts";
 import { expandGrant } from "@smart-sport/domain";
@@ -21,36 +20,10 @@ export const roleFeatures = appDefinitions.flatMap((app) =>
     identityTypes: [...app.identityTypes] as string[],
   })),
 );
-const rank: Record<DataScopeOption, number> = {
-  personal: 0,
-  dept: 1,
-  dept_and_below: 2,
-  all: 3,
-};
 export const organizationIdentityTypes = (orgType: RoleActor["orgType"]) =>
   orgType === "school" ? ["school", "teacher"] : [orgType];
 
-/** 每项动作分别比较授予它的数据范围，不能借用其他权限的较宽范围。 */
-export function withinRoleCeiling(
-  grants: PresetFeatureGrant[],
-  scope: DataScopeOption,
-  permissions: RoleActor["permissions"],
-) {
-  if (
-    rank[scope] > Math.max(-1, ...[...permissions.values()].map((v) => rank[v]))
-  )
-    return false;
-  return grants.every((entry) => {
-    const feature = roleFeatures.find(
-      (value) => value.app === entry.app && value.feature === entry.feature,
-    );
-    if (!feature) return false;
-    return expandGrant(feature, entry.grant).every((code) => {
-      const allowed = permissions.get(code);
-      return allowed !== undefined && rank[allowed] >= rank[scope];
-    });
-  });
-}
+export { withinRoleCeiling } from "@smart-sport/domain";
 
 export function grantsFitIdentity(
   grants: PresetFeatureGrant[],

@@ -1,5 +1,5 @@
 import "reflect-metadata";
-import { generateKeyPairSync } from "node:crypto";
+import { generateKeyPairSync, randomBytes } from "node:crypto";
 import { APP_FILTER, APP_INTERCEPTOR } from "@nestjs/core";
 import { Test } from "@nestjs/testing";
 import type { ServerConfig } from "@smart-sport/config/env";
@@ -24,6 +24,11 @@ import { migratePublic } from "../../src/database/migrate.js";
 import { DRIZZLE } from "../../src/database/registry.js";
 import { IdempotencyInterceptor } from "../../src/idempotency.js";
 import { AccessTokenSigner } from "../../src/infra/auth/access-token-signer.js";
+import { MemberCredentials } from "../../src/infra/crypto/member-credentials.js";
+import { PasswordHasher } from "../../src/infra/crypto/password-hasher.js";
+import { AuthController } from "../../src/modules/platform/auth/auth.controller.js";
+import { AuthRepository } from "../../src/modules/platform/auth/auth.repository.js";
+import { AuthService } from "../../src/modules/platform/auth/index.js";
 import { syncCatalog } from "../../src/modules/platform/catalog/catalog-sync.js";
 import {
   DepartmentOrganizationGuard,
@@ -33,6 +38,21 @@ import {
   DepartmentsRepository,
   DepartmentsService,
 } from "../../src/modules/platform/departments/index.js";
+import {
+  IdentitiesController,
+  IdentitiesRepository,
+  IdentitiesService,
+} from "../../src/modules/platform/identities/index.js";
+import {
+  MemberAccountService,
+  MemberListRepository,
+  MemberOrganizationGuard,
+  MemberPolicy,
+  MemberReader,
+  MembersController,
+  MembersRepository,
+  MembersService,
+} from "../../src/modules/platform/members/index.js";
 import {
   CompanyOrganizationGuard,
   OrganizationsController,
@@ -55,7 +75,7 @@ import { requestContextMiddleware } from "../../src/request-context.js";
 import { SERVER_CONFIG } from "../../src/server-config.js";
 import { authentication } from "./authentication.js";
 
-export async function roleManagementFixture() {
+export async function roleManagementFixture(withAuth = false) {
   const postgres = await new PostgreSqlContainer(
     "postgres:17.11-alpine3.23",
   ).start();
@@ -68,6 +88,8 @@ export async function roleManagementFixture() {
   const pair = generateKeyPairSync("ed25519");
   const config = {
     NODE_ENV: "test",
+    FIELD_ENCRYPTION_KEY: randomBytes(32).toString("base64"),
+    STUDENT_HMAC_KEY: randomBytes(32).toString("base64"),
     JWT_PRIVATE_KEY: pair.privateKey
       .export({ format: "der", type: "pkcs8" })
       .toString("base64"),
@@ -77,6 +99,8 @@ export async function roleManagementFixture() {
   const module = await Test.createTestingModule({
     imports: [ClsModule.forRoot({ global: true })],
     controllers: [
+      ...(withAuth ? [AuthController, IdentitiesController] : []),
+      MembersController,
       RoleManagementController,
       PresetRolesController,
       OrganizationsController,
@@ -84,6 +108,18 @@ export async function roleManagementFixture() {
     ],
     providers: [
       ...security.providers,
+      ...(withAuth
+        ? [AuthRepository, AuthService, IdentitiesRepository, IdentitiesService]
+        : []),
+      MembersRepository,
+      MembersService,
+      MemberOrganizationGuard,
+      MemberPolicy,
+      MemberReader,
+      MemberListRepository,
+      MemberAccountService,
+      MemberCredentials,
+      PasswordHasher,
       RoleManagementRepository,
       RoleManagementService,
       RoleReader,
@@ -206,6 +242,7 @@ export async function roleManagementFixture() {
   };
   return {
     pool,
+    base,
     config: security.config,
     app,
     admin,

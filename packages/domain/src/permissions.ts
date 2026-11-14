@@ -79,6 +79,39 @@ export type FeatureGrantEntry = {
   grant: FeatureGrant;
 };
 
+/** 每项动作分别比较授予它的数据范围，不能借用其他权限的较宽范围。 */
+export function withinRoleCeiling(
+  grants: readonly FeatureGrantEntry[],
+  scope: DataScopeOption,
+  permissions: ReadonlyMap<string, DataScopeOption>,
+) {
+  if (
+    scopeRank[scope] >
+    Math.max(-1, ...[...permissions.values()].map((v) => scopeRank[v]))
+  )
+    return false;
+  return grants.every((entry) => {
+    const app = appDefinitions.find((value) => value.code === entry.app);
+    const definition =
+      app &&
+      Object.entries(app.features).find(
+        ([code]) => code === entry.feature,
+      )?.[1];
+    if (!definition) return false;
+    return expandGrant(
+      {
+        app: entry.app,
+        feature: entry.feature,
+        actions: [...definition.actions],
+      },
+      entry.grant,
+    ).every((code) => {
+      const allowed = permissions.get(code);
+      return allowed !== undefined && scopeRank[allowed] >= scopeRank[scope];
+    });
+  });
+}
+
 const grantKey = (entry: Pick<FeatureGrantEntry, "app" | "feature">) =>
   `${entry.app}:${entry.feature}`;
 

@@ -50,6 +50,15 @@ export const selectIdentityResponseSchema = z.object({
 });
 
 export type IdentityType = z.infer<typeof identityTypeSchema>;
+export const identityTypeNames: Record<IdentityType, string> = {
+  company: "公司",
+  bureau: "教育局",
+  agent: "代理商",
+  school: "学校管理员",
+  teacher: "教师",
+  student: "学生",
+  parent: "家长",
+};
 export type IdentitySummary = z.infer<typeof identitySummarySchema>;
 export type IdentityList = z.infer<typeof identityListSchema>;
 export type SelectIdentityRequest = z.infer<typeof selectIdentityRequestSchema>;

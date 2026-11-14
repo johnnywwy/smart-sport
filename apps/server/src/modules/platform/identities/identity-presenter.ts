@@ -1,14 +1,10 @@
-import type { IdentitySummary, IdentityType } from "@smart-sport/contracts";
+import {
+  type IdentitySummary,
+  type IdentityType,
+  identityTypeNames,
+} from "@smart-sport/contracts";
 
-export const identityTypeNames: Record<IdentityType, string> = {
-  company: "公司",
-  bureau: "教育局",
-  agent: "代理商",
-  school: "学校管理员",
-  teacher: "教师",
-  student: "学生",
-  parent: "家长",
-};
+export { identityTypeNames } from "@smart-sport/contracts";
 
 export const identityGroupNames = {
   company: "公司",
