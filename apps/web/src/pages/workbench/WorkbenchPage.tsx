@@ -1,6 +1,7 @@
 import { moduleCodeSchema } from "@smart-sport/contracts";
 import { Navigate, useLocation, useParams } from "react-router";
 import { DepartmentsPage } from "../../apps/organization/departments";
+import { MembersWorkspace } from "../../apps/organization/members";
 import { OrganizationRolesPage } from "../../apps/organization/roles";
 import { PresetRolesPage } from "../../apps/system/preset-roles";
 import { ModuleLayout } from "../../layouts/module-layout/ModuleLayout";
@@ -52,7 +53,8 @@ export function WorkbenchPage() {
       contentPadding={
         selected?.key === "preset-roles" ||
         selected?.key === "roles" ||
-        selected?.key === "departments"
+        selected?.key === "departments" ||
+        selected?.key === "members"
           ? "compact"
           : "default"
       }
@@ -75,7 +77,20 @@ export function WorkbenchPage() {
         module.code === "platform-admin" ? (
         <PresetRolesPage key={identity.id} identityId={identity.id} />
       ) : selected?.key === "departments" && module.code === "base" ? (
-        <DepartmentsPage key={identity.id} identity={identity} />
+        <DepartmentsPage
+          key={identity.id}
+          identity={identity}
+          renderMembers={({ departmentId, departmentName }) => (
+            <MembersWorkspace
+              key={`${identity.id}:${departmentId ?? "root"}`}
+              identity={identity}
+              {...(departmentId ? { departmentId } : {})}
+              departmentName={departmentName}
+            />
+          )}
+        />
+      ) : selected?.key === "members" && module.code === "base" ? (
+        <MembersWorkspace key={identity.id} identity={identity} />
       ) : selected?.key === "roles" && module.code === "base" ? (
         <OrganizationRolesPage key={identity.id} identity={identity} />
       ) : (

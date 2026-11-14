@@ -1,0 +1,20 @@
+.member-created-dialog {
+  padding: 24px;
+  border-radius: 24px;
+}
+.member-created-dialog p {
+  font-size: 14px;
+  line-height: 1.6;
+}
+.member-initial-password {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  border-radius: 12px;
+  background: #f5f5f5;
+}
+.member-initial-password strong {
+  font-size: 20px;
+  letter-spacing: 2px;
+}

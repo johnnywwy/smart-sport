@@ -1,0 +1,21 @@
+.members-workspace {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.members-layout {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 16px;
+  min-width: 0;
+}
+.members-options-error {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  color: #a52a32;
+  font-size: 13px;
+}

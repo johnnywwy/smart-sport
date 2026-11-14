@@ -1,0 +1,44 @@
+.batch-members-dialog {
+  width: 560px;
+  max-width: 90vw;
+  padding: 24px;
+  border-radius: 24px;
+}
+.batch-members-header {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+.batch-members-header .button {
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  border-radius: 50%;
+  font-size: 24px;
+}
+.batch-members-dialog p {
+  font-size: 13px;
+  color: #63636b;
+  line-height: 1.6;
+}
+.batch-members-result {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  font-size: 14px;
+}
+.batch-members-result > div:not(.batch-members-actions) {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px;
+  background: #fdf0f1;
+  border-radius: 10px;
+  color: #a52a32;
+}
+.batch-members-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}

@@ -1,0 +1,27 @@
+.member-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+.member-editor-heading h2 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 600;
+}
+.member-editor-heading p {
+  margin: 3px 0 0;
+  font-size: 13px;
+  color: #63636b;
+}
+.member-other-identities {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: #63636b;
+  font-size: 13px;
+}
+.member-other-identities p {
+  margin: 0;
+  font-size: 12px;
+}

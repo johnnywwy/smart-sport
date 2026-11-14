@@ -1,6 +1,6 @@
 import { Button, Spinner } from "@heroui/react";
 import type { Department, IdentitySummary } from "@smart-sport/contracts";
-import { useState } from "react";
+import { type ReactNode, useState } from "react";
 import { DeleteDepartmentDialog } from "../components/delete-department-dialog/DeleteDepartmentDialog";
 import { DepartmentDetail } from "../components/department-detail/DepartmentDetail";
 import {
@@ -16,7 +16,16 @@ import {
 } from "../department-state";
 import { useDepartments } from "../hooks/use-departments";
 import "./DepartmentsPage.css";
-export function DepartmentsPage({ identity }: { identity: IdentitySummary }) {
+export function DepartmentsPage({
+  identity,
+  renderMembers,
+}: {
+  identity: IdentitySummary;
+  renderMembers: (context: {
+    departmentId?: string;
+    departmentName: string;
+  }) => ReactNode;
+}) {
   const data = useDepartments(identity.id);
   const [selectedId, setSelectedId] = useState<string>();
   const [draft, setDraft] = useState<DepartmentDraft | null>(null);
@@ -73,6 +82,16 @@ export function DepartmentsPage({ identity }: { identity: IdentitySummary }) {
               data={tree}
               orgName={identity.orgName}
               busy={data.busy}
+              membersContent={renderMembers({
+                ...(selected && selected !== organizationRoot
+                  ? { departmentId: selected }
+                  : {}),
+                departmentName:
+                  selected === unassignedDepartment
+                    ? "未分配部门"
+                    : (rows.find((row) => row.id === selected)?.name ??
+                      identity.orgName),
+              })}
               onEdit={(department) => setDraft({ kind: "edit", department })}
               onDelete={setDeletion}
             />

@@ -1,0 +1,19 @@
+.add-department-members {
+  width: 760px;
+  max-width: 94vw;
+  padding: 24px;
+  border-radius: 24px;
+}
+.add-department-header {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+.add-department-header .button {
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  border-radius: 50%;
+  font-size: 24px;
+}

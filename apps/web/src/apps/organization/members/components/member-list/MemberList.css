@@ -1,0 +1,35 @@
+.member-list {
+  flex: 999 1 520px;
+  min-width: 0;
+}
+.member-name-button {
+  padding: 0;
+  min-width: 0;
+  height: auto;
+  min-height: 0;
+  color: #18181b;
+  font-size: 14px;
+  font-weight: 500;
+  justify-content: flex-start;
+}
+.member-role-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.member-warning-chip {
+  background: #fef2de;
+  color: #8d6320;
+}
+.member-danger-chip {
+  background: #fde1e3;
+  color: #a52a32;
+}
+.member-enabled-chip {
+  background: #dcf7e8;
+  color: #177d45;
+}
+.member-disabled-chip {
+  background: #ebebec;
+  color: #63636b;
+}

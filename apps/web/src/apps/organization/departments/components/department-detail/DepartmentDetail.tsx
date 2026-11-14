@@ -1,6 +1,6 @@
 import { Button, Chip, Tabs } from "@heroui/react";
 import type { DepartmentNode, DepartmentTree } from "@smart-sport/contracts";
-import { useState } from "react";
+import { type ReactNode, useState } from "react";
 import {
   departmentPath,
   flattenDepartments,
@@ -20,6 +20,7 @@ export function DepartmentDetail({
   data,
   orgName,
   busy,
+  membersContent,
   onEdit,
   onDelete,
 }: {
@@ -27,6 +28,7 @@ export function DepartmentDetail({
   data: DepartmentTree;
   orgName: string;
   busy: boolean;
+  membersContent: ReactNode;
   onEdit: (row: DepartmentNode) => void;
   onDelete: (row: DepartmentNode) => void;
 }) {
@@ -105,26 +107,7 @@ export function DepartmentDetail({
             <Tabs.Indicator />
           </Tabs.Tab>
         </Tabs.List>
-        <Tabs.Panel id="members">
-          <div className="department-detail-unavailable">
-            <svg
-              width="28"
-              height="28"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.6"
-              aria-hidden="true"
-            >
-              <circle cx="9" cy="8" r="3" />
-              <path d="M3 21v-2a6 6 0 0 1 12 0v2M16 5a3 3 0 0 1 0 6m2 4a6 6 0 0 1 3 4v2" />
-            </svg>
-            <strong>成员列表暂未开放</strong>
-            <p>
-              部门人数已按实际成员统计。成员明细与分配功能将在成员管理开放后提供。
-            </p>
-          </div>
-        </Tabs.Panel>
+        <Tabs.Panel id="members">{membersContent}</Tabs.Panel>
         <Tabs.Panel id="scopes">
           <div className="department-detail-unavailable">
             <strong>负责范围配置暂未开放</strong>
