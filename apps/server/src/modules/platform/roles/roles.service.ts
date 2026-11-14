@@ -1,13 +1,18 @@
 import { Inject, Injectable } from "@nestjs/common";
 import {
+  appDefinitions,
   type DataScopeOption,
   dataScopeSchema,
   type FeatureGrant,
   grantSchema,
   presetFeatureGrantSchema,
 } from "@smart-sport/contracts";
-import { type FeatureGrantEntry, resolveRoleGrants } from "@smart-sport/domain";
-import { RolesRepository } from "./roles.repository.js";
+import {
+  type FeatureGrantEntry,
+  mergePermissions,
+  resolveRoleGrants,
+} from "@smart-sport/domain";
+import { type RoleReadDatabase, RolesRepository } from "./roles.repository.js";
 
 function rowGrant(row: {
   level: string;
@@ -26,24 +31,49 @@ export class RolesService {
     @Inject(RolesRepository) private readonly repository: RolesRepository,
   ) {}
 
+  /** 权限检查和写事务共用最终档位展开逻辑，事务内不读取外部缓存。 */
+  async permissions(roleIds: string[], db?: RoleReadDatabase) {
+    const grants = await this.resolve(roleIds, db);
+    const definitions = appDefinitions.flatMap((app) =>
+      Object.entries(app.features).map(([feature, definition]) => ({
+        app: app.code,
+        feature,
+        actions: [...definition.actions],
+      })),
+    );
+    return mergePermissions(
+      grants.flatMap((entry) => {
+        const feature = definitions.find(
+          (definition) =>
+            definition.app === entry.app &&
+            definition.feature === entry.feature,
+        );
+        return feature
+          ? [{ feature, grant: entry.grant, scope: entry.scope }]
+          : [];
+      }),
+    );
+  }
+
   /** 加载身份角色的最终档位；自定义角色未调整模块时跟随基础角色。 */
   async resolve(
     roleIds: string[],
+    db?: RoleReadDatabase,
   ): Promise<
     (FeatureGrantEntry & { roleId: string; scope: DataScopeOption })[]
   > {
-    const assignedRoles = await this.repository.findRoles(roleIds);
+    const assignedRoles = await this.repository.findRoles(roleIds, db);
     const baseIds = assignedRoles.flatMap((role) =>
       role.baseRoleId ? [role.baseRoleId] : [],
     );
-    const bases = await this.repository.findRoles(baseIds);
+    const bases = await this.repository.findRoles(baseIds, db);
     const validBases = new Map(
       bases
         .filter((role) => role.kind === "preset")
         .map((role) => [role.id, role]),
     );
     const allRoleIds = [...new Set([...roleIds, ...baseIds])];
-    const grants = await this.repository.grants(allRoleIds);
+    const grants = await this.repository.grants(allRoleIds, db);
     const byRole = new Map<string, FeatureGrantEntry[]>();
     for (const row of grants) {
       const entries = byRole.get(row.roleId) ?? [];
@@ -54,7 +84,7 @@ export class RolesService {
       });
       byRole.set(row.roleId, entries);
     }
-    const templates = await this.repository.templateOverrides(allRoleIds);
+    const templates = await this.repository.templateOverrides(allRoleIds, db);
     const preset = new Map(
       [...assignedRoles, ...bases]
         .filter((r) => r.kind === "preset")

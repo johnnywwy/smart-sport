@@ -8,13 +8,15 @@ import {
   roles,
 } from "../../../schema/public.js";
 
+export type RoleReadDatabase = Pick<NodePgDatabase, "select">;
+
 @Injectable()
 export class RolesRepository {
   constructor(@Inject(DRIZZLE) private readonly db: NodePgDatabase) {}
 
-  async findRoles(ids: string[]) {
+  async findRoles(ids: string[], db: RoleReadDatabase = this.db) {
     if (!ids.length) return [];
-    return this.db
+    return db
       .select()
       .from(roles)
       .where(
@@ -26,17 +28,17 @@ export class RolesRepository {
       );
   }
 
-  grants(roleIds: string[]) {
+  grants(roleIds: string[], db: RoleReadDatabase = this.db) {
     if (!roleIds.length) return [];
-    return this.db
+    return db
       .select()
       .from(roleGrants)
       .where(inArray(roleGrants.roleId, roleIds));
   }
 
-  templateOverrides(roleIds: string[]) {
+  templateOverrides(roleIds: string[], db: RoleReadDatabase = this.db) {
     if (!roleIds.length) return [];
-    return this.db
+    return db
       .select()
       .from(presetRoleOverrides)
       .where(inArray(presetRoleOverrides.roleId, roleIds));

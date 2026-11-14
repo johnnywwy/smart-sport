@@ -6,6 +6,7 @@ import type {
 } from "@smart-sport/contracts";
 import { ApiException } from "../../../api-response.js";
 import { IdentityContextService } from "../identity-context/index.js";
+import { AdministratorService } from "../roles/index.js";
 import {
   PresetRolesRepository,
   type TemplateTransaction,
@@ -33,6 +34,8 @@ export type TemplateMetadata = {
 @Injectable()
 export class PresetRolesService {
   constructor(
+    @Inject(AdministratorService)
+    private readonly administrators: AdministratorService,
     @Inject(PresetRolesRepository)
     private readonly repository: PresetRolesRepository,
     @Inject(IdentityContextService)
@@ -180,6 +183,10 @@ export class PresetRolesService {
     metadata: TemplateMetadata,
     action: string,
   ) {
+    const protectedOrgs = await this.administrators.beforeRoleChange(
+      tx,
+      row.role.id,
+    );
     const base = defaults(await this.repository.grants(tx, [row.role.id]));
     const before = effective(row, base);
     const grants = differences(base, input.grants);
@@ -200,6 +207,7 @@ export class PresetRolesService {
       ))
     )
       throw new ApiException(90002);
+    await this.administrators.assertRetained(tx, protectedOrgs);
     await this.repository.audit(tx, {
       userId: actor.userId,
       identityId: actor.identityId,

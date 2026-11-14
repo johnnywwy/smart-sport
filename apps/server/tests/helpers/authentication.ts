@@ -14,6 +14,8 @@ import {
   IdentityContextService,
 } from "../../src/modules/platform/identity-context/index.js";
 import {
+  AdministratorRepository,
+  AdministratorService,
   RolesRepository,
   RolesService,
 } from "../../src/modules/platform/roles/index.js";
@@ -38,6 +40,8 @@ export async function authentication(config: ServerConfig) {
       AuthContextService,
       ContextRepository,
       IdentityContextService,
+      AdministratorRepository,
+      AdministratorService,
       RolesRepository,
       RolesService,
     ],

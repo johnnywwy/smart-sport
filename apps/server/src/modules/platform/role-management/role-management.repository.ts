@@ -4,9 +4,12 @@ import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 import { DRIZZLE } from "../../../database/registry.js";
 import {
   auditLogs,
+  identities,
+  identityRoles,
   presetRoleOverrides,
   roleGrants,
   roles,
+  users,
 } from "../../../schema/public.js";
 import { organizationIdentityTypes, type RoleActor } from "./role-policy.js";
 
@@ -25,6 +28,32 @@ export class RoleManagementRepository {
       await tx.execute(sql`SELECT pg_advisory_xact_lock(1936749167, 41)`);
       return fn(tx);
     });
+  }
+  assignedRoles(tx: RoleTransaction, actor: RoleActor) {
+    return tx
+      .select({ id: roles.id })
+      .from(identities)
+      .innerJoin(users, eq(users.id, identities.userId))
+      .innerJoin(identityRoles, eq(identityRoles.identityId, identities.id))
+      .innerJoin(roles, eq(roles.id, identityRoles.roleId))
+      .where(
+        and(
+          eq(identities.id, actor.identityId),
+          eq(identities.userId, actor.userId),
+          eq(identities.orgId, actor.orgId),
+          eq(identities.status, 1),
+          isNull(identities.deletedAt),
+          eq(users.status, 1),
+          isNull(users.deletedAt),
+          eq(roles.status, 1),
+          isNull(roles.deletedAt),
+          eq(roles.identityType, identities.type),
+          or(
+            and(eq(roles.kind, "preset"), isNull(roles.orgId)),
+            and(eq(roles.kind, "custom"), eq(roles.orgId, actor.orgId)),
+          ),
+        ),
+      );
   }
   list(tx: RoleTransaction, actor: RoleActor) {
     return tx

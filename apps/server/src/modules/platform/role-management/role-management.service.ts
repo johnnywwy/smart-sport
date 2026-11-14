@@ -9,6 +9,7 @@ import { diffRoleGrants } from "@smart-sport/domain";
 import { v7 } from "uuid";
 import { ApiException } from "../../../api-response.js";
 import { IdentityContextService } from "../identity-context/index.js";
+import { AdministratorService, RolesService } from "../roles/index.js";
 import {
   RoleManagementRepository,
   type RoleTransaction,
@@ -24,6 +25,9 @@ import { RoleReader } from "./role-reader.js";
 @Injectable()
 export class RoleManagementService {
   constructor(
+    @Inject(RolesService) private readonly roles: RolesService,
+    @Inject(AdministratorService)
+    private readonly administrators: AdministratorService,
     @Inject(RoleManagementRepository)
     private readonly repository: RoleManagementRepository,
     @Inject(RoleReader) private readonly reader: RoleReader,
@@ -53,6 +57,7 @@ export class RoleManagementService {
   /** 基于内置角色创建，不复制授权行，后续继续继承模板最终值。 */
   async create(input: CreateRole, actor: RoleActor, metadata: RoleMetadata) {
     const result = await this.repository.transaction(async (tx) => {
+      actor = await this.currentActor(tx, actor, "org:role:create");
       const base = await this.load(tx, input.baseRoleId, actor);
       if (base.kind !== "preset") throw new ApiException(90004);
       const values = await this.reader.values(tx, actor, base);
@@ -103,6 +108,7 @@ export class RoleManagementService {
     reset: boolean,
   ) {
     const result = await this.repository.transaction(async (tx) => {
+      actor = await this.currentActor(tx, actor, "org:role:update");
       const row = await this.load(tx, id, actor);
       if (row.kind !== "custom") throw new ApiException(11105);
       if (actor.roleIds.includes(id)) throw new ApiException(11103);
@@ -117,6 +123,7 @@ export class RoleManagementService {
         !grantsFitIdentity(grants, row.identityType)
       )
         throw new ApiException(11102);
+      const protectedOrgs = await this.administrators.beforeRoleChange(tx, id);
       const before = await this.reader.detail(tx, actor, row);
       const updated = await this.repository.update(
         tx,
@@ -137,6 +144,7 @@ export class RoleManagementService {
           actions: entry.grant.level === "custom" ? entry.grant.actions : null,
         })),
       );
+      await this.administrators.assertRetained(tx, protectedOrgs);
       const after = await this.reader.detail(tx, actor, updated);
       await this.audit(
         tx,
@@ -156,6 +164,19 @@ export class RoleManagementService {
     const row = await this.repository.find(tx, actor, id);
     if (!row) throw new ApiException(90004);
     return row;
+  }
+  private async currentActor(
+    tx: RoleTransaction,
+    actor: RoleActor,
+    required: "org:role:create" | "org:role:update",
+  ) {
+    // Guard 在排队取事务锁之前执行；拿锁后重读，避免沿用已撤销的权限或角色绑定。
+    const roleIds = (await this.repository.assignedRoles(tx, actor)).map(
+      (row) => row.id,
+    );
+    const permissions = new Map(await this.roles.permissions(roleIds, tx));
+    if (!permissions.has(required)) throw new ApiException(11101);
+    return { ...actor, roleIds, permissions };
   }
   private audit(
     tx: RoleTransaction,

@@ -76,6 +76,8 @@ import {
   RoleReader,
 } from "./modules/platform/role-management/index.js";
 import {
+  AdministratorRepository,
+  AdministratorService,
   RolesRepository,
   RolesService,
 } from "./modules/platform/roles/index.js";
@@ -149,6 +151,8 @@ const databaseConfig = loadDatabaseConfig();
     PresetRolesRepository,
     PresetRolesService,
     TemplateReader,
+    AdministratorRepository,
+    AdministratorService,
     RolesRepository,
     RolesService,
     RoleManagementRepository,
