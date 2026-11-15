@@ -1,0 +1,22 @@
+.scope-option-check {
+  width: 100%;
+  margin: 0;
+}
+.scope-option-check [data-slot="checkbox-content"] {
+  min-height: 36px;
+  align-items: center;
+}
+.scope-option-check .label {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  font-size: 14px;
+  line-height: 22px;
+  font-weight: 400;
+  overflow-wrap: anywhere;
+}
+.scope-option-check .label small {
+  color: var(--muted);
+  font-size: 12px;
+}

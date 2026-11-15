@@ -1,0 +1,24 @@
+.scope-region-tree {
+  width: 100%;
+}
+.scope-region-tree [data-slot="file-tree-item"] {
+  padding-block: 0;
+  border-radius: 10px;
+}
+.scope-region-tree [data-slot="file-tree-item-content"] {
+  height: auto;
+  min-height: 40px;
+  align-items: center;
+}
+.scope-region-tree [data-slot="file-tree-label"] {
+  flex: 1;
+  min-width: 0;
+  overflow: visible;
+  white-space: normal;
+}
+.scope-region-tree [data-slot="file-tree-icon"]:empty {
+  display: none;
+}
+.scope-region-tree [data-slot="file-tree-item-content"] > button {
+  align-self: center;
+}

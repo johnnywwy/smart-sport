@@ -8,11 +8,13 @@ export function TablePagination({
   total,
   disabled,
   onChange,
+  pageSizes = true,
 }: {
   query: TableQuery;
   total: number;
   disabled: boolean;
   onChange: (patch: Partial<TableQuery>) => void;
+  pageSizes?: boolean;
 }) {
   const pages = Math.max(1, Math.ceil(total / query.pageSize));
   const numbers = tablePageNumbers(query.page, pages);
@@ -20,34 +22,36 @@ export function TablePagination({
     <Pagination className="data-table-pagination" aria-label="列表分页">
       <Pagination.Summary>共 {total.toLocaleString()} 条</Pagination.Summary>
       <div className="data-table-pagination-controls">
-        <Select
-          aria-label="每页条数"
-          value={String(query.pageSize)}
-          onChange={(value) => {
-            if (value !== null) onChange({ pageSize: Number(value) });
-          }}
-          isDisabled={disabled}
-          className="data-table-page-size"
-        >
-          <Select.Trigger>
-            <Select.Value />
-            <Select.Indicator />
-          </Select.Trigger>
-          <Select.Popover>
-            <ListBox>
-              {[10, 20, 50, 100].map((size) => (
-                <ListBox.Item
-                  key={size}
-                  id={String(size)}
-                  textValue={`${size} 条/页`}
-                >
-                  {size} 条/页
-                  <ListBox.ItemIndicator />
-                </ListBox.Item>
-              ))}
-            </ListBox>
-          </Select.Popover>
-        </Select>
+        {pageSizes && (
+          <Select
+            aria-label="每页条数"
+            value={String(query.pageSize)}
+            onChange={(value) => {
+              if (value !== null) onChange({ pageSize: Number(value) });
+            }}
+            isDisabled={disabled}
+            className="data-table-page-size"
+          >
+            <Select.Trigger>
+              <Select.Value />
+              <Select.Indicator />
+            </Select.Trigger>
+            <Select.Popover>
+              <ListBox>
+                {[10, 20, 50, 100].map((size) => (
+                  <ListBox.Item
+                    key={size}
+                    id={String(size)}
+                    textValue={`${size} 条/页`}
+                  >
+                    {size} 条/页
+                    <ListBox.ItemIndicator />
+                  </ListBox.Item>
+                ))}
+              </ListBox>
+            </Select.Popover>
+          </Select>
+        )}
         <Pagination.Content>
           <Pagination.Item>
             <Pagination.Previous

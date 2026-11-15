@@ -1,0 +1,23 @@
+.scope-school-search {
+  --table-muted: var(--muted);
+  --table-accent: var(--accent);
+  --table-on-accent: var(--accent-foreground);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.scope-school-search .search-field {
+  width: 100%;
+}
+.scope-school-search .search-field__group {
+  min-height: 36px;
+  border-radius: 10px;
+  background: var(--surface);
+}
+.scope-school-options > .scope-option-check {
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--separator);
+}
+.scope-school-search .data-table-pagination {
+  font-size: 12px;
+}

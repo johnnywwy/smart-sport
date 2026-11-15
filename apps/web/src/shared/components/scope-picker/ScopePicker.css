@@ -1,0 +1,57 @@
+.scope-picker {
+  min-width: 0;
+  color: var(--foreground);
+  container-type: inline-size;
+}
+.scope-picker-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 240px;
+  gap: 16px;
+  align-items: start;
+  min-width: 0;
+}
+.scope-picker-candidates {
+  min-width: 0;
+  padding: 12px;
+  border-radius: 14px;
+  background: var(--surface-secondary);
+}
+.scope-picker-tabs .tabs__list {
+  width: fit-content;
+  gap: 16px;
+}
+.scope-picker-tabs .tabs__tab {
+  flex: none;
+  width: auto;
+  padding-inline: 0;
+  height: 36px;
+  font-size: 14px;
+}
+.scope-picker-tabs .tabs__tab[data-selected="true"] {
+  color: var(--accent);
+}
+.scope-picker-tabs .tabs__panel {
+  padding: 0;
+  margin-top: 0;
+}
+.scope-region-tree,
+.scope-school-options {
+  max-height: 340px;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+.scope-region-tree::-webkit-scrollbar,
+.scope-school-options::-webkit-scrollbar {
+  display: none;
+}
+.scope-picker-hint {
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.7;
+}
+@container (max-width: 560px) {
+  .scope-picker-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
