@@ -18,7 +18,7 @@ import {
   type IdentityContext,
   IdentityContextService,
 } from "../identity-context/index.js";
-import { ScopeRepository } from "./scope.repository.js";
+import { type ScopeReadDatabase, ScopeRepository } from "./scope.repository.js";
 import { type SchoolMembership, ScopeCache } from "./scope-cache.js";
 
 const empty = (): VisibleScope => ({ kind: "schools", schoolIds: [] });
@@ -36,6 +36,25 @@ export class ScopeService {
   }
   onApplicationShutdown() {
     this.cache.close();
+  }
+
+  /** 配置摘要仅展开所选范围；使用目标组织边界，可与写入共用事务，不混入成员角色或额外范围。 */
+  async countSelection(
+    orgId: string,
+    selections: RawSelection[],
+    db?: ScopeReadDatabase,
+  ) {
+    const org = await this.repository.organization(orgId, db);
+    if (!org || (org.type !== "company" && org.type !== "bureau")) return 0;
+    if (org.type === "bureau" && (!org.regionPath || org.regionStatus !== 1))
+      return 0;
+    return (
+      await this.expand(
+        org.type === "bureau" ? (org.regionPath ?? undefined) : undefined,
+        selections,
+        db,
+      )
+    ).length;
   }
 
   /** 按动作取该权限自己的范围，不接受调用方传入角色范围或旧身份快照。 */
@@ -168,16 +187,27 @@ export class ScopeService {
       extra: [{ kind: "schools", schoolIds: selected }],
     });
   }
-  private expand(boundary: string | undefined, selections: RawSelection[]) {
+  private expand(
+    boundary: string | undefined,
+    selections: RawSelection[],
+    db?: ScopeReadDatabase,
+  ) {
     const parsed = selections.flatMap((s) => {
       const result = extraScopeSchema.safeParse(s);
       return result.success ? [result.data] : [];
     });
-    return this.repository.schools(boundary, {
-      schoolIds: parsed.filter((s) => s.type === "school").map((s) => s.value),
-      regionCodes: parsed
-        .filter((s) => s.type === "region")
-        .map((s) => s.value),
-    });
+    return this.repository.schools(
+      boundary,
+      {
+        schoolIds: parsed
+          .filter((s) => s.type === "school")
+          .map((s) => s.value),
+        regionCodes: parsed
+          .filter((s) => s.type === "region")
+          .map((s) => s.value),
+      },
+      undefined,
+      db,
+    );
   }
 }

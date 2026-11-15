@@ -1,6 +1,11 @@
 export { DepartmentOrganizationGuard } from "./department-organization.guard.js";
 export { DepartmentPresetsService } from "./department-presets.service.js";
+export { DepartmentScopesController } from "./department-scopes.controller.js";
+export { DepartmentScopesRepository } from "./department-scopes.repository.js";
+export { DepartmentScopesService } from "./department-scopes.service.js";
 export { DepartmentStatisticsRepository } from "./department-statistics.repository.js";
 export { DepartmentsController } from "./departments.controller.js";
 export { DepartmentsRepository } from "./departments.repository.js";
 export { DepartmentsService } from "./departments.service.js";
+export { ScopeOptionsController } from "./scope-options.controller.js";
+export { ScopeOptionsRepository } from "./scope-options.repository.js";

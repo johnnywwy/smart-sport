@@ -31,10 +31,15 @@ import { AuthService } from "./modules/platform/auth/auth.service.js";
 import {
   DepartmentOrganizationGuard,
   DepartmentPresetsService,
+  DepartmentScopesController,
+  DepartmentScopesRepository,
+  DepartmentScopesService,
   DepartmentStatisticsRepository,
   DepartmentsController,
   DepartmentsRepository,
   DepartmentsService,
+  ScopeOptionsController,
+  ScopeOptionsRepository,
 } from "./modules/platform/departments/index.js";
 import {
   IdentitiesController,
@@ -147,6 +152,8 @@ const databaseConfig = loadDatabaseConfig();
     PresetRolesController,
     RoleManagementController,
     DepartmentsController,
+    DepartmentScopesController,
+    ScopeOptionsController,
   ],
   providers: [
     ScopeRepository,
@@ -192,6 +199,9 @@ const databaseConfig = loadDatabaseConfig();
     RoleManagementService,
     RoleReader,
     DepartmentsRepository,
+    DepartmentScopesRepository,
+    DepartmentScopesService,
+    ScopeOptionsRepository,
     DepartmentsService,
     DepartmentStatisticsRepository,
     DepartmentPresetsService,

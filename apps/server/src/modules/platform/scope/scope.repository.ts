@@ -12,14 +12,16 @@ import {
 } from "../../../schema/public.js";
 
 type Selection = { schoolIds: string[]; regionCodes: string[] };
+/** 范围摘要可以与配置写入共用同一数据库事务。 */
+export type ScopeReadDatabase = Pick<NodePgDatabase, "select">;
 
 @Injectable()
 export class ScopeRepository {
   constructor(@Inject(DRIZZLE) private readonly db: NodePgDatabase) {}
 
-  async organization(orgId: string) {
+  async organization(orgId: string, db: ScopeReadDatabase = this.db) {
     return (
-      await this.db
+      await db
         .select({
           type: organizations.type,
           regionPath: regions.path,
@@ -80,11 +82,16 @@ export class ScopeRepository {
       .from(identityScopes)
       .where(eq(identityScopes.identityId, identityId));
   }
-  schools(boundary: string | undefined, selection?: Selection, id?: string) {
+  schools(
+    boundary: string | undefined,
+    selection?: Selection,
+    id?: string,
+    db: ScopeReadDatabase = this.db,
+  ) {
     const selected = alias(regions, "selected_region");
     const regionSelection = selection?.regionCodes.length
       ? exists(
-          this.db
+          db
             .select({ one: sql`1` })
             .from(selected)
             .where(
@@ -102,7 +109,7 @@ export class ScopeRepository {
     const schoolSelection = selection?.schoolIds.length
       ? inArray(organizations.id, selection.schoolIds)
       : undefined;
-    return this.db
+    return db
       .select({ id: organizations.id })
       .from(organizations)
       .innerJoin(regions, eq(regions.code, organizations.regionCode))

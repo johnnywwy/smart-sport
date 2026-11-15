@@ -33,10 +33,15 @@ import { syncCatalog } from "../../src/modules/platform/catalog/catalog-sync.js"
 import {
   DepartmentOrganizationGuard,
   DepartmentPresetsService,
+  DepartmentScopesController,
+  DepartmentScopesRepository,
+  DepartmentScopesService,
   DepartmentStatisticsRepository,
   DepartmentsController,
   DepartmentsRepository,
   DepartmentsService,
+  ScopeOptionsController,
+  ScopeOptionsRepository,
 } from "../../src/modules/platform/departments/index.js";
 import {
   IdentitiesController,
@@ -114,6 +119,8 @@ export async function roleManagementFixture(withAuth = false) {
       PresetRolesController,
       OrganizationsController,
       DepartmentsController,
+      DepartmentScopesController,
+      ScopeOptionsController,
     ],
     providers: [
       ScopeRepository,
@@ -138,6 +145,9 @@ export async function roleManagementFixture(withAuth = false) {
       RoleManagementService,
       RoleReader,
       DepartmentsRepository,
+      DepartmentScopesRepository,
+      DepartmentScopesService,
+      ScopeOptionsRepository,
       DepartmentsService,
       DepartmentOrganizationGuard,
       DepartmentPresetsService,
