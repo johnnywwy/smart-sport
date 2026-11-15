@@ -75,6 +75,10 @@ import {
   RoleManagementService,
   RoleReader,
 } from "../../src/modules/platform/role-management/index.js";
+import {
+  ScopeRepository,
+  ScopeService,
+} from "../../src/modules/platform/scope/index.js";
 import { requestContextMiddleware } from "../../src/request-context.js";
 import { SERVER_CONFIG } from "../../src/server-config.js";
 import { authentication } from "./authentication.js";
@@ -112,6 +116,8 @@ export async function roleManagementFixture(withAuth = false) {
       DepartmentsController,
     ],
     providers: [
+      ScopeRepository,
+      ScopeService,
       IdentityScopesRepository,
       IdentityScopesService,
       ...security.providers,

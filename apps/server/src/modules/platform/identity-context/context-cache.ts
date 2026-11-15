@@ -54,34 +54,44 @@ export class ContextCache {
 
   private async prune() {
     let cursor = "0";
-    do {
-      const page = await this.redis.scan(
-        cursor,
-        "MATCH",
-        "ctx:*",
-        "COUNT",
-        100,
-      );
-      cursor = page[0];
-      for (const key of page[1]) {
-        if (!/^ctx:[0-9a-f-]{36}$/.test(key)) continue;
-        // 与新缓存写入原子互斥，迟到的广播不能删除新版本。
-        await this.redis.eval(
-          `
+    for (const pattern of ["ctx:*", "scope:*"]) {
+      cursor = "0";
+      do {
+        const page = await this.redis.scan(
+          cursor,
+          "MATCH",
+          pattern,
+          "COUNT",
+          100,
+        );
+        cursor = page[0];
+        for (const key of page[1]) {
+          if (
+            !/^ctx:[0-9a-f-]{36}$/.test(key) &&
+            !/^scope:[0-9a-f-]{36}:(personal|dept|dept_and_below|all)$/.test(
+              key,
+            )
+          )
+            continue;
+          // 与新缓存写入原子互斥，迟到的广播不能删除新版本。
+          await this.redis.eval(
+            `
           local raw = redis.call('GET', KEYS[1])
           if not raw then return 0 end
           local ok, value = pcall(cjson.decode, raw)
           local current = (redis.call('GET', KEYS[2]) or '0') .. ':' .. (redis.call('GET', KEYS[3]) or '0')
-          if not ok or value.revision ~= current then return redis.call('UNLINK', KEYS[1]) end
+          if not ok or type(value) ~= 'table' or value.revision ~= current then return redis.call('UNLINK', KEYS[1], KEYS[4]) end
           return 0
         `,
-          3,
-          key,
-          "ctx:database-revision",
-          revisionKey,
-        );
-      }
-    } while (cursor !== "0");
+            4,
+            key,
+            "ctx:database-revision",
+            revisionKey,
+            `${key}:schools`,
+          );
+        }
+      } while (cursor !== "0");
+    }
   }
 
   async revision() {
@@ -120,7 +130,10 @@ export class ContextCache {
       await this.redis.del(
         ...identityIds.flatMap((id) => [
           `ctx:${id}`,
-          ...dataScopeSchema.options.map((option) => `scope:${id}:${option}`),
+          ...dataScopeSchema.options.flatMap((option) => [
+            `scope:${id}:${option}`,
+            `scope:${id}:${option}:schools`,
+          ]),
         ]),
       );
     await this.redis.publish(channel, JSON.stringify({ identityIds }));

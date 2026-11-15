@@ -76,6 +76,11 @@ export class IdentityContextService {
     identityId: string,
     client: "admin" | "mobile" = "admin",
   ): Promise<IdentityContext> {
+    return (await this.loadSnapshot(identityId, client)).context;
+  }
+
+  /** 范围计算与权限使用同一个稳定版本，避免旧权限搭配新范围。 */
+  async loadSnapshot(identityId: string, client: "admin" | "mobile" = "admin") {
     for (let attempt = 0; attempt < 3; attempt += 1) {
       const dbRevision = await this.repository.revision();
       await this.cache.observeDatabaseRevision(dbRevision);
@@ -101,9 +106,24 @@ export class IdentityContextService {
         ["student", "parent"].includes(context.identityType)
       )
         throw new ApiException(11004);
-      return { ...context, client, permissions: new Map(context.permissions) };
+      return {
+        revision,
+        context: {
+          ...context,
+          client,
+          permissions: new Map(context.permissions),
+        },
+      };
     }
     throw new ServiceUnavailableException("身份正在变更，请重试");
+  }
+
+  /** 数据库是最终屏障，广播或 Redis 清理失败也不能返回提交前的旧结果。 */
+  async isCurrent(revision: string) {
+    return (
+      revision ===
+      `${await this.repository.revision()}:${await this.cache.revision()}`
+    );
   }
 
   private async build(identityId: string) {

@@ -95,6 +95,10 @@ import {
   RolesRepository,
   RolesService,
 } from "./modules/platform/roles/index.js";
+import {
+  ScopeRepository,
+  ScopeService,
+} from "./modules/platform/scope/index.js";
 import { RateLimitGuard } from "./rate-limit.js";
 import { requestContextMiddleware } from "./request-context.js";
 import { SERVER_CONFIG } from "./server-config.js";
@@ -145,6 +149,8 @@ const databaseConfig = loadDatabaseConfig();
     DepartmentsController,
   ],
   providers: [
+    ScopeRepository,
+    ScopeService,
     IdentityScopesRepository,
     IdentityScopesService,
     MembersRepository,
