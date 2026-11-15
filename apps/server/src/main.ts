@@ -47,6 +47,9 @@ import {
   IdentityContextService,
 } from "./modules/platform/identity-context/index.js";
 import {
+  IdentityScopesController,
+  IdentityScopesRepository,
+  IdentityScopesService,
   MemberAccountService,
   MemberListRepository,
   MemberOptionsService,
@@ -129,6 +132,7 @@ const databaseConfig = loadDatabaseConfig();
     }),
   ],
   controllers: [
+    IdentityScopesController,
     MembersController,
     HealthController,
     AuthController,
@@ -141,6 +145,8 @@ const databaseConfig = loadDatabaseConfig();
     DepartmentsController,
   ],
   providers: [
+    IdentityScopesRepository,
+    IdentityScopesService,
     MembersRepository,
     MembersService,
     MemberOrganizationGuard,

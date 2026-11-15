@@ -1,3 +1,6 @@
+export { IdentityScopesController } from "./identity-scopes.controller.js";
+export { IdentityScopesRepository } from "./identity-scopes.repository.js";
+export { IdentityScopesService } from "./identity-scopes.service.js";
 export { MemberAccountService } from "./member-account.service.js";
 export { MemberListRepository } from "./member-list.repository.js";
 export { MemberOptionsService } from "./member-options.service.js";

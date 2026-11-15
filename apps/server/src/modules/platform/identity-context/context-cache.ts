@@ -1,3 +1,4 @@
+import { dataScopeSchema } from "@smart-sport/contracts";
 import { Redis } from "ioredis";
 
 const revisionKey = "ctx:revision";
@@ -116,7 +117,12 @@ export class ContextCache {
     // 先推进屏障，加载中的旧结果就无法重新写回。全局失效不使用 KEYS 阻塞 Redis。
     await this.redis.incr(revisionKey);
     if (identityIds.length)
-      await this.redis.del(...identityIds.map((id) => `ctx:${id}`));
+      await this.redis.del(
+        ...identityIds.flatMap((id) => [
+          `ctx:${id}`,
+          ...dataScopeSchema.options.map((option) => `scope:${id}:${option}`),
+        ]),
+      );
     await this.redis.publish(channel, JSON.stringify({ identityIds }));
   }
 

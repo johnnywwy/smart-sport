@@ -44,6 +44,9 @@ import {
   IdentitiesService,
 } from "../../src/modules/platform/identities/index.js";
 import {
+  IdentityScopesController,
+  IdentityScopesRepository,
+  IdentityScopesService,
   MemberAccountService,
   MemberListRepository,
   MemberOptionsService,
@@ -100,6 +103,7 @@ export async function roleManagementFixture(withAuth = false) {
   const module = await Test.createTestingModule({
     imports: [ClsModule.forRoot({ global: true })],
     controllers: [
+      IdentityScopesController,
       ...(withAuth ? [AuthController, IdentitiesController] : []),
       MembersController,
       RoleManagementController,
@@ -108,6 +112,8 @@ export async function roleManagementFixture(withAuth = false) {
       DepartmentsController,
     ],
     providers: [
+      IdentityScopesRepository,
+      IdentityScopesService,
       ...security.providers,
       ...(withAuth
         ? [AuthRepository, AuthService, IdentitiesRepository, IdentitiesService]
