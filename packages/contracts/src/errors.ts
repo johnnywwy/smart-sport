@@ -40,6 +40,7 @@ export const organizationErrors = {
   12001: { status: 409, message: "部门名称在同级已存在" },
   12002: { status: 409, message: "部门下还有成员或子部门，不能删除" },
   12003: { status: 409, message: "不能把部门移到自己或自己的下级" },
+  12004: { status: 422, message: "负责范围超出本组织可见范围" },
   12007: { status: 403, message: "预置部门不可删除" },
 } as const;
 

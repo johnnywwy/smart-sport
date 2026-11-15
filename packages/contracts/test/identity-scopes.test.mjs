@@ -5,6 +5,7 @@ import {
   setIdentityScopesExample,
 } from "../dist/identity-scope-examples.js";
 import {
+  apiErrors,
   extraScopeSchema,
   identityScopesSchema,
   setIdentityScopesSchema,
@@ -69,4 +70,9 @@ test("范围示例可通过共享契约，不以格式合法代表外边界校�
     identityScopesSchema.parse(identityScopesExample),
     identityScopesExample,
   );
+});
+
+test("不可用的范围类型有明确的业务错误，隐藏范围值沿用404", () => {
+  assert.equal(apiErrors[12004].status, 422);
+  assert.equal(apiErrors[90004].status, 404);
 });
