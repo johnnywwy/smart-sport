@@ -9,6 +9,16 @@ const config = {
   STUDENT_HMAC_KEY: randomBytes(32).toString("base64"),
 } as ServerConfig;
 describe("成员初始凭证", () => {
+  it("档案联系电话支持固定电话脱敏，短号码不能暴露全部数字", () => {
+    const credentials = new MemberCredentials(config);
+    expect(
+      credentials.maskedContactPhone(credentials.encryptPhone("0571-12345678")),
+    ).toBe("057****5678");
+    expect(
+      credentials.maskedContactPhone(credentials.encryptPhone("12345")),
+    ).toBe("****45");
+    expect(credentials.maskedContactPhone(null)).toBeNull();
+  });
   it("开发和测试使用约定初值，生产使用12位字母数字随机密码", () => {
     expect(new MemberCredentials(config).initialPassword()).toBe("123456");
     const production = new MemberCredentials({

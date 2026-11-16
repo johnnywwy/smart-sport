@@ -15,11 +15,14 @@ import { z } from "zod";
 import { invalidRequest } from "./api-response.js";
 
 export class ZodRoutePipe implements PipeTransform {
-  constructor(private readonly schema: z.ZodType) {}
+  constructor(
+    private readonly schema: z.ZodType,
+    private readonly onInvalid = invalidRequest,
+  ) {}
 
   async transform(value: unknown) {
     const result = await this.schema.safeParseAsync(value);
-    if (!result.success) throw invalidRequest(result.error.issues);
+    if (!result.success) throw this.onInvalid(result.error.issues);
     return result.data;
   }
 }
@@ -66,8 +69,9 @@ function openApiSchema(
 export function ZodRequest(
   source: "body" | "query" | "params",
   schema: z.ZodType,
+  onInvalid?: typeof invalidRequest,
 ): ParameterDecorator {
-  const pipe = new ZodRoutePipe(schema);
+  const pipe = new ZodRoutePipe(schema, onInvalid);
   const binding =
     source === "body"
       ? Body(pipe)

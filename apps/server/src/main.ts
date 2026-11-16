@@ -100,6 +100,13 @@ import {
   RolesService,
 } from "./modules/platform/roles/index.js";
 import {
+  SchoolProfileGuard,
+  SchoolProfilePolicy,
+  SchoolProfilesController,
+  SchoolProfilesRepository,
+  SchoolProfilesService,
+} from "./modules/platform/school-profiles/index.js";
+import {
   ScopeQueryController,
   ScopeQueryRepository,
   ScopeQueryService,
@@ -147,6 +154,7 @@ const databaseConfig = loadDatabaseConfig();
     }),
   ],
   controllers: [
+    SchoolProfilesController,
     IdentityScopesController,
     MembersController,
     HealthController,
@@ -163,6 +171,10 @@ const databaseConfig = loadDatabaseConfig();
     ScopeQueryController,
   ],
   providers: [
+    SchoolProfileGuard,
+    SchoolProfilePolicy,
+    SchoolProfilesRepository,
+    SchoolProfilesService,
     ScopeQueryRepository,
     ScopeQueryService,
     ScopeRepository,

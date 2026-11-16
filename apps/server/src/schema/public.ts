@@ -485,3 +485,50 @@ export const identityScopes = pgTable(
     ),
   ],
 );
+
+export const schoolProfiles = pgTable(
+  "school_profiles",
+  {
+    schoolId: uuid("school_id")
+      .primaryKey()
+      .references(() => organizations.id),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    createdBy: uuid("created_by"),
+    updatedBy: uuid("updated_by"),
+    deletedAt: timestamp("deleted_at", { withTimezone: true }),
+    version: integer("version").notNull().default(0),
+    schoolCode: varchar("school_code", { length: 10 }).notNull(),
+    stages: smallint("stages").array().notNull(),
+    stageYears: jsonb("stage_years").notNull(),
+    nature: varchar("nature", { length: 2 }).notNull(),
+    address: varchar("address", { length: 500 }),
+    contactName: varchar("contact_name", { length: 64 }),
+    contactPhone: text("contact_phone"),
+    contactPhoneHash: varchar("contact_phone_hash", { length: 64 }),
+  },
+  (t) => [
+    uniqueIndex("school_profiles_code_active_unique")
+      .on(t.schoolCode)
+      .where(sql`${t.deletedAt} IS NULL`),
+    check("school_profiles_version_check", sql`${t.version}>=0`),
+    check("school_profiles_code_check", sql`${t.schoolCode} ~ '^[0-9]{10}$'`),
+    check(
+      "school_profiles_stages_check",
+      sql`public.valid_school_stages(${t.stages},${t.stageYears})`,
+    ),
+    check("school_profiles_nature_check", sql`${t.nature} IN ('公办','民办')`),
+    check(
+      "school_profiles_phone_pair_check",
+      sql`(${t.contactPhone} IS NULL)=(${t.contactPhoneHash} IS NULL)`,
+    ),
+    check(
+      "school_profiles_phone_hash_check",
+      sql`${t.contactPhoneHash} ~ '^[0-9a-f]{64}$'`,
+    ),
+  ],
+);

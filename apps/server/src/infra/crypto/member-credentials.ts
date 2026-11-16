@@ -44,6 +44,19 @@ export class MemberCredentials {
   }
 
   maskedPhone(value: string | null) {
+    const phone = this.decryptPhone(value);
+    return phone === null ? null : `${phone.slice(0, 3)}****${phone.slice(-4)}`;
+  }
+
+  maskedContactPhone(value: string | null) {
+    const phone = this.decryptPhone(value)?.replace(/\D/g, "");
+    if (!phone) return null;
+    return phone.length <= 7
+      ? `****${phone.slice(-2)}`
+      : `${phone.slice(0, 3)}****${phone.slice(-4)}`;
+  }
+
+  private decryptPhone(value: string | null) {
     if (value === null) return null;
     const [version, iv, ciphertext, tag] = value.split(":");
     if (version !== "v1" || !iv || !ciphertext || !tag)
@@ -58,6 +71,6 @@ export class MemberCredentials {
       decipher.update(Buffer.from(ciphertext, "base64")),
       decipher.final(),
     ]).toString("utf8");
-    return `${phone.slice(0, 3)}****${phone.slice(-4)}`;
+    return phone;
   }
 }

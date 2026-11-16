@@ -80,6 +80,13 @@ import {
   RoleReader,
 } from "../../src/modules/platform/role-management/index.js";
 import {
+  SchoolProfileGuard,
+  SchoolProfilePolicy,
+  SchoolProfilesController,
+  SchoolProfilesRepository,
+  SchoolProfilesService,
+} from "../../src/modules/platform/school-profiles/index.js";
+import {
   ScopeQueryController,
   ScopeQueryRepository,
   ScopeQueryService,
@@ -118,6 +125,7 @@ export async function roleManagementFixture(withAuth = false) {
   const module = await Test.createTestingModule({
     imports: [ClsModule.forRoot({ global: true })],
     controllers: [
+      SchoolProfilesController,
       IdentityScopesController,
       ...(withAuth ? [AuthController, IdentitiesController] : []),
       MembersController,
@@ -130,6 +138,10 @@ export async function roleManagementFixture(withAuth = false) {
       ScopeQueryController,
     ],
     providers: [
+      SchoolProfileGuard,
+      SchoolProfilePolicy,
+      SchoolProfilesRepository,
+      SchoolProfilesService,
       ScopeQueryRepository,
       ScopeQueryService,
       ScopeRepository,
