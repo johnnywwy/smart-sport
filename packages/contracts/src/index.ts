@@ -16,5 +16,6 @@ export * from "./permissions.js";
 export * from "./preset-role-management.js";
 export * from "./regions.js";
 export * from "./role-management.js";
+export * from "./school-profiles.js";
 export * from "./scope.js";
 export * from "./scope-queries.js";
