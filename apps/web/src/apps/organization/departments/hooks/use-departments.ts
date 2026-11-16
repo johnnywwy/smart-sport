@@ -54,7 +54,11 @@ export function useDepartments(identityId: string) {
     active.current = controller;
     try {
       const result = await action(context?.signal ?? controller.signal);
-      await client.invalidateQueries({ queryKey: options.queryKey });
+      await Promise.all(
+        ["departments", "scope-details", "scope-visible", "scope-preview"].map(
+          (part) => client.invalidateQueries({ queryKey: [identityId, part] }),
+        ),
+      );
       if (mounted.current) useApiEvents.getState().notifySuccess(message);
       return result;
     } catch (error) {

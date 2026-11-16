@@ -1,0 +1,44 @@
+.scope-workspace {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+.scope-workspace-hint {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--muted);
+}
+.visible-scope-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid var(--separator);
+  border-radius: 14px;
+  font-size: 13px;
+}
+.visible-scope-summary .select {
+  width: 100%;
+}
+.visible-scope-summary-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.visible-scope-summary-row strong {
+  color: var(--success);
+  font-size: 16px;
+}
+.visible-scope-summary p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+.visible-scope-summary .visible-scope-warning {
+  color: var(--danger);
+}

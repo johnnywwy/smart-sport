@@ -1,0 +1,35 @@
+.scope-overview {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  border-radius: 14px;
+  padding: 10px 16px;
+  background: var(--surface-secondary);
+  font-size: 13px;
+}
+.scope-overview-values {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-width: 0;
+}
+.scope-overview-values strong {
+  font-weight: 600;
+  margin-right: 4px;
+}
+.scope-overview-values .chip {
+  background: var(--surface);
+}
+.scope-overview-count {
+  color: var(--success);
+}
+.scope-overview .button {
+  flex: none;
+  height: 36px;
+  border-radius: 999px;
+  color: var(--foreground);
+  background: var(--surface);
+}

@@ -123,3 +123,33 @@ describe("范围候选查询", () => {
     client.clear();
   });
 });
+
+it("本人候选入口及每个区划分页均绑定目标身份，缓存不串成员", async () => {
+  const request = vi.mocked(apiClient.request);
+  request.mockResolvedValueOnce({ ...emptyPage, pageSize: 100, total: 101 });
+  request.mockResolvedValueOnce({
+    ...emptyPage,
+    pageSize: 100,
+    page: 2,
+    total: 101,
+  });
+  await requestScopeBranch(
+    undefined,
+    "330000",
+    new AbortController().signal,
+    org,
+  );
+  expect(request.mock.calls).toHaveLength(2);
+  expect(
+    request.mock.calls.every(([path]) =>
+      path.startsWith(`/api/v1/identities/${org}/scope-options?`),
+    ),
+  ).toBe(true);
+  const query = { type: "school" as const, page: 1, pageSize: 20 };
+  expect(scopeOptionsKey(actor, query, org)).not.toEqual(
+    scopeOptionsKey(actor, query),
+  );
+  expect(scopeOptionsKey(actor, query, org)).not.toEqual(
+    scopeOptionsKey(actor, query, actor),
+  );
+});

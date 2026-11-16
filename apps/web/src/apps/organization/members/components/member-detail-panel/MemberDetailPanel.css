@@ -32,3 +32,22 @@
     flex-basis: 100%;
   }
 }
+
+.member-detail-content {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.member-detail-tabs .tabs__panel[data-inert] {
+  display: none;
+}
+.member-detail-tabs .tabs__list {
+  width: fit-content;
+  margin-bottom: 16px;
+}
+.member-detail-content h2 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 600;
+}

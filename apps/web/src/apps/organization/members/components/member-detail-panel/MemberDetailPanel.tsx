@@ -1,15 +1,22 @@
-import { Button, Drawer, Spinner } from "@heroui/react";
-import { useState } from "react";
+import { Button, Drawer, Spinner, Tabs } from "@heroui/react";
+import type { memberDetailSchema } from "@smart-sport/contracts";
+import { type ReactNode, useState } from "react";
 import type { MembersData } from "../../hooks/use-members";
 import { MemberEditor } from "../member-editor/MemberEditor";
 import "./MemberDetailPanel.css";
 export function MemberDetailPanel({
   data,
   drawer,
+  tab,
+  onTabChange,
+  renderScopes,
   onClose,
 }: {
   data: MembersData;
   drawer: boolean;
+  tab: string;
+  onTabChange: (tab: string) => void;
+  renderScopes: (row: ReturnType<typeof memberDetailSchema.parse>) => ReactNode;
   onClose: () => void;
 }) {
   const [busy, setBusy] = useState(false);
@@ -34,16 +41,41 @@ export function MemberDetailPanel({
         </Button>
       </div>
     ) : row && data.options.data ? (
-      <MemberEditor
-        row={row}
-        options={data.options.data}
-        onSave={async (value, context) => {
-          await data.update(row, value, context);
-        }}
-        onReload={() => data.reload(row.id)}
-        onClose={onClose}
-        onPendingChange={setBusy}
-      />
+      <Tabs
+        className="member-detail-tabs"
+        selectedKey={tab}
+        onSelectionChange={(key) => onTabChange(String(key))}
+        isDisabled={busy}
+      >
+        <Tabs.List>
+          <Tabs.Tab id="information">
+            基本信息
+            <Tabs.Indicator />
+          </Tabs.Tab>
+          <Tabs.Tab id="scopes">
+            负责范围
+            <Tabs.Indicator />
+          </Tabs.Tab>
+        </Tabs.List>
+        <Tabs.Panel id="information" shouldForceMount>
+          <MemberEditor
+            row={row}
+            options={data.options.data}
+            onSave={async (value, context) => {
+              await data.update(row, value, context);
+            }}
+            onReload={() => data.reload(row.id)}
+            onClose={onClose}
+            onPendingChange={setBusy}
+          />
+        </Tabs.Panel>
+        <Tabs.Panel id="scopes" shouldForceMount>
+          <div className="member-detail-content">
+            <h2>负责范围 · {row.realName}</h2>
+            {renderScopes(row)}
+          </div>
+        </Tabs.Panel>
+      </Tabs>
     ) : null;
   const close = () => {
     if (!busy) onClose();

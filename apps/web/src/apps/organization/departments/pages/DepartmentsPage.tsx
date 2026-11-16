@@ -19,8 +19,10 @@ import "./DepartmentsPage.css";
 export function DepartmentsPage({
   identity,
   renderMembers,
+  renderScopes,
 }: {
   identity: IdentitySummary;
+  renderScopes: (context: { id: string; name: string }) => ReactNode;
   renderMembers: (context: {
     departmentId?: string;
     departmentName: string;
@@ -82,6 +84,15 @@ export function DepartmentsPage({
               data={tree}
               orgName={identity.orgName}
               busy={data.busy}
+              scopesContent={
+                rows.find((row) => row.id === selected)
+                  ? renderScopes({
+                      id: selected ?? organizationRoot,
+                      name:
+                        rows.find((row) => row.id === selected)?.name ?? "部门",
+                    })
+                  : null
+              }
               membersContent={renderMembers({
                 ...(selected && selected !== organizationRoot
                   ? { departmentId: selected }

@@ -1,8 +1,10 @@
 import { Button, Chip } from "@heroui/react";
 import type { Member } from "@smart-sport/contracts";
+import type { ReactNode } from "react";
 import type { TableColumn } from "../../../shared/components/data-table/types";
 export const memberColumns = (
   onSelect: (id: string) => void,
+  renderVisible: (row: Member) => ReactNode,
 ): readonly TableColumn<Member>[] => [
   {
     id: "realName",
@@ -52,6 +54,7 @@ export const memberColumns = (
       </div>
     ),
   },
+  { id: "visible", label: "实际可见", render: renderVisible },
   {
     id: "status",
     label: "状态",

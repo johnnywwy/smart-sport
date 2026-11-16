@@ -1,0 +1,67 @@
+.visible-scope-dialog {
+  width: min(900px, calc(100vw - 32px));
+  max-width: 900px;
+  padding: 24px;
+  border-radius: 24px;
+  background: var(--surface);
+}
+.visible-scope-dialog-header {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 0 0 16px;
+}
+.visible-scope-dialog-header p {
+  color: var(--muted);
+  font-size: 13px;
+  margin: 4px 0 0;
+}
+.visible-scope-dialog-header .button {
+  width: 36px;
+  min-width: 36px;
+  height: 36px;
+  flex: none;
+  border-radius: 999px;
+  color: var(--foreground);
+}
+.visible-scope-dialog .modal__body {
+  padding: 0;
+}
+.visible-scope-total {
+  margin: 0 0 12px;
+  font-size: 14px;
+}
+.visible-scope-total strong {
+  color: var(--success);
+  font-size: 22px;
+}
+.visible-scope-warning {
+  color: var(--danger);
+  font-size: 13px;
+  line-height: 1.7;
+}
+.visible-scope-roles {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 13px;
+  margin: 12px 0;
+}
+.visible-scope-steps {
+  list-style: decimal;
+  padding: 0 0 0 24px;
+  margin: 0;
+  font-size: 13px;
+}
+.visible-scope-steps li {
+  padding: 12px 8px;
+  border-bottom: 1px solid var(--separator);
+}
+.visible-scope-steps li strong {
+  float: right;
+  margin-left: 16px;
+  font-weight: 500;
+}

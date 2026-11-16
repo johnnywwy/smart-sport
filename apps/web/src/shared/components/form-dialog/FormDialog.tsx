@@ -9,12 +9,14 @@ type Props<T> = Omit<
   "appearance" | "onCancel" | "onPendingChange"
 > & {
   title: string;
+  dialogClassName?: string;
   description?: string;
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
 };
 export function FormDialog<T>({
   title,
+  dialogClassName,
   description = "带 * 的是必填项",
   isOpen,
   onOpenChange,
@@ -43,7 +45,11 @@ export function FormDialog<T>({
         isKeyboardDismissDisabled={pending}
       >
         <Modal.Container size="lg" placement="center" scroll="inside">
-          <Modal.Dialog className="form-dialog">
+          <Modal.Dialog
+            className={["form-dialog", dialogClassName]
+              .filter(Boolean)
+              .join(" ")}
+          >
             <Modal.Header className="form-dialog-header">
               <div>
                 <Modal.Heading>{title}</Modal.Heading>

@@ -1,8 +1,13 @@
 import { moduleCodeSchema } from "@smart-sport/contracts";
+import type { ComponentProps } from "react";
 import { Navigate, useLocation, useParams } from "react-router";
 import { DepartmentsPage } from "../../apps/organization/departments";
 import { MembersWorkspace } from "../../apps/organization/members";
 import { OrganizationRolesPage } from "../../apps/organization/roles";
+import {
+  ScopeVisibleCell,
+  ScopeWorkspace,
+} from "../../apps/organization/scopes";
 import { PresetRolesPage } from "../../apps/system/preset-roles";
 import { ModuleLayout } from "../../layouts/module-layout/ModuleLayout";
 import { NavigationState } from "../../shared/components/navigation-state/NavigationState";
@@ -43,6 +48,26 @@ export function WorkbenchPage() {
     ?.flatMap((group) => group.children)
     .find((menu) => `/m/${module.code}${menu.path}` === pathname);
   const home = page === "workbench";
+  const renderVisible: ComponentProps<
+    typeof MembersWorkspace
+  >["renderVisible"] = (row, onOpen) => (
+    <ScopeVisibleCell
+      identityId={identity.id}
+      targetId={row.id}
+      active={row.status === 1 && row.accountStatus === 1}
+      onOpen={onOpen}
+    />
+  );
+  const renderMemberScopes = (
+    row: Parameters<ComponentProps<typeof MembersWorkspace>["renderScopes"]>[0],
+  ) => (
+    <ScopeWorkspace
+      key={`${identity.id}:${row.id}`}
+      identityId={identity.id}
+      target={{ kind: "identity", id: row.id, name: row.realName }}
+      active={row.status === 1 && row.accountStatus === 1}
+    />
+  );
   return (
     <ModuleLayout
       module={module}
@@ -80,17 +105,31 @@ export function WorkbenchPage() {
         <DepartmentsPage
           key={identity.id}
           identity={identity}
+          renderScopes={(row) => (
+            <ScopeWorkspace
+              key={`${identity.id}:${row.id}`}
+              identityId={identity.id}
+              target={{ kind: "department", ...row }}
+            />
+          )}
           renderMembers={({ departmentId, departmentName }) => (
             <MembersWorkspace
               key={`${identity.id}:${departmentId ?? "root"}`}
               identity={identity}
+              renderScopes={renderMemberScopes}
+              renderVisible={renderVisible}
               {...(departmentId ? { departmentId } : {})}
               departmentName={departmentName}
             />
           )}
         />
       ) : selected?.key === "members" && module.code === "base" ? (
-        <MembersWorkspace key={identity.id} identity={identity} />
+        <MembersWorkspace
+          key={identity.id}
+          identity={identity}
+          renderScopes={renderMemberScopes}
+          renderVisible={renderVisible}
+        />
       ) : selected?.key === "roles" && module.code === "base" ? (
         <OrganizationRolesPage key={identity.id} identity={identity} />
       ) : (

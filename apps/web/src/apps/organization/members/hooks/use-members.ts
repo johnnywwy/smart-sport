@@ -78,6 +78,9 @@ export function useMembers(
         "member-options",
         "departments",
         "member-move-candidates",
+        "scope-details",
+        "scope-visible",
+        "scope-preview",
       ].map((key) => client.invalidateQueries({ queryKey: [identityId, key] })),
     );
     await client.invalidateQueries({ queryKey: [identityId, "member-detail"] });

@@ -3,6 +3,7 @@ import type {
   MemberOptions,
   PermissionCode,
 } from "@smart-sport/contracts";
+import type { ReactNode } from "react";
 import { DataTable } from "../../../../../shared/components/data-table/DataTable";
 import type {
   DataTableProps,
@@ -25,12 +26,14 @@ export function MemberList({
   query,
   onQueryChange,
   onSelect,
+  renderVisible,
   onCreate,
   onStatus,
   onBatch,
   onAdd,
 }: {
   identityId: string;
+  renderVisible: (row: Member) => ReactNode;
   selectedId: string | undefined;
   canMoveMembers: boolean;
   departmentName: string | undefined;
@@ -65,8 +68,8 @@ export function MemberList({
         config={{
           title: departmentMode ? "部门成员" : "成员账号",
           description: departmentMode
-            ? `${departmentName ?? "本组织"}的成员，可按需包含下级部门。`
-            : "给本组织的每个账号分配部门和角色。",
+            ? `${departmentName ?? "本组织"}的成员，可按需包含下级部门。实际可见按学校列表的查看权限计算。`
+            : "给本组织的每个账号分配部门和角色。实际可见按学校列表的查看权限计算，可在详情中切换操作。",
           searchPlaceholder: "姓名或账号",
           permissions,
           selectionRevision: revision,
@@ -123,7 +126,7 @@ export function MemberList({
               ],
             },
           ],
-          columns: memberColumns(onSelect),
+          columns: memberColumns(onSelect, renderVisible),
           rowLabel: (row) => row.realName,
           rowActions: [
             {

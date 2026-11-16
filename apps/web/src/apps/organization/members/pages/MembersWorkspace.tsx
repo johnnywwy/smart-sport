@@ -3,8 +3,9 @@ import type {
   createMemberResponseSchema,
   IdentitySummary,
   Member,
+  memberDetailSchema,
 } from "@smart-sport/contracts";
-import { useState } from "react";
+import { type ReactNode, useState } from "react";
 import { AddDepartmentMembers } from "../components/add-department-members/AddDepartmentMembers";
 import {
   BatchMembersDialog,
@@ -22,13 +23,18 @@ export function MembersWorkspace({
   identity,
   departmentId,
   departmentName,
+  renderScopes,
+  renderVisible,
 }: {
   identity: IdentitySummary;
+  renderVisible: (row: Member, onOpen: () => void) => ReactNode;
+  renderScopes: (row: ReturnType<typeof memberDetailSchema.parse>) => ReactNode;
   departmentId?: string;
   departmentName?: string;
 }) {
   const [query, setQuery] = useState(initialMemberQuery);
   const [selected, setSelected] = useState<string>();
+  const [detailTab, setDetailTab] = useState("information");
   const [creating, setCreating] = useState(false);
   const [adding, setAdding] = useState(false);
   const [created, setCreated] = useState<ReturnType<
@@ -84,7 +90,16 @@ export function MembersWorkspace({
           }}
           query={query}
           onQueryChange={setQuery}
-          onSelect={setSelected}
+          onSelect={(id) => {
+            setDetailTab("information");
+            setSelected(id);
+          }}
+          renderVisible={(row) =>
+            renderVisible(row, () => {
+              setDetailTab("scopes");
+              setSelected(row.id);
+            })
+          }
           onCreate={() => setCreating(true)}
           onStatus={setStatus}
           onBatch={setBatch}
@@ -95,6 +110,9 @@ export function MembersWorkspace({
             key={selected}
             data={data}
             drawer={departmentMode}
+            tab={detailTab}
+            onTabChange={setDetailTab}
+            renderScopes={renderScopes}
             onClose={() => setSelected(undefined)}
           />
         )}

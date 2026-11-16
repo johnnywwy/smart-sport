@@ -20,15 +20,22 @@ type Controls = {
 export function useScopeOptions({
   identityId,
   orgId,
+  targetIdentityId,
   allowedTypes,
   enabled = true,
 }: {
   identityId: string;
   orgId?: string | undefined;
+  targetIdentityId?: string | undefined;
   allowedTypes: readonly ScopeType[];
   enabled?: boolean;
 }): ScopeCandidates {
-  const scopeKey = JSON.stringify([identityId, orgId ?? null]);
+  const scopeKey = JSON.stringify([
+    identityId,
+    orgId ?? null,
+    targetIdentityId ?? null,
+    allowedTypes,
+  ]);
   const fresh = (): Controls => ({
     scopeKey,
     type: allowedTypes.includes("region") ? "region" : "school",
@@ -59,12 +66,13 @@ export function useScopeOptions({
         identityId,
         "scope-options",
         orgId ?? null,
+        targetIdentityId ?? null,
         "region-branch",
         parent,
       ],
       enabled: enabled && types.includes("region"),
       queryFn: ({ signal }: { signal: AbortSignal }) =>
-        requestScopeBranch(orgId, parent, signal),
+        requestScopeBranch(orgId, parent, signal, targetIdentityId),
       refetchOnWindowFocus: false,
       staleTime: 60_000,
     })),
@@ -77,9 +85,10 @@ export function useScopeOptions({
     ...(orgId ? { orgId } : {}),
   };
   const schools = useQuery({
-    queryKey: scopeOptionsKey(identityId, schoolQuery),
+    queryKey: scopeOptionsKey(identityId, schoolQuery, targetIdentityId),
     enabled: enabled && types.includes("school") && activeType === "school",
-    queryFn: ({ signal }) => requestScopeOptions(schoolQuery, signal),
+    queryFn: ({ signal }) =>
+      requestScopeOptions(schoolQuery, signal, targetIdentityId),
     refetchOnWindowFocus: false,
   });
   return {

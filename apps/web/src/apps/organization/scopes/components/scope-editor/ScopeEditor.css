@@ -1,0 +1,10 @@
+.form-dialog.scope-editor-dialog {
+  max-width: 900px;
+  width: min(900px, calc(100vw - 32px));
+}
+.scope-editor-dialog .schema-form-fields {
+  display: block;
+}
+.scope-editor-dialog .schema-form-rule {
+  margin: 0;
+}

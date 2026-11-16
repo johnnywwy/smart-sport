@@ -60,7 +60,7 @@ export function ScopeSelectionSummary({
         <strong>{counts.schools}</strong> 所学校
       </div>
       <p className="scope-picker-hint">
-        区域包含下级范围。此处为选择项数量，展开后的学校去重数将在保存后更新。
+        区域包含下级范围。此处为选择项数量，不等于展开后的学校去重数量。
       </p>
       {counts.unavailable > 0 && (
         <p className="scope-selection-warning">

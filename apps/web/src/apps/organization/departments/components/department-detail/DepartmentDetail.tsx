@@ -21,6 +21,7 @@ export function DepartmentDetail({
   orgName,
   busy,
   membersContent,
+  scopesContent,
   onEdit,
   onDelete,
 }: {
@@ -29,6 +30,7 @@ export function DepartmentDetail({
   orgName: string;
   busy: boolean;
   membersContent: ReactNode;
+  scopesContent: ReactNode;
   onEdit: (row: DepartmentNode) => void;
   onDelete: (row: DepartmentNode) => void;
 }) {
@@ -108,14 +110,7 @@ export function DepartmentDetail({
           </Tabs.Tab>
         </Tabs.List>
         <Tabs.Panel id="members">{membersContent}</Tabs.Panel>
-        <Tabs.Panel id="scopes">
-          <div className="department-detail-unavailable">
-            <strong>负责范围配置暂未开放</strong>
-            <p>
-              已配置的范围显示在上方。范围选择与实际可见数量将在负责范围功能开放后提供。
-            </p>
-          </div>
-        </Tabs.Panel>
+        <Tabs.Panel id="scopes">{scopesContent}</Tabs.Panel>
       </Tabs>
     </section>
   );
