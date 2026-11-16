@@ -81,6 +81,9 @@ import {
   RoleReader,
 } from "../../src/modules/platform/role-management/index.js";
 import {
+  ScopeQueryController,
+  ScopeQueryRepository,
+  ScopeQueryService,
   ScopeRepository,
   ScopeService,
 } from "../../src/modules/platform/scope/index.js";
@@ -121,8 +124,11 @@ export async function roleManagementFixture(withAuth = false) {
       DepartmentsController,
       DepartmentScopesController,
       ScopeOptionsController,
+      ScopeQueryController,
     ],
     providers: [
+      ScopeQueryRepository,
+      ScopeQueryService,
       ScopeRepository,
       ScopeService,
       IdentityScopesRepository,

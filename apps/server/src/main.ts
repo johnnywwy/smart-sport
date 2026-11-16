@@ -101,6 +101,9 @@ import {
   RolesService,
 } from "./modules/platform/roles/index.js";
 import {
+  ScopeQueryController,
+  ScopeQueryRepository,
+  ScopeQueryService,
   ScopeRepository,
   ScopeService,
 } from "./modules/platform/scope/index.js";
@@ -154,8 +157,11 @@ const databaseConfig = loadDatabaseConfig();
     DepartmentsController,
     DepartmentScopesController,
     ScopeOptionsController,
+    ScopeQueryController,
   ],
   providers: [
+    ScopeQueryRepository,
+    ScopeQueryService,
     ScopeRepository,
     ScopeService,
     IdentityScopesRepository,

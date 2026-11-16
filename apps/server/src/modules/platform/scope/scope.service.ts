@@ -9,6 +9,7 @@ import {
   type DeclaredPermissionCode,
   extraScopeSchema,
   idSchema,
+  type ScopePreview,
   type VisibleScope,
 } from "@smart-sport/contracts";
 import { calculateVisibleScope } from "@smart-sport/domain";
@@ -126,66 +127,130 @@ export class ScopeService {
     }
     throw new ServiceUnavailableException("数据范围正在变更，请重试");
   }
-  private async calculate(
-    context: IdentityContext,
-    option: DataScopeOption,
-  ): Promise<VisibleScope> {
-    if (context.identityType !== "company" && context.identityType !== "bureau")
-      return empty();
-    const organization = await this.repository.organization(context.orgId);
-    if (!organization || organization.type !== context.identityType)
-      return empty();
+  private async calculate(context: IdentityContext, option: DataScopeOption) {
+    return (await this.explain(context, option)).scope;
+  }
+  /** 实际查询和草稿预览共用计算路径；草稿只能覆盖本人选择，不改变组织边界。 */
+  async explain(
+    context: Pick<
+      IdentityContext,
+      "orgId" | "identityId" | "identityType" | "departmentId"
+    >,
+    option: DataScopeOption | undefined,
+    personal?: RawSelection[],
+  ): Promise<{ scope: VisibleScope; summary: ScopePreview }> {
+    const org = await this.repository.organization(context.orgId);
+    const supported =
+      (context.identityType === "company" ||
+        context.identityType === "bureau") &&
+      org?.type === context.identityType;
+    const summary: ScopePreview = {
+      schoolCount: 0,
+      supported,
+      dataScope: option ?? null,
+      warnings: supported ? [] : ["unsupported_identity"],
+      steps: [],
+    };
+    if (!supported) return { scope: empty(), summary };
     const boundary =
       context.identityType === "bureau"
-        ? (organization.regionPath ?? undefined)
+        ? (org?.regionPath ?? undefined)
         : undefined;
     if (
       context.identityType === "bureau" &&
-      (!boundary || organization.regionStatus !== 1)
+      (!boundary || org?.regionStatus !== 1)
     )
-      return empty();
+      return { scope: empty(), summary };
+    const outer = await this.repository.schools(boundary);
     const department = context.departmentId
       ? await this.repository.department(context.orgId, context.departmentId)
       : undefined;
+    const departmentRows =
+      department && option && option !== "personal" && option !== "all"
+        ? await this.repository.departmentSelections(
+            context.orgId,
+            department.path,
+            option === "dept_and_below",
+          )
+        : [];
+    const personalRows =
+      personal ??
+      (await this.repository.personalSelections(context.identityId));
+    const departmentIds = (await this.expand(boundary, departmentRows)).map(
+      (s) => s.id,
+    );
+    const personalIds = (await this.expand(boundary, personalRows)).map(
+      (s) => s.id,
+    );
+    const union = [...new Set([...departmentIds, ...personalIds])];
+    if (!option) summary.warnings.push("permission_not_granted");
     if ((option === "dept" || option === "dept_and_below") && !department)
-      return empty();
-    if (option === "all" && context.identityType === "company")
-      return { kind: "all-schools" };
-    const outer = boundary
-      ? (await this.repository.schools(boundary)).map((s) => s.id)
-      : undefined;
-    const selections =
-      option === "all"
-        ? []
-        : [
-            ...(await this.repository.personalSelections(context.identityId)),
-            ...(department && option !== "personal"
-              ? await this.repository.departmentSelections(
-                  context.orgId,
-                  department.path,
-                  option === "dept_and_below",
-                )
-              : []),
-          ];
-    const selected =
-      option === "all"
-        ? []
-        : (await this.expand(boundary, selections)).map((s) => s.id);
-    return calculateVisibleScope({
-      identity:
-        context.identityType === "company"
-          ? { type: "company", boundary: { kind: "all-schools" } }
-          : {
-              type: "bureau",
-              boundary: { kind: "schools", schoolIds: outer ?? [] },
-            },
-      option,
-      hasDepartment: Boolean(department),
-      // 已展开部门与本人额外范围的并集；最终仍由纯函数与外边界相交。
-      department: [],
-      departmentAndBelow: [],
-      extra: [{ kind: "schools", schoolIds: selected }],
-    });
+      summary.warnings.push("missing_department");
+    const scope = option
+      ? calculateVisibleScope({
+          identity:
+            context.identityType === "company"
+              ? { type: "company", boundary: { kind: "all-schools" } }
+              : {
+                  type: "bureau",
+                  boundary: {
+                    kind: "schools",
+                    schoolIds: outer.map((s) => s.id),
+                  },
+                },
+          option,
+          hasDepartment: Boolean(department),
+          department: [],
+          departmentAndBelow: [],
+          extra: [{ kind: "schools", schoolIds: union }],
+        })
+      : empty();
+    const schoolCount =
+      scope.kind === "all-schools"
+        ? outer.length
+        : scope.kind === "schools"
+          ? scope.schoolIds.length
+          : 0;
+    summary.schoolCount = schoolCount;
+    summary.steps = [
+      {
+        kind: "boundary",
+        name: "组织外边界内的启用学校",
+        schoolCount: outer.length,
+      },
+      {
+        kind: "department",
+        name:
+          option === "dept_and_below"
+            ? "本部门及下级负责学校（边界内）"
+            : "本部门负责学校（边界内）",
+        schoolCount: departmentIds.length,
+      },
+      {
+        kind: "role",
+        name:
+          option === "all" ? "角色范围：本机构全部" : "角色范围展开（边界内）",
+        schoolCount: option === "all" ? outer.length : departmentIds.length,
+      },
+      {
+        kind: "personal",
+        name: "本人额外负责学校（边界内）",
+        schoolCount: personalIds.length,
+      },
+      {
+        kind: "union",
+        name: "角色范围与本人额外负责去重合并",
+        schoolCount: option === "all" ? outer.length : union.length,
+      },
+      {
+        kind: "visible",
+        name: summary.warnings.includes("missing_department")
+          ? "未分配部门，部门档位实际可见为空"
+          : "与组织外边界相交后的实际可见学校",
+        schoolCount,
+      },
+    ];
+    return { scope, summary };
   }
   private expand(
     boundary: string | undefined,
