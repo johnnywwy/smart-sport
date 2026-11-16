@@ -4,22 +4,17 @@ import { idSchema, paginatedSchema, paginationQuerySchema } from "./common.js";
 import { extraScopesSchema } from "./identity-scopes.js";
 import { actionSchema, dataScopeSchema } from "./permissions.js";
 
-const permissions = new Set<string>(
-  appDefinitions
-    .filter((app) => app.code === "school" || app.code === "ops")
-    .flatMap((app) =>
-      Object.entries(app.features).flatMap(([feature, definition]) =>
-        definition.actions.map(
-          (action: string) => `${app.code}:${feature}:${action}`,
-        ),
+const permissions = appDefinitions
+  .filter((app) => app.code === "school" || app.code === "ops")
+  .flatMap((app) =>
+    Object.entries(app.features).flatMap(([feature, definition]) =>
+      definition.actions.map(
+        (action: string) => `${app.code}:${feature}:${action}`,
       ),
     ),
-);
-/** 只能请求已声明的学校业务动作；组织管理权限不能用于扩大业务数据范围。 */
-export const scopePermissionSchema = z.custom<DeclaredPermissionCode>(
-  (value) => typeof value === "string" && permissions.has(value),
-  "请选择已声明的学校业务操作",
-);
+  ) as [DeclaredPermissionCode, ...DeclaredPermissionCode[]];
+/** 使用可导出 OpenAPI 的枚举，并且只允许已声明的学校业务动作。 */
+export const scopePermissionSchema = z.enum(permissions);
 export const scopeSchoolsQuerySchema = z.strictObject({
   ...paginationQuerySchema.shape,
   keyword: z.string().trim().max(100).optional(),

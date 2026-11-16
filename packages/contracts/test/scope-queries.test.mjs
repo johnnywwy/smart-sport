@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
+import { z } from "zod";
 import {
   identityVisibleSchema,
   scopePreviewRequestSchema,
@@ -95,4 +96,15 @@ test("学校列表和计算过程示例使用同一真实数量，缺少过程�
     }).success,
     false,
   );
+});
+
+test("请求和响应可生成 OpenAPI schema", () => {
+  for (const schema of [
+    scopeSchoolsQuerySchema,
+    scopePreviewRequestSchema,
+    identityVisibleSchema,
+  ])
+    assert.doesNotThrow(() =>
+      z.toJSONSchema(schema, { target: "openapi-3.0" }),
+    );
 });
