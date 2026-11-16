@@ -5,6 +5,7 @@ export * from "./department-scopes.js";
 export * from "./departments.js";
 export * from "./errors.js";
 export * from "./identities.js";
+export * from "./identity-scope-details.js";
 export * from "./identity-scopes.js";
 export * from "./member-options.js";
 export * from "./members.js";
