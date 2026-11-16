@@ -1,0 +1,56 @@
+.school-profile-panels {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.school-profile-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 18px 20px;
+  border-radius: 16px;
+  background: var(--profile-surface);
+  box-sizing: border-box;
+  min-width: 0;
+}
+.school-profile-card h2 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+}
+.school-profile-information {
+  flex: 2 1 420px;
+}
+.school-profile-information dl {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px 24px;
+  margin: 0;
+  font-size: 14px;
+}
+.school-profile-information dl > div {
+  display: flex;
+  flex: 1 1 200px;
+  flex-direction: column;
+  gap: 2px;
+  overflow-wrap: anywhere;
+}
+.school-profile-information dt,
+.school-profile-service span {
+  color: var(--profile-muted);
+  font-size: 13px;
+}
+.school-profile-information dd {
+  margin: 0;
+}
+.school-profile-service {
+  flex: 1 1 280px;
+  gap: 12px;
+}
+.school-profile-service p {
+  margin: 0;
+  font-size: 14px;
+}
+.school-profile-service span {
+  line-height: 1.5;
+}

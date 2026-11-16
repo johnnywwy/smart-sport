@@ -12,6 +12,7 @@ export function SchoolList({
   onQueryChange,
   status,
   enter,
+  profile,
 }: {
   identityId: string;
   data: ReturnType<typeof scopeSchoolsSchema.parse> | undefined;
@@ -21,6 +22,12 @@ export function SchoolList({
   enter: {
     enabled: boolean;
     busy: boolean;
+    onSelect: (school: SchoolChoice) => void;
+    allowedIds?: Set<string>;
+  };
+  profile?: {
+    enabled: boolean;
+    allowedIds: Set<string>;
     onSelect: (school: SchoolChoice) => void;
   };
 }) {
@@ -38,23 +45,38 @@ export function SchoolList({
         columns: [
           { id: "name", label: "学校名称", render: (row) => row.name },
           { id: "region", label: "所在地区", render: (row) => row.regionName },
-          ...(enter.enabled
+          ...(enter.enabled || profile?.enabled
             ? [
                 {
                   id: "enter",
                   label: "操作",
-                  render: (row: NonNullable<typeof data>["items"][number]) =>
-                    row.allowedActions.includes("view") ? (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="school-list-enter"
-                        isDisabled={enter.busy}
-                        onPress={() => enter.onSelect(row)}
-                      >
-                        进入
-                      </Button>
-                    ) : null,
+                  render: (row: NonNullable<typeof data>["items"][number]) => (
+                    <div className="school-list-actions">
+                      {profile?.enabled && profile.allowedIds.has(row.id) && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="school-list-enter"
+                          onPress={() => profile.onSelect(row)}
+                        >
+                          查看档案
+                        </Button>
+                      )}
+                      {enter.enabled &&
+                        row.allowedActions.includes("view") &&
+                        (!enter.allowedIds || enter.allowedIds.has(row.id)) && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="school-list-enter"
+                            isDisabled={enter.busy}
+                            onPress={() => enter.onSelect(row)}
+                          >
+                            进入
+                          </Button>
+                        )}
+                    </div>
+                  ),
                 },
               ]
             : []),

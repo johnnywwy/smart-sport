@@ -1,0 +1,37 @@
+.school-profile-page {
+  --profile-surface: #f5f5f5;
+  --profile-strong: #18181b;
+  --profile-muted: #63636b;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+  color: var(--profile-strong);
+}
+.school-profile-heading,
+.school-profile-heading > div {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.school-profile-heading {
+  justify-content: space-between;
+}
+.school-profile-heading h1 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+}
+.school-profile-heading > .button {
+  height: 36px;
+  padding-inline: 16px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 500;
+}
+.dark .school-profile-page {
+  --profile-surface: #27272a;
+  --profile-strong: #f4f4f5;
+  --profile-muted: #a1a1aa;
+}

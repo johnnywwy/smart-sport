@@ -1,0 +1,28 @@
+.school-profile-stages {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: var(--surface-secondary);
+}
+.school-profile-stages h3 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+.school-profile-years {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.school-profile-stage-options {
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 12px 20px;
+}
+.school-profile-stages p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+}

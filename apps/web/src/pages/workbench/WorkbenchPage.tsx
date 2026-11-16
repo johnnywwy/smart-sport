@@ -9,6 +9,7 @@ import {
   ScopeVisibleCell,
   ScopeWorkspace,
 } from "../../apps/organization/scopes";
+import { SchoolProfilePage } from "../../apps/school/profiles";
 import { PresetRolesPage } from "../../apps/system/preset-roles";
 import { ModuleLayout } from "../../layouts/module-layout/ModuleLayout";
 import { NavigationState } from "../../shared/components/navigation-state/NavigationState";
@@ -116,6 +117,25 @@ export function WorkbenchPage() {
           key={identity.id}
           identity={identity}
           classesPath={classesMenu ? `/m/base${classesMenu.path}` : undefined}
+          renderProfile={(school, onBack) => (
+            <SchoolProfilePage
+              key={`${identity.id}:${school.id}`}
+              identityId={identity.id}
+              schoolId={school.id}
+              regionName={school.regionName}
+              platformManaged={false}
+              onBack={onBack}
+            />
+          )}
+        />
+      ) : selected?.key === "schools" &&
+        module.code === "base" &&
+        (identity.type === "school" || identity.type === "teacher") ? (
+        <SchoolProfilePage
+          key={`${identity.id}:${identity.orgId}`}
+          identityId={identity.id}
+          schoolId={identity.orgId}
+          platformManaged
         />
       ) : schoolPermission.length > 0 && identity.type === "company" ? (
         <SchoolWorkspacePage
