@@ -16,3 +16,4 @@ export * from "./preset-role-management.js";
 export * from "./regions.js";
 export * from "./role-management.js";
 export * from "./scope.js";
+export * from "./scope-queries.js";
