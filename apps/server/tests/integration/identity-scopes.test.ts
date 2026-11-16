@@ -1,7 +1,9 @@
 import {
   apiResponseSchema,
   dataScopeSchema,
+  identityScopeDetailsSchema,
   identityScopesSchema,
+  scopeOptionsSchema,
   successResponseSchema,
 } from "@smart-sport/contracts";
 import { Redis } from "ioredis";
@@ -334,7 +336,7 @@ it("同版本并发写入仅一次成功，胜出范围与审计一致", async (
   );
 });
 
-it("成功后清除目标上下文和四档范围缓存，保留其他身份缓存", async () => {
+it("成功后清除目标上下文和四档范围缓存，保留不受影响的会话缓存", async () => {
   const target = await f.seed("company", "company-production", f.admin.orgId);
   const contexts = f.app.get(IdentityContextService);
   await contexts.load(target.identityId);
@@ -343,7 +345,7 @@ it("成功后清除目标上下文和四档范围缓存，保留其他身份缓�
     (option) => `scope:${target.identityId}:${option}`,
   );
   for (const key of keys) await redis.set(key, "old", "EX", 600);
-  const unrelated = `scope:${v7()}:all`;
+  const unrelated = `session:${v7()}`;
   await redis.set(unrelated, "keep", "EX", 600);
   const before = await redis.get("ctx:revision");
   await data(
@@ -413,4 +415,148 @@ it("请求契约与幂等头缺失均返回400，拒绝后身份保持原版本"
     scopes: [],
     audits: [],
   });
+});
+
+it("编辑读取包含真实名称和版本，失效学校隐藏原名称且不丢失选择", async () => {
+  const target = await f.seed("company", null, f.admin.orgId),
+    id = (await school()).orgId;
+  await data(await set(target.identityId, 0, [{ type: "school", value: id }]));
+  const read = async () => {
+    const r = await f.request(`/identities/${target.identityId}/scopes`);
+    expect(r.status).toBe(200);
+    return successResponseSchema(identityScopeDetailsSchema).parse(
+      await r.json(),
+    ).data;
+  };
+  const fresh = await read();
+  expect(fresh).toMatchObject({
+    version: 1,
+    allowedActions: ["update"],
+    scopes: [{ value: id, available: true }],
+  });
+  await f.pool.query("UPDATE public.orgs SET status=0 WHERE id=$1", [id]);
+  expect((await read()).scopes).toEqual([
+    {
+      type: "school",
+      value: id,
+      name: "已失效的负责范围",
+      available: false,
+      parentValue: null,
+    },
+  ]);
+});
+it("只有成员管理、没有部门修改权限也能查询目标范围候选，角色上限仍生效", async () => {
+  const manager = await f.seed("company", null, f.admin.orgId),
+    target = await f.seed("company", null, f.admin.orgId),
+    roleId = v7();
+  await f.pool.query(
+    "INSERT INTO public.roles(id,kind,identity_type,org_id,code,name,data_scope,base_role_id) SELECT $1::uuid,'custom','company',$2,$1::uuid::text,'成员范围管理','all',id FROM public.roles WHERE code='company-super-admin'",
+    [roleId, f.admin.orgId],
+  );
+  await f.pool.query(
+    "INSERT INTO public.role_grants(role_id,app_code,feature_code,level) SELECT $1,app_code,code,CASE WHEN app_code='org' AND code='member' THEN 'edit' ELSE 'none' END FROM public.features",
+    [roleId],
+  );
+  await f.pool.query("INSERT INTO public.identity_roles VALUES($1,$2)", [
+    manager.identityId,
+    roleId,
+  ]);
+  const r = await f.request(
+    `/identities/${target.identityId}/scope-options?type=region`,
+    "GET",
+    undefined,
+    manager.token,
+  );
+  expect(r.status).toBe(200);
+  expect(
+    successResponseSchema(scopeOptionsSchema).parse(await r.json()).data.items
+      .length,
+  ).toBeGreaterThan(0);
+  expect(
+    (
+      await f.request(
+        "/scope-options?type=region",
+        "GET",
+        undefined,
+        manager.token,
+      )
+    ).status,
+  ).toBe(403);
+  const elevated = await f.seed(
+    "company",
+    "company-super-admin",
+    f.admin.orgId,
+  );
+  expect(
+    (
+      await f.request(
+        `/identities/${elevated.identityId}/scope-options?type=region`,
+        "GET",
+        undefined,
+        manager.token,
+      )
+    ).status,
+  ).toBe(403);
+});
+it("只读成员查询没有修改能力，不能查询编辑候选或越组织读取范围", async () => {
+  const reader = await f.seed(
+      "company",
+      "company-readonly-auditor",
+      f.admin.orgId,
+    ),
+    target = await f.seed("company", null, f.admin.orgId),
+    foreign = await f.seed("company", null);
+  const read = await f.request(
+    `/identities/${target.identityId}/scopes`,
+    "GET",
+    undefined,
+    reader.token,
+  );
+  expect(read.status).toBe(200);
+  expect(
+    successResponseSchema(identityScopeDetailsSchema).parse(await read.json())
+      .data.allowedActions,
+  ).toEqual([]);
+  expect(
+    (
+      await f.request(
+        `/identities/${target.identityId}/scope-options?type=region`,
+        "GET",
+        undefined,
+        reader.token,
+      )
+    ).status,
+  ).toBe(403);
+  expect(
+    (
+      await f.request(
+        `/identities/${foreign.identityId}/scopes`,
+        "GET",
+        undefined,
+        reader.token,
+      )
+    ).status,
+  ).toBe(404);
+});
+it("超管代办成员候选仍遵守教育局辖区与已开放类型", async () => {
+  const target = await f.seed("bureau", null);
+  await f.pool.query(
+    "UPDATE public.orgs SET region_code='990100' WHERE id=$1",
+    [target.orgId],
+  );
+  const path = `/identities/${target.identityId}/scope-options?orgId=${target.orgId}`;
+  const r = await f.request(`${path}&type=region`);
+  expect(r.status).toBe(200);
+  expect(
+    successResponseSchema(scopeOptionsSchema)
+      .parse(await r.json())
+      .data.items.map((s) => s.value),
+  ).toEqual(["990100"]);
+  expect((await f.request(`${path}&type=region&parent=980000`)).status).toBe(
+    404,
+  );
+  expect((await f.request(`${path}&type=grade`)).status).toBe(422);
+  expect(
+    (await f.request(`/identities/${v7()}/scope-options?type=region`)).status,
+  ).toBe(404);
 });

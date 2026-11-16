@@ -41,7 +41,6 @@ import {
   DepartmentsRepository,
   DepartmentsService,
   ScopeOptionsController,
-  ScopeOptionsRepository,
 } from "../../src/modules/platform/departments/index.js";
 import {
   IdentitiesController,
@@ -87,6 +86,10 @@ import {
   ScopeRepository,
   ScopeService,
 } from "../../src/modules/platform/scope/index.js";
+import {
+  ScopeCandidatesService,
+  ScopeOptionsRepository,
+} from "../../src/modules/platform/scope-candidates/index.js";
 import { requestContextMiddleware } from "../../src/request-context.js";
 import { SERVER_CONFIG } from "../../src/server-config.js";
 import { authentication } from "./authentication.js";
@@ -154,6 +157,7 @@ export async function roleManagementFixture(withAuth = false) {
       DepartmentScopesRepository,
       DepartmentScopesService,
       ScopeOptionsRepository,
+      ScopeCandidatesService,
       DepartmentsService,
       DepartmentOrganizationGuard,
       DepartmentPresetsService,

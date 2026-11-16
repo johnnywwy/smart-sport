@@ -1,9 +1,7 @@
 import { Inject, Injectable } from "@nestjs/common";
 import {
   departmentScopesSchema,
-  type ExtraScope,
   extraScopeSchema,
-  type ScopeOption,
   type ScopeOptionsQuery,
   type ScopeType,
   type SetDepartmentScopes,
@@ -16,6 +14,7 @@ import {
 } from "../identity-context/index.js";
 import { MemberPolicy } from "../members/index.js";
 import { ScopeService } from "../scope/index.js";
+import { ScopeCandidatesService } from "../scope-candidates/index.js";
 import { DepartmentScopesRepository } from "./department-scopes.repository.js";
 import {
   type DepartmentRow,
@@ -23,7 +22,6 @@ import {
   type DepartmentTransaction,
 } from "./departments.repository.js";
 import { DepartmentsService } from "./departments.service.js";
-import { ScopeOptionsRepository } from "./scope-options.repository.js";
 
 type Metadata = { traceId: string; ip: string; userAgent: string };
 type Organization = {
@@ -48,8 +46,8 @@ export class DepartmentScopesService {
     @Inject(DepartmentsService) private readonly service: DepartmentsService,
     @Inject(DepartmentScopesRepository)
     private readonly repository: DepartmentScopesRepository,
-    @Inject(ScopeOptionsRepository)
-    private readonly choices: ScopeOptionsRepository,
+    @Inject(ScopeCandidatesService)
+    private readonly choices: ScopeCandidatesService,
     @Inject(MemberPolicy) private readonly policy: MemberPolicy,
     @Inject(IdentityContextService)
     private readonly contexts: IdentityContextService,
@@ -98,8 +96,13 @@ export class DepartmentScopesService {
       if (input.scopes.length) {
         if (input.scopes.some((s) => !allowedTypes(org).includes(s.type)))
           throw new ApiException(12004);
-        const available = await this.available(tx, org, input.scopes, true);
-        if (available.size !== input.scopes.length)
+        const available = await this.choices.describe(
+          tx,
+          org.id,
+          input.scopes,
+          true,
+        );
+        if (available.scopes.some((item) => !item.available))
           throw new ApiException(90004);
       }
       const updated = await this.departments.update(
@@ -137,45 +140,7 @@ export class DepartmentScopesService {
     return this.departments.transaction(async (tx) => {
       actor = await this.policy.actor(tx, actor, "org:department:update");
       await this.policy.organization(tx, actor, orgId, false);
-      const org = await this.organization(tx, orgId);
-      if (!allowedTypes(org).includes(query.type))
-        throw new ApiException(12004);
-      const boundary = await this.boundary(tx, org);
-      if (query.parent) {
-        const parent = await this.choices.region(tx, query.parent);
-        if (
-          !parent ||
-          (boundary &&
-            parent.path !== boundary &&
-            !parent.path.startsWith(`${boundary}.`))
-        )
-          throw new ApiException(90004);
-      }
-      const input = {
-        boundary,
-        keyword: query.keyword,
-        page: query.page,
-        pageSize: query.pageSize,
-        parent: query.parent,
-        root: !query.parent && !query.keyword,
-      };
-      const result =
-        query.type === "school"
-          ? await this.choices.schoolOptions(tx, input)
-          : await this.choices.regionOptions(tx, input);
-      return {
-        items: result.items.map((row) => ({
-          type: query.type,
-          value: row.value,
-          name: row.name,
-          parentValue: row.parentValue,
-          available: true,
-        })),
-        total: result.total,
-        page: query.page,
-        pageSize: query.pageSize,
-        allowedTypes: allowedTypes(org),
-      };
+      return this.choices.query(tx, orgId, query);
     });
   }
   private async organization(
@@ -197,65 +162,6 @@ export class DepartmentScopesService {
     if (!row) throw new ApiException(90004);
     return row;
   }
-  private async boundary(
-    tx: DepartmentTransaction,
-    org: Organization,
-    lock = false,
-  ) {
-    if (org.type !== "bureau") return undefined;
-    const region = org.regionCode
-      ? await this.choices.region(tx, org.regionCode, lock)
-      : undefined;
-    if (!region) throw new ApiException(90004);
-    return region.path;
-  }
-  private async available(
-    tx: DepartmentTransaction,
-    org: Organization,
-    values: ExtraScope[],
-    lock = false,
-  ) {
-    const result = new Map<string, ScopeOption>();
-    if (!allowedTypes(org).length) return result;
-    // 查询回显时失效辖区仍保留原选择，写入则拒绝。
-    let boundary: string | undefined;
-    try {
-      boundary = await this.boundary(tx, org, lock);
-    } catch (error) {
-      if (lock || !(error instanceof ApiException) || error.code !== 90004)
-        throw error;
-      return result;
-    }
-    const school = await this.choices.schoolOptions(
-      tx,
-      {
-        boundary,
-        ids: values.filter((s) => s.type === "school").map((s) => s.value),
-      },
-      lock,
-    );
-    const region = await this.choices.regionOptions(
-      tx,
-      {
-        boundary,
-        ids: values.filter((s) => s.type === "region").map((s) => s.value),
-      },
-      lock,
-    );
-    for (const [type, rows] of [
-      ["school", school.items],
-      ["region", region.items],
-    ] as const)
-      for (const row of rows)
-        result.set(`${type}:${row.value}`, {
-          type,
-          value: row.value,
-          name: row.name,
-          parentValue: row.parentValue,
-          available: true,
-        });
-    return result;
-  }
   private async present(
     tx: DepartmentTransaction,
     org: Organization,
@@ -263,19 +169,11 @@ export class DepartmentScopesService {
     actor: IdentityContext,
   ) {
     const saved = selections(await this.repository.read(tx, row.id));
-    const available = await this.available(tx, org, saved);
+    const details = await this.choices.describe(tx, org.id, saved);
     return departmentScopesSchema.parse({
       departmentId: row.id,
       version: row.version,
-      scopes: saved.map(
-        (s) =>
-          available.get(`${s.type}:${s.value}`) ?? {
-            ...s,
-            name: "已失效的负责范围",
-            parentValue: null,
-            available: false,
-          },
-      ),
+      scopes: details.scopes,
       schoolCount: await this.scopes.countSelection(org.id, saved, tx),
       allowedTypes: allowedTypes(org),
       allowedActions: actor.permissions.has("org:department:update")

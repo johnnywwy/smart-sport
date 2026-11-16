@@ -1,7 +1,8 @@
 import { Injectable } from "@nestjs/common";
 import { and, count, eq, ilike, inArray, isNull, like, or } from "drizzle-orm";
+import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 import { organizations, regions } from "../../../schema/public.js";
-import type { DepartmentTransaction } from "./departments.repository.js";
+export type CandidateDatabase = Pick<NodePgDatabase, "select">;
 
 type Selection = {
   ids?: string[];
@@ -20,18 +21,27 @@ const boundaryFilter = (path: string | undefined) =>
 
 @Injectable()
 export class ScopeOptionsRepository {
-  async region(tx: DepartmentTransaction, code: string, lock = false) {
+  async organization(tx: CandidateDatabase, id: string, lock = false) {
+    const q = tx
+      .select()
+      .from(organizations)
+      .where(
+        and(
+          eq(organizations.id, id),
+          eq(organizations.status, 1),
+          isNull(organizations.deletedAt),
+        ),
+      );
+    return (lock ? await q.for("share") : await q)[0];
+  }
+  async region(tx: CandidateDatabase, code: string, lock = false) {
     const q = tx
       .select()
       .from(regions)
       .where(and(eq(regions.code, code), eq(regions.status, 1)));
     return (lock ? await q.for("share") : await q)[0];
   }
-  async regionOptions(
-    tx: DepartmentTransaction,
-    input: Selection,
-    lock = false,
-  ) {
+  async regionOptions(tx: CandidateDatabase, input: Selection, lock = false) {
     if (input.ids && !input.ids.length) return { items: [], total: 0 };
     const where = and(
       eq(regions.status, 1),
@@ -68,11 +78,7 @@ export class ScopeOptionsRepository {
       : items.length;
     return { items, total };
   }
-  async schoolOptions(
-    tx: DepartmentTransaction,
-    input: Selection,
-    lock = false,
-  ) {
+  async schoolOptions(tx: CandidateDatabase, input: Selection, lock = false) {
     if (input.ids && !input.ids.length) return { items: [], total: 0 };
     const where = and(
       eq(organizations.type, "school"),

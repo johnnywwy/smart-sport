@@ -1,7 +1,10 @@
 import { Inject, Injectable } from "@nestjs/common";
 import {
   type ExtraScope,
+  extraScopeSchema,
+  identityScopeDetailsSchema,
   identityScopesSchema,
+  type ScopeOptionsQuery,
   type SetIdentityScopes,
   setIdentityScopesSchema,
 } from "@smart-sport/contracts";
@@ -10,6 +13,7 @@ import {
   type IdentityContext,
   IdentityContextService,
 } from "../identity-context/index.js";
+import { ScopeCandidatesService } from "../scope-candidates/index.js";
 import { IdentityScopesRepository } from "./identity-scopes.repository.js";
 import { MemberPolicy } from "./member-policy.service.js";
 import {
@@ -23,6 +27,8 @@ type Metadata = { traceId: string; ip: string; userAgent: string };
 export class IdentityScopesService {
   constructor(
     @Inject(MembersRepository) private readonly members: MembersRepository,
+    @Inject(ScopeCandidatesService)
+    private readonly candidates: ScopeCandidatesService,
     @Inject(MemberPolicy) private readonly policy: MemberPolicy,
     @Inject(IdentityScopesRepository)
     private readonly repository: IdentityScopesRepository,
@@ -30,6 +36,76 @@ export class IdentityScopesService {
     private readonly contexts: IdentityContextService,
   ) {}
 
+  /** 本人额外负责编辑读取：回显真实名称及失效状态，与成员修改共用版本。 */
+  get(orgId: string, id: string, actor: IdentityContext) {
+    return this.members.transaction(async (tx) => {
+      actor = await this.policy.actor(tx, actor, "org:member:view");
+      await this.policy.organization(tx, actor, orgId, false);
+      const target = await this.members.find(tx, orgId, id.toLowerCase(), true);
+      if (!target) throw new ApiException(90004);
+      const saved = (
+        await this.repository.read(tx, target.identity.id)
+      ).flatMap((s) => {
+        const parsed = extraScopeSchema.safeParse(s);
+        return parsed.success ? [parsed.data] : [];
+      });
+      const details = await this.candidates.describe(tx, orgId, saved);
+      const bindings = await this.members.bindings(tx, target.identity.id);
+      const available = await this.policy.availableRoles(
+        tx,
+        orgId,
+        target.identity.type,
+        bindings.map((r) => r.id),
+      );
+      const editable =
+        actor.permissions.has("org:member:update") &&
+        (await this.policy.fits(
+          tx,
+          actor,
+          orgId,
+          target.identity.type,
+          available.map((r) => r.id),
+        ));
+      return identityScopeDetailsSchema.parse({
+        identityId: target.identity.id,
+        version: target.identity.version,
+        ...details,
+        allowedActions: editable ? ["update"] : [],
+      });
+    });
+  }
+  /** 成员范围候选不借用部门权限，并按目标角色上限限制管理入口。 */
+  options(
+    orgId: string,
+    id: string,
+    input: ScopeOptionsQuery,
+    actor: IdentityContext,
+  ) {
+    return this.members.transaction(async (tx) => {
+      actor = await this.policy.actor(tx, actor, "org:member:update");
+      await this.policy.organization(tx, actor, orgId, false);
+      const target = await this.members.find(tx, orgId, id.toLowerCase());
+      if (!target) throw new ApiException(90004);
+      const bindings = await this.members.bindings(tx, target.identity.id);
+      const available = await this.policy.availableRoles(
+        tx,
+        orgId,
+        target.identity.type,
+        bindings.map((r) => r.id),
+      );
+      if (
+        !(await this.policy.fits(
+          tx,
+          actor,
+          orgId,
+          target.identity.type,
+          available.map((r) => r.id),
+        ))
+      )
+        throw new ApiException(11102);
+      return this.candidates.query(tx, orgId, input);
+    });
+  }
   /** 与成员编辑共用写锁和身份版本，边界校验、整体替换与审计原子提交。 */
   async set(
     orgId: string,

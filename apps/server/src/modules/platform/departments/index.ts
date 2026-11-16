@@ -8,4 +8,3 @@ export { DepartmentsController } from "./departments.controller.js";
 export { DepartmentsRepository } from "./departments.repository.js";
 export { DepartmentsService } from "./departments.service.js";
 export { ScopeOptionsController } from "./scope-options.controller.js";
-export { ScopeOptionsRepository } from "./scope-options.repository.js";

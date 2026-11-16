@@ -1,9 +1,13 @@
-import { Controller, Inject, Put, Req, UseGuards } from "@nestjs/common";
+import { Controller, Get, Inject, Put, Req, UseGuards } from "@nestjs/common";
 import {
+  identityScopeDetailsSchema,
   identityScopeParamsSchema,
   identityScopesSchema,
   memberOrgQuerySchema,
+  type ScopeOptionsQuery,
   type SetIdentityScopes,
+  scopeOptionsQuerySchema,
+  scopeOptionsSchema,
   setIdentityScopesSchema,
   successResponseSchema,
 } from "@smart-sport/contracts";
@@ -26,6 +30,45 @@ export class IdentityScopesController {
     private readonly service: IdentityScopesService,
     @Inject(ClsService) private readonly cls: ClsService,
   ) {}
+  @Get(":id/scopes")
+  @RequirePermissions("org:member:view")
+  @ApiZodResponse(
+    200,
+    successResponseSchema(identityScopeDetailsSchema),
+    "本人额外负责详情与编辑能力",
+  )
+  get(
+    @ZodRequest("query", memberOrgQuerySchema) _query: unknown,
+    @ZodRequest("params", identityScopeParamsSchema) params: { id: string },
+    @Req() request: MembersRequest,
+  ) {
+    if (!request.membersOrgId) throw new Error("范围管理缺少已验证组织");
+    return this.service.get(
+      request.membersOrgId,
+      params.id,
+      this.cls.get<IdentityContext>("identityContext"),
+    );
+  }
+  @Get(":id/scope-options")
+  @RequirePermissions("org:member:update")
+  @ApiZodResponse(
+    200,
+    successResponseSchema(scopeOptionsSchema),
+    "可管理成员的边界内范围候选",
+  )
+  options(
+    @ZodRequest("query", scopeOptionsQuerySchema) query: ScopeOptionsQuery,
+    @ZodRequest("params", identityScopeParamsSchema) params: { id: string },
+    @Req() request: MembersRequest,
+  ) {
+    if (!request.membersOrgId) throw new Error("范围管理缺少已验证组织");
+    return this.service.options(
+      request.membersOrgId,
+      params.id,
+      query,
+      this.cls.get<IdentityContext>("identityContext"),
+    );
+  }
   @Put(":id/scopes")
   @RequirePermissions("org:member:update")
   @Idempotent("identity.scopes.update", (context) => {

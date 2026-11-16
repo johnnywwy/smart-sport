@@ -39,7 +39,6 @@ import {
   DepartmentsRepository,
   DepartmentsService,
   ScopeOptionsController,
-  ScopeOptionsRepository,
 } from "./modules/platform/departments/index.js";
 import {
   IdentitiesController,
@@ -107,6 +106,10 @@ import {
   ScopeRepository,
   ScopeService,
 } from "./modules/platform/scope/index.js";
+import {
+  ScopeCandidatesService,
+  ScopeOptionsRepository,
+} from "./modules/platform/scope-candidates/index.js";
 import { RateLimitGuard } from "./rate-limit.js";
 import { requestContextMiddleware } from "./request-context.js";
 import { SERVER_CONFIG } from "./server-config.js";
@@ -208,6 +211,7 @@ const databaseConfig = loadDatabaseConfig();
     DepartmentScopesRepository,
     DepartmentScopesService,
     ScopeOptionsRepository,
+    ScopeCandidatesService,
     DepartmentsService,
     DepartmentStatisticsRepository,
     DepartmentPresetsService,
