@@ -55,8 +55,14 @@ export function useDepartments(identityId: string) {
     try {
       const result = await action(context?.signal ?? controller.signal);
       await Promise.all(
-        ["departments", "scope-details", "scope-visible", "scope-preview"].map(
-          (part) => client.invalidateQueries({ queryKey: [identityId, part] }),
+        [
+          "departments",
+          "scope-details",
+          "scope-visible",
+          "scope-preview",
+          "scope-schools",
+        ].map((part) =>
+          client.invalidateQueries({ queryKey: [identityId, part] }),
         ),
       );
       if (mounted.current) useApiEvents.getState().notifySuccess(message);

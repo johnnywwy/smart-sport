@@ -53,6 +53,7 @@ export function useScopeDetails(identityId: string, target: ScopeTarget) {
           "scope-details",
           "scope-visible",
           "scope-preview",
+          "scope-schools",
           "departments",
           "member-detail",
           "members",

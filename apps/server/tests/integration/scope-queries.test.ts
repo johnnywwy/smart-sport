@@ -643,3 +643,44 @@ it("失效成员不能返回计算过程，重复规范化学校标识返回字�
     ).status,
   ).toBe(400);
 });
+
+it("学校选择候选使用菜单功能权限：只有教学班查看也可选校，不借用学校列表权限", async () => {
+  const actor = await f.seed("company", null, f.admin.orgId);
+  const roleId = await f.role(actor.identityId, f.admin.orgId, "all");
+  await f.pool.query(
+    "UPDATE public.role_grants SET level=CASE WHEN app_code='school' AND feature_code='teaching-class' THEN 'view' ELSE 'none' END WHERE role_id=$1",
+    [roleId],
+  );
+  const schoolId = await f.school();
+  expect(
+    (await f.request("/scope/schools", "GET", undefined, actor.token)).status,
+  ).toBe(403);
+  expect(
+    (
+      await f.request(
+        "/scope/schools?permission=school:class:view",
+        "GET",
+        undefined,
+        actor.token,
+      )
+    ).status,
+  ).toBe(403);
+  const candidates = await list(
+    actor.token,
+    "?permission=school:teaching-class:view",
+  );
+  expect(candidates.items.some((item) => item.id === schoolId)).toBe(true);
+  expect(
+    candidates.items.find((item) => item.id === schoolId)?.allowedActions,
+  ).toEqual(["view"]);
+  expect(
+    (
+      await f.request(
+        "/scope/schools?permission=school:teaching-class:update",
+        "GET",
+        undefined,
+        actor.token,
+      )
+    ).status,
+  ).toBe(403);
+});

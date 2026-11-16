@@ -81,6 +81,7 @@ export function useMembers(
         "scope-details",
         "scope-visible",
         "scope-preview",
+        "scope-schools",
       ].map((key) => client.invalidateQueries({ queryKey: [identityId, key] })),
     );
     await client.invalidateQueries({ queryKey: [identityId, "member-detail"] });

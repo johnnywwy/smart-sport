@@ -103,6 +103,7 @@ export function useOrganizationRoles(
         ? current.map((item) => (item.id === role.id ? role : item))
         : [...current, role];
     });
+    void client.invalidateQueries({ queryKey: [identity.id, "scope-schools"] });
     useApiEvents.getState().notifySuccess(message);
   };
   return {

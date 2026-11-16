@@ -1,0 +1,30 @@
+.current-school-trigger {
+  --school-trigger-background: #daedfe;
+  --school-trigger-foreground: #0a64b5;
+  height: 36px;
+  min-height: 36px;
+  max-width: min(360px, 70vw);
+  padding: 0 12px 0 14px;
+  border-radius: 999px;
+  background: var(--school-trigger-background);
+  color: var(--school-trigger-foreground);
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 500;
+}
+.current-school-trigger > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.current-school-trigger > svg {
+  flex-shrink: 0;
+}
+.current-school-popover {
+  width: 320px;
+  max-width: 80vw;
+  border-radius: 14px;
+  padding: 6px;
+}
+.current-school-popover [data-slot="popover-dialog"] {
+  padding: 0;
+}

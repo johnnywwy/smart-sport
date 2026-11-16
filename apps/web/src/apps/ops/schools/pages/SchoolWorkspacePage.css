@@ -1,0 +1,48 @@
+.school-workspace {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+.school-workspace-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+.school-workspace-heading h1 {
+  margin: 0;
+  color: var(--foreground);
+  font-size: 20px;
+  font-weight: 600;
+}
+.school-workspace-description {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+}
+.school-workspace-candidates {
+  max-width: 620px;
+  border-radius: 16px;
+  padding: 12px;
+  background: var(--surface-secondary);
+}
+.school-workspace-notice {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding: 20px;
+  border-radius: 16px;
+  background: var(--surface-secondary);
+  color: var(--muted);
+  font-size: 14px;
+}
+.school-workspace-notice strong {
+  color: var(--foreground);
+}
+.school-workspace-notice p {
+  flex-basis: 100%;
+  margin: 0;
+  line-height: 1.7;
+}

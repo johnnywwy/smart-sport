@@ -1,6 +1,7 @@
 import { moduleCodeSchema } from "@smart-sport/contracts";
 import type { ComponentProps } from "react";
 import { Navigate, useLocation, useParams } from "react-router";
+import { SchoolsPage, SchoolWorkspacePage } from "../../apps/ops/schools";
 import { DepartmentsPage } from "../../apps/organization/departments";
 import { MembersWorkspace } from "../../apps/organization/members";
 import { OrganizationRolesPage } from "../../apps/organization/roles";
@@ -11,6 +12,7 @@ import {
 import { PresetRolesPage } from "../../apps/system/preset-roles";
 import { ModuleLayout } from "../../layouts/module-layout/ModuleLayout";
 import { NavigationState } from "../../shared/components/navigation-state/NavigationState";
+import { schoolMenuPermissions } from "../../shared/hooks/school-navigation";
 import {
   useAvailableModules,
   useModuleMenus,
@@ -48,6 +50,13 @@ export function WorkbenchPage() {
     ?.flatMap((group) => group.children)
     .find((menu) => `/m/${module.code}${menu.path}` === pathname);
   const home = page === "workbench";
+  const schoolPermission =
+    module.code === "base" && selected
+      ? schoolMenuPermissions(selected.key)
+      : [];
+  const classesMenu = menus.data
+    ?.flatMap((group) => group.children)
+    .find((menu) => menu.key === "classes");
   const renderVisible: ComponentProps<
     typeof MembersWorkspace
   >["renderVisible"] = (row, onOpen) => (
@@ -79,7 +88,9 @@ export function WorkbenchPage() {
         selected?.key === "preset-roles" ||
         selected?.key === "roles" ||
         selected?.key === "departments" ||
-        selected?.key === "members"
+        selected?.key === "members" ||
+        selected?.key === "schools" ||
+        schoolPermission.length > 0
           ? "compact"
           : "default"
       }
@@ -98,6 +109,21 @@ export function WorkbenchPage() {
             />
           </div>
         </main>
+      ) : selected?.key === "schools" &&
+        module.code === "base" &&
+        (identity.type === "company" || identity.type === "bureau") ? (
+        <SchoolsPage
+          key={identity.id}
+          identity={identity}
+          classesPath={classesMenu ? `/m/base${classesMenu.path}` : undefined}
+        />
+      ) : schoolPermission.length > 0 && identity.type === "company" ? (
+        <SchoolWorkspacePage
+          key={`${identity.id}:${selected?.key}`}
+          identityId={identity.id}
+          name={selected?.name ?? "学校业务"}
+          permissions={schoolPermission}
+        />
       ) : selected?.key === "preset-roles" &&
         module.code === "platform-admin" ? (
         <PresetRolesPage key={identity.id} identityId={identity.id} />
