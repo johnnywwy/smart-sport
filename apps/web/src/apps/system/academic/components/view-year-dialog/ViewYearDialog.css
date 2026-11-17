@@ -1,0 +1,43 @@
+.academic-view-dialog {
+  width: 100%;
+  max-width: 560px;
+  padding: 24px;
+  border-radius: 24px;
+}
+.academic-view-heading {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.academic-view-heading > div {
+  display: grid;
+  gap: 8px;
+}
+.academic-view-heading .modal__heading {
+  font-size: 18px;
+  font-weight: 600;
+}
+.academic-view-heading > .button {
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  border-radius: 999px;
+  color: var(--foreground);
+}
+.academic-view-dialog .modal__body {
+  padding: 16px 0;
+}
+.academic-view-dialog .modal__body p {
+  margin: 16px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+.academic-view-dialog .modal__footer {
+  padding: 0;
+}
+.academic-view-dialog .modal__footer .button {
+  height: 36px;
+  border-radius: 999px;
+}

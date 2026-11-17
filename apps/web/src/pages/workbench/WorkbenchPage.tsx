@@ -10,6 +10,7 @@ import {
   ScopeWorkspace,
 } from "../../apps/organization/scopes";
 import { SchoolProfilePage } from "../../apps/school/profiles";
+import { AcademicYearsPage } from "../../apps/system/academic";
 import { PresetRolesPage } from "../../apps/system/preset-roles";
 import { ModuleLayout } from "../../layouts/module-layout/ModuleLayout";
 import { NavigationState } from "../../shared/components/navigation-state/NavigationState";
@@ -87,6 +88,7 @@ export function WorkbenchPage() {
       pageName={home ? "工作台" : (selected?.name ?? "页面不存在")}
       contentPadding={
         selected?.key === "preset-roles" ||
+        selected?.key === "academic" ||
         selected?.key === "roles" ||
         selected?.key === "departments" ||
         selected?.key === "members" ||
@@ -144,6 +146,8 @@ export function WorkbenchPage() {
           name={selected?.name ?? "学校业务"}
           permissions={schoolPermission}
         />
+      ) : selected?.key === "academic" && module.code === "platform-admin" ? (
+        <AcademicYearsPage key={identity.id} identityId={identity.id} />
       ) : selected?.key === "preset-roles" &&
         module.code === "platform-admin" ? (
         <PresetRolesPage key={identity.id} identityId={identity.id} />

@@ -1,0 +1,14 @@
+.academic-row-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+.academic-row-actions .button {
+  min-width: 0;
+  height: 28px;
+  padding-inline: 4px;
+  color: var(--table-accent);
+  font-size: 13px;
+  font-weight: 500;
+}

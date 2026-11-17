@@ -1,0 +1,19 @@
+.academic-current-dialog .academic-semester-summary {
+  grid-template-columns: 1fr;
+}
+.academic-current-warning,
+.academic-current-description {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.7;
+}
+.academic-current-description {
+  color: var(--muted);
+}
+.academic-current-warning {
+  color: var(--danger);
+}
+.academic-current-danger .schema-form-submit {
+  background: var(--danger);
+  color: var(--danger-foreground);
+}

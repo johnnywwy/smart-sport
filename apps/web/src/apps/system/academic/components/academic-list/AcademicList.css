@@ -1,0 +1,21 @@
+.academic-year-name {
+  color: var(--table-accent);
+  font-weight: 600;
+  white-space: nowrap;
+}
+.academic-date-range {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  font-size: 13px;
+}
+.academic-status {
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--table-secondary);
+  color: var(--table-muted);
+  font-size: 12px;
+}
+.academic-status-current {
+  background: color-mix(in oklab, var(--success) 14%, transparent);
+  color: var(--success);
+}

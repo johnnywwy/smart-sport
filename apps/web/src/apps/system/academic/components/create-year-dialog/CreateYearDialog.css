@@ -1,0 +1,12 @@
+.academic-create-plan {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.academic-create-plan > div:first-child {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 14px;
+}
