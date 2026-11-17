@@ -52,6 +52,11 @@ import {
   ScopeOptionsController,
 } from "./modules/platform/departments/index.js";
 import {
+  DictsController,
+  DictsRepository,
+  DictsService,
+} from "./modules/platform/dicts/index.js";
+import {
   IdentitiesController,
   IdentitiesRepository,
   IdentitiesService,
@@ -165,6 +170,7 @@ const databaseConfig = loadDatabaseConfig();
     }),
   ],
   controllers: [
+    DictsController,
     NumberRulesController,
     AcademicController,
     SchoolProfilesController,
@@ -184,6 +190,8 @@ const databaseConfig = loadDatabaseConfig();
     ScopeQueryController,
   ],
   providers: [
+    DictsRepository,
+    DictsService,
     NumberRulesService,
     NumbersRepository,
     NumbersService,

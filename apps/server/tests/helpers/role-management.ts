@@ -54,6 +54,11 @@ import {
   ScopeOptionsController,
 } from "../../src/modules/platform/departments/index.js";
 import {
+  DictsController,
+  DictsRepository,
+  DictsService,
+} from "../../src/modules/platform/dicts/index.js";
+import {
   IdentitiesController,
   IdentitiesRepository,
   IdentitiesService,
@@ -136,6 +141,7 @@ export async function roleManagementFixture(withAuth = false) {
   const module = await Test.createTestingModule({
     imports: [ClsModule.forRoot({ global: true })],
     controllers: [
+      DictsController,
       NumberRulesController,
       AcademicController,
       SchoolProfilesController,
@@ -151,6 +157,8 @@ export async function roleManagementFixture(withAuth = false) {
       ScopeQueryController,
     ],
     providers: [
+      DictsRepository,
+      DictsService,
       NumberRulesService,
       NumbersRepository,
       NumbersService,

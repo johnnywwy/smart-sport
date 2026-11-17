@@ -19,6 +19,7 @@ import { v7 } from "uuid";
 import { commonColumns } from "../database/common-columns.js";
 
 export { academicYears, semesters } from "./academic.js";
+export { dictItems, dictTypes } from "./dicts.js";
 export { numberIssues, numberRules } from "./numbers.js";
 
 export const users = pgTable(
