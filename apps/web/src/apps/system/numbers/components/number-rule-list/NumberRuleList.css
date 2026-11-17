@@ -1,0 +1,8 @@
+.number-rule-example {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.number-rule-unavailable {
+  color: var(--muted);
+  font-size: 13px;
+}
