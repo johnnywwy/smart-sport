@@ -1,6 +1,7 @@
 import {
   type AcademicYear,
   academicYearListSchema,
+  academicYearOptionsSchema,
   academicYearSchema,
   currentAcademicSchema,
   semesterSchema,
@@ -93,6 +94,40 @@ it("迁移可重跑，空库读不创建日历；登录全局可读，账号级�
     ).toBe(401);
     expect((await fetch(`${f.base}/api/v1${path}`)).status).toBe(401);
   }
+});
+it("空日历按真实创建权限返回入口能力，只读和学校无能力，账号令牌被拒绝", async () => {
+  const readonly = await customActor(["view"]),
+    creator = await customActor(["create"]);
+  const school = await f.seed("school", "school-admin");
+  for (const [token, expected] of [
+    [f.admin.token, ["create"]],
+    [creator.token, ["create"]],
+    [readonly.token, []],
+    [school.token, []],
+  ] as const) {
+    const r = await f.request(
+      "/academic-years/options",
+      "GET",
+      undefined,
+      token,
+    );
+    expect(r.status).toBe(200);
+    expect(
+      successResponseSchema(academicYearOptionsSchema).parse(await r.json())
+        .data.allowedActions,
+    ).toEqual(expected);
+  }
+  expect(
+    (
+      await f.request(
+        "/academic-years/options",
+        "GET",
+        undefined,
+        f.admin.account,
+      )
+    ).status,
+  ).toBe(401);
+  expect(await list()).toEqual([]);
 });
 it("新建自动生成两个非当前学期，上海日期存储、公共字段、审计与倒序列表正确", async () => {
   const a = await create(),

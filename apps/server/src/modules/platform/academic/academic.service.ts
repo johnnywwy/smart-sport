@@ -43,6 +43,13 @@ export class AcademicService {
       semester: academicYear?.semesters.find((row) => row.isCurrent) ?? null,
     };
   }
+  options(actor: IdentityContext) {
+    return {
+      allowedActions: actor.permissions.has("system:academic:create")
+        ? ["create" as const]
+        : [],
+    };
+  }
   /** 一次事务创建学年和两个默认学期，不隐式修改当前标记。 */
   create(
     input: CreateAcademicYear,

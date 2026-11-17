@@ -12,6 +12,7 @@ import {
   academicEmptyQuerySchema,
   academicParamsSchema,
   academicYearListSchema,
+  academicYearOptionsSchema,
   academicYearSchema,
   type CreateAcademicYear,
   createAcademicYearSchema,
@@ -53,6 +54,15 @@ export class AcademicController {
   )
   current(@ZodRequest("query", academicEmptyQuerySchema) _query: unknown) {
     return this.service.current(this.actor());
+  }
+  @Get("academic-years/options")
+  @ApiZodResponse(
+    200,
+    successResponseSchema(academicYearOptionsSchema),
+    "学年新建操作能力",
+  )
+  options(@ZodRequest("query", academicEmptyQuerySchema) _query: unknown) {
+    return this.service.options(this.actor());
   }
   @Post("academic-years")
   @RequirePermissions("system:academic:create")
