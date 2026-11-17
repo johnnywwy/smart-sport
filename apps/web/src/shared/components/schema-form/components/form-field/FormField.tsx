@@ -30,6 +30,8 @@ export function FormField({
   onChange,
 }: Props) {
   const errorId = useId();
+  // DOM 表单的 reset/submit 等具名属性不能被业务字段覆盖；提交仍使用原契约字段名。
+  const inputName = `field-${field.name}`;
   const className = `schema-form-field${field.fullWidth ? " schema-form-field-wide" : ""}`;
   const required = field.required !== false;
   const description = field.readOnly
@@ -73,7 +75,7 @@ export function FormField({
   if (field.type === "select" && !field.readOnly) {
     return (
       <Select
-        name={field.name}
+        name={inputName}
         value={value === "" || value == null ? null : String(value)}
         onChange={(selected) => {
           onChange(
@@ -114,7 +116,7 @@ export function FormField({
   if (field.type === "checkbox") {
     return (
       <Checkbox
-        name={field.name}
+        name={inputName}
         isSelected={Boolean(value)}
         onChange={(selected) => onChange(field.name, selected)}
         isRequired={required}
@@ -147,7 +149,7 @@ export function FormField({
       : (field.type ?? "text");
   return (
     <TextField
-      name={field.name}
+      name={inputName}
       type={inputType}
       {...("autoComplete" in field && field.autoComplete
         ? { autoComplete: field.autoComplete }

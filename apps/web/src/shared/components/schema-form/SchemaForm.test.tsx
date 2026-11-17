@@ -1,5 +1,6 @@
 import {
   loginRequestSchema,
+  updateNumberRuleSchema,
   updateOrganizationRequestSchema,
 } from "@smart-sport/contracts";
 import { renderToStaticMarkup } from "react-dom/server";
@@ -7,6 +8,30 @@ import { describe, expect, it } from "vitest";
 import { SchemaForm } from "./SchemaForm";
 
 describe("通用表单展示", () => {
+  it("reset 等契约字段不覆盖原生表单方法，业务状态仍使用契约键", () => {
+    const html = renderToStaticMarkup(
+      <SchemaForm
+        schema={updateNumberRuleSchema}
+        initialValues={{ prefix: "ZX", digits: 6, reset: "yearly" }}
+        version={0}
+        fields={[
+          {
+            name: "reset",
+            label: "重置周期",
+            type: "select",
+            options: [{ value: "yearly", label: "每年" }],
+          },
+        ]}
+        submitLabel="保存"
+        onSubmit={async () => {}}
+      >
+        {({ values }) => <span>{String(values.reset)}</span>}
+      </SchemaForm>,
+    );
+    expect(html).not.toContain('name="reset"');
+    expect(html).toContain('name="field-reset"');
+    expect(html).toContain("yearly");
+  });
   it("只读字段显示原因，version 随提交携带但不显示系统字段", () => {
     const html = renderToStaticMarkup(
       <SchemaForm
