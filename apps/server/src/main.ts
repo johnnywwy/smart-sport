@@ -25,6 +25,11 @@ import { IdempotencyInterceptor } from "./idempotency.js";
 import { AccessTokenSigner } from "./infra/auth/access-token-signer.js";
 import { MemberCredentials } from "./infra/crypto/member-credentials.js";
 import { PasswordHasher } from "./infra/crypto/password-hasher.js";
+import {
+  AcademicController,
+  AcademicRepository,
+  AcademicService,
+} from "./modules/platform/academic/index.js";
 import { AuthController } from "./modules/platform/auth/auth.controller.js";
 import { AuthRepository } from "./modules/platform/auth/auth.repository.js";
 import { AuthService } from "./modules/platform/auth/auth.service.js";
@@ -154,6 +159,7 @@ const databaseConfig = loadDatabaseConfig();
     }),
   ],
   controllers: [
+    AcademicController,
     SchoolProfilesController,
     IdentityScopesController,
     MembersController,
@@ -171,6 +177,8 @@ const databaseConfig = loadDatabaseConfig();
     ScopeQueryController,
   ],
   providers: [
+    AcademicRepository,
+    AcademicService,
     SchoolProfileGuard,
     SchoolProfilePolicy,
     SchoolProfilesRepository,

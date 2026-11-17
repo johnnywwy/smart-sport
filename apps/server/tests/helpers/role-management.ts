@@ -26,6 +26,11 @@ import { IdempotencyInterceptor } from "../../src/idempotency.js";
 import { AccessTokenSigner } from "../../src/infra/auth/access-token-signer.js";
 import { MemberCredentials } from "../../src/infra/crypto/member-credentials.js";
 import { PasswordHasher } from "../../src/infra/crypto/password-hasher.js";
+import {
+  AcademicController,
+  AcademicRepository,
+  AcademicService,
+} from "../../src/modules/platform/academic/index.js";
 import { AuthController } from "../../src/modules/platform/auth/auth.controller.js";
 import { AuthRepository } from "../../src/modules/platform/auth/auth.repository.js";
 import { AuthService } from "../../src/modules/platform/auth/index.js";
@@ -125,6 +130,7 @@ export async function roleManagementFixture(withAuth = false) {
   const module = await Test.createTestingModule({
     imports: [ClsModule.forRoot({ global: true })],
     controllers: [
+      AcademicController,
       SchoolProfilesController,
       IdentityScopesController,
       ...(withAuth ? [AuthController, IdentitiesController] : []),
@@ -138,6 +144,8 @@ export async function roleManagementFixture(withAuth = false) {
       ScopeQueryController,
     ],
     providers: [
+      AcademicRepository,
+      AcademicService,
       SchoolProfileGuard,
       SchoolProfilePolicy,
       SchoolProfilesRepository,
