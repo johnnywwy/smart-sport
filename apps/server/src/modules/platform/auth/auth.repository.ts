@@ -43,6 +43,17 @@ export class AuthRepository {
       .for("update");
   }
 
+  requirePasswordChange(tx: AuthTransaction, userId: string) {
+    return tx
+      .update(users)
+      .set({
+        mustChangePassword: true,
+        updatedAt: new Date(),
+        version: sql`${users.version}+1`,
+      })
+      .where(eq(users.id, userId));
+  }
+
   async identityCount(tx: AuthTransaction, userId: string) {
     const [row] = await tx
       .select({ count: sql<number>`count(*)::int` })

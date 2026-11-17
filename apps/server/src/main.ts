@@ -93,6 +93,12 @@ import {
   OrganizationsService,
 } from "./modules/platform/organizations/index.js";
 import {
+  ParamManagementService,
+  ParamsController,
+  ParamsRepository,
+  ParamsService,
+} from "./modules/platform/params/index.js";
+import {
   PresetRolesController,
   PresetRolesRepository,
   PresetRolesService,
@@ -170,6 +176,7 @@ const databaseConfig = loadDatabaseConfig();
     }),
   ],
   controllers: [
+    ParamsController,
     DictsController,
     NumberRulesController,
     AcademicController,
@@ -190,6 +197,9 @@ const databaseConfig = loadDatabaseConfig();
     ScopeQueryController,
   ],
   providers: [
+    ParamsRepository,
+    ParamsService,
+    ParamManagementService,
     DictsRepository,
     DictsService,
     NumberRulesService,

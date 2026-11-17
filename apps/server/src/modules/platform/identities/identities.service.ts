@@ -67,6 +67,8 @@ export class IdentitiesService {
   ): Promise<SelectIdentityResponse> {
     return this.identities.transaction(async (tx) => {
       const session = await this.requireSession(tx, claims, true);
+      // 账号级令牌只能在完成强制改密后进入业务身份。
+      if (session.user.mustChangePassword) throw new ApiException(11101);
       const row = await this.identities.findOwnedIdentity(
         tx,
         claims.userId,

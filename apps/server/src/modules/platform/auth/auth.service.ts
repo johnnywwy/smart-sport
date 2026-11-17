@@ -13,13 +13,16 @@ import { AccessTokenSigner } from "../../../infra/auth/access-token-signer.js";
 import { PasswordHasher } from "../../../infra/crypto/password-hasher.js";
 import { SERVER_CONFIG } from "../../../server-config.js";
 import { IdentitiesService } from "../identities/index.js";
+import { ParamsService } from "../params/index.js";
 import { AuthRepository, type LoginMetadata } from "./auth.repository.js";
+import { passwordExpired } from "./password-expiry.js";
 import { validateNewPassword } from "./password-policy.js";
 
 @Injectable()
 export class AuthService {
   private readonly dummyHash: Promise<string>;
   constructor(
+    @Inject(ParamsService) private readonly params: ParamsService,
     @Inject(AuthRepository) private readonly repository: AuthRepository,
     @Inject(PasswordHasher) private readonly hasher: PasswordHasher,
     @Inject(AccessTokenSigner) private readonly signer: AccessTokenSigner,
@@ -76,6 +79,12 @@ export class AuthService {
                 ? 10003
                 : 10001,
         } as const;
+      const expireDays = await this.params.get("password.expire_days", tx);
+      const mustChangePassword =
+        user.mustChangePassword ||
+        passwordExpired(user.passwordChangedAt, expireDays, date);
+      if (mustChangePassword && !user.mustChangePassword)
+        await this.repository.requirePasswordChange(tx, user.id);
       const sessionId = v7();
       const refreshToken = randomBytes(32).toString("base64url");
       const accessToken = await this.signer.signAccount({
@@ -105,7 +114,7 @@ export class AuthService {
       return {
         body: {
           accessToken,
-          mustChangePassword: user.mustChangePassword,
+          mustChangePassword,
           identityCount,
           selectedIdentity: null,
         } as LoginResponse,
@@ -266,6 +275,7 @@ export class AuthService {
         this.config,
         refresh.user.username,
         input.newPassword,
+        await this.params.get("password.min_length", tx),
       );
       const previous = await this.repository.recentPasswordHashes(
         tx,

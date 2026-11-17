@@ -84,6 +84,12 @@ import {
   OrganizationsService,
 } from "../../src/modules/platform/organizations/index.js";
 import {
+  ParamManagementService,
+  ParamsController,
+  ParamsRepository,
+  ParamsService,
+} from "../../src/modules/platform/params/index.js";
+import {
   PresetRolesController,
   PresetRolesRepository,
   PresetRolesService,
@@ -141,6 +147,7 @@ export async function roleManagementFixture(withAuth = false) {
   const module = await Test.createTestingModule({
     imports: [ClsModule.forRoot({ global: true })],
     controllers: [
+      ParamsController,
       DictsController,
       NumberRulesController,
       AcademicController,
@@ -157,6 +164,9 @@ export async function roleManagementFixture(withAuth = false) {
       ScopeQueryController,
     ],
     providers: [
+      ParamsRepository,
+      ParamsService,
+      ParamManagementService,
       DictsRepository,
       DictsService,
       NumberRulesService,
@@ -256,6 +266,7 @@ export async function roleManagementFixture(withAuth = false) {
     );
     const signer = app.get(AccessTokenSigner);
     return {
+      userId,
       orgId,
       identityId,
       token: await signer.signIdentity({

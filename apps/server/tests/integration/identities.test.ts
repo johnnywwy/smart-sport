@@ -41,6 +41,10 @@ import {
   IdentitiesService,
 } from "../../src/modules/platform/identities/index.js";
 import type { IdentityContext } from "../../src/modules/platform/identity-context/index.js";
+import {
+  ParamsRepository,
+  ParamsService,
+} from "../../src/modules/platform/params/index.js";
 import { importRegions } from "../../src/modules/platform/regions/region-importer.js";
 import { requestContextMiddleware } from "../../src/request-context.js";
 import {
@@ -103,6 +107,8 @@ beforeAll(async () => {
     controllers: [AuthController, IdentitiesController, ContextProbeController],
     providers: [
       AuthRepository,
+      ParamsRepository,
+      ParamsService,
       AuthService,
       IdentitiesRepository,
       IdentitiesService,

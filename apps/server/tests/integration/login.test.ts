@@ -40,6 +40,10 @@ import {
   IdentitiesRepository,
   IdentitiesService,
 } from "../../src/modules/platform/identities/index.js";
+import {
+  ParamsRepository,
+  ParamsService,
+} from "../../src/modules/platform/params/index.js";
 import { importRegions } from "../../src/modules/platform/regions/region-importer.js";
 import { requestContextMiddleware } from "../../src/request-context.js";
 import { identities, organizations, users } from "../../src/schema/public.js";
@@ -108,6 +112,8 @@ beforeAll(async () => {
     imports: [ClsModule.forRoot({ global: true })],
     controllers: [AuthController],
     providers: [
+      ParamsRepository,
+      ParamsService,
       AuthService,
       AuthRepository,
       IdentitiesService,
