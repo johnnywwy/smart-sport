@@ -89,6 +89,7 @@ describe("用户表 PostgreSQL 17 迁移与约束", () => {
       "0026_scope_region_revision.sql",
       "0027_create_school_profiles.sql",
       "0028_create_academic_calendar.sql",
+      "0029_create_number_rules.sql",
     ]);
     expect(await migratePublic(pool)).toEqual([]);
   });

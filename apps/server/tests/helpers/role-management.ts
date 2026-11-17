@@ -27,6 +27,12 @@ import { AccessTokenSigner } from "../../src/infra/auth/access-token-signer.js";
 import { MemberCredentials } from "../../src/infra/crypto/member-credentials.js";
 import { PasswordHasher } from "../../src/infra/crypto/password-hasher.js";
 import {
+  NumberRulesController,
+  NumberRulesService,
+  NumbersRepository,
+  NumbersService,
+} from "../../src/modules/foundation/numbers/index.js";
+import {
   AcademicController,
   AcademicRepository,
   AcademicService,
@@ -130,6 +136,7 @@ export async function roleManagementFixture(withAuth = false) {
   const module = await Test.createTestingModule({
     imports: [ClsModule.forRoot({ global: true })],
     controllers: [
+      NumberRulesController,
       AcademicController,
       SchoolProfilesController,
       IdentityScopesController,
@@ -144,6 +151,9 @@ export async function roleManagementFixture(withAuth = false) {
       ScopeQueryController,
     ],
     providers: [
+      NumberRulesService,
+      NumbersRepository,
+      NumbersService,
       AcademicRepository,
       AcademicService,
       SchoolProfileGuard,

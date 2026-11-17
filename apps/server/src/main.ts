@@ -26,6 +26,12 @@ import { AccessTokenSigner } from "./infra/auth/access-token-signer.js";
 import { MemberCredentials } from "./infra/crypto/member-credentials.js";
 import { PasswordHasher } from "./infra/crypto/password-hasher.js";
 import {
+  NumberRulesController,
+  NumberRulesService,
+  NumbersRepository,
+  NumbersService,
+} from "./modules/foundation/numbers/index.js";
+import {
   AcademicController,
   AcademicRepository,
   AcademicService,
@@ -159,6 +165,7 @@ const databaseConfig = loadDatabaseConfig();
     }),
   ],
   controllers: [
+    NumberRulesController,
     AcademicController,
     SchoolProfilesController,
     IdentityScopesController,
@@ -177,6 +184,9 @@ const databaseConfig = loadDatabaseConfig();
     ScopeQueryController,
   ],
   providers: [
+    NumberRulesService,
+    NumbersRepository,
+    NumbersService,
     AcademicRepository,
     AcademicService,
     SchoolProfileGuard,
