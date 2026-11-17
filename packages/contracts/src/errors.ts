@@ -51,6 +51,12 @@ export const academicErrors = {
   20002: { status: 409, message: "学年已关闭，不能修改" },
 } as const;
 
+export const numberErrors = {
+  30001: { status: 409, message: "编号流水已用尽，请增加流水号位数" },
+  30002: { status: 409, message: "编号前缀已被其他规则使用" },
+  30003: { status: 503, message: "系统时间早于编号年度，请联系管理员检查" },
+} as const;
+
 export const apiErrors = {
   ...systemErrors,
   ...authErrors,
@@ -58,6 +64,7 @@ export const apiErrors = {
   ...permissionErrors,
   ...organizationErrors,
   ...academicErrors,
+  ...numberErrors,
   12008: { status: 409, message: "账号信息已存在，请使用追加身份" },
   12009: { status: 409, message: "该账号已拥有此组织身份" },
 } as const;
