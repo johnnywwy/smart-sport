@@ -35,6 +35,7 @@
 | ----- | ------------------------------------- | ------------------------ | ----------------------------------------------------------------------------------------------------- |
 | GET   | `/academic-years`                     | 登录                     | 含学期                                                                                                |
 | GET   | `/academic-years/current`             | 登录                     | 当前学年与学期                                                                                        |
+| GET   | `/academic-years/options`             | 登录                     | 全局新建能力，供空日历与只读身份准确控制入口；`{ allowedActions: ["create"] }` 或空数组               |
 | POST  | `/academic-years`                     | `system:academic:create` | `{ startYear }`，自动生成名称与两个学期，默认日期 9/1–次年 8/31，第一学期 9/1–1/31，第二学期 2/1–7/31 |
 | PATCH | `/semesters/:id`                      | `system:academic:update` | 调整起止日期                                                                                          |
 | POST  | `/semesters/:id/set-current`          | `system:academic:update` | 设为当前学期，同时切换当前学年                                                                        |
