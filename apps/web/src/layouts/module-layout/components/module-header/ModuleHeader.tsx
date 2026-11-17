@@ -3,16 +3,22 @@ import { Sidebar } from "@heroui-pro/react/sidebar";
 import type { IdentitySummary } from "@smart-sport/contracts";
 import { useNavigate } from "react-router";
 import { useSignOut } from "../../../../pages/login/hooks/use-sign-out";
+import {
+  AcademicSwitcher,
+  type AcademicSwitcherProps,
+} from "../academic-switcher/AcademicSwitcher";
 import { IdentitySwitcher } from "../identity-switcher/IdentitySwitcher";
 import "./ModuleHeader.css";
 export function ModuleHeader({
   moduleName,
   pageName,
   identity,
+  academic,
 }: {
   moduleName: string;
   pageName: string;
   identity: IdentitySummary;
+  academic: AcademicSwitcherProps;
 }) {
   const navigate = useNavigate();
   const { pending, signOut } = useSignOut();
@@ -41,6 +47,7 @@ export function ModuleHeader({
         <strong>{pageName}</strong>
       </div>
       <div className="module-header-actions">
+        <AcademicSwitcher key={identity.id} {...academic} />
         <IdentitySwitcher identity={identity} />
         <Dropdown>
           <Button

@@ -6,10 +6,10 @@ import type {
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type { FormSubmissionContext } from "../../../../shared/components/schema-form/types";
 import { ApiError } from "../../../../shared/errors/api-error";
+import { academicYearsOptions } from "../../../../shared/hooks/academic-queries";
 import { useApiEvents } from "../../../../shared/stores/api-events";
 import {
   academicCapabilitiesOptions,
-  academicYearsOptions,
   createAcademicYear,
   saveSemester,
   selectCurrentSemester,

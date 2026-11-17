@@ -1,0 +1,58 @@
+.academic-switcher-trigger {
+  --academic-switcher-background: #ebebec;
+  --academic-switcher-foreground: #18181b;
+  height: 36px;
+  min-height: 36px;
+  min-width: 0;
+  padding: 0 14px;
+  gap: 6px;
+  border-radius: 999px;
+  background: var(--academic-switcher-background);
+  color: var(--academic-switcher-foreground);
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.academic-switcher-trigger > svg {
+  display: block;
+  flex: none;
+  transition: transform 160ms ease-out;
+}
+.academic-switcher-trigger[aria-expanded="true"] > svg {
+  transform: rotate(180deg);
+}
+.academic-switcher-popover {
+  width: 280px;
+  max-width: calc(100vw - 24px);
+  padding: 6px;
+  border-radius: 14px;
+}
+.academic-switcher-note {
+  margin: 0;
+  padding: 8px 10px;
+  color: var(--muted);
+  font-size: 12px;
+}
+.academic-switcher-state {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  margin: 0;
+  padding: 12px 10px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+.academic-switcher-state p {
+  margin: 0;
+}
+.dark .academic-switcher-trigger {
+  --academic-switcher-background: #3f3f46;
+  --academic-switcher-foreground: #f4f4f5;
+}
+@media (prefers-reduced-motion: reduce) {
+  .academic-switcher-trigger > svg {
+    transition: none;
+  }
+}

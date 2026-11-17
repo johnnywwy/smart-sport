@@ -7,13 +7,13 @@ vi.mock("../../../../shared/api/client", () => ({
 }));
 
 import { ApiError } from "../../../../shared/errors/api-error";
+import { academicYearsOptions } from "../../../../shared/hooks/academic-queries";
 import {
   academicYearExample,
   currentAcademicExample,
-} from "../__tests__/fixtures";
+} from "../../../../shared/testing/academic-fixtures";
 import {
   academicCapabilitiesOptions,
-  academicYearsOptions,
   createAcademicYear,
   saveSemester,
   selectCurrentSemester,

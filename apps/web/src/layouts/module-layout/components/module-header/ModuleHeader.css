@@ -1,5 +1,6 @@
 .module-header {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
   gap: 16px;
@@ -16,6 +17,11 @@
   gap: 10px;
   color: #63636b;
   font-size: 14px;
+}
+.module-header-actions {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  margin-inline-start: auto;
 }
 .module-header .module-sidebar-toggle {
   width: 36px;

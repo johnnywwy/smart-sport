@@ -1,5 +1,4 @@
 import {
-  academicYearListSchema,
   academicYearOptionsSchema,
   academicYearSchema,
   type CreateAcademicYear,
@@ -14,18 +13,6 @@ import { queryOptions } from "@tanstack/react-query";
 import { apiClient } from "../../../../shared/api/client";
 import type { FormSubmissionContext } from "../../../../shared/components/schema-form/types";
 
-export const academicYearsOptions = (identityId: string) =>
-  queryOptions({
-    queryKey: [identityId, "academic-years"],
-    retry: false,
-    refetchOnWindowFocus: false,
-    refetchOnReconnect: false,
-    queryFn: ({ signal }) =>
-      apiClient.request("/api/v1/academic-years", academicYearListSchema, {
-        signal,
-        notify: false,
-      }),
-  });
 export const academicCapabilitiesOptions = (identityId: string) =>
   queryOptions({
     queryKey: [identityId, "academic-options"],

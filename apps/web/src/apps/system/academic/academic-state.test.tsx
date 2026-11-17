@@ -1,7 +1,7 @@
 import { type AcademicYear, academicYearSchema } from "@smart-sport/contracts";
 import { renderToStaticMarkup } from "react-dom/server";
 import { expect, it } from "vitest";
-import { academicYearExample } from "./__tests__/fixtures";
+import { academicYearExample } from "../../../shared/testing/academic-fixtures";
 import {
   academicPermissions,
   academicPlan,

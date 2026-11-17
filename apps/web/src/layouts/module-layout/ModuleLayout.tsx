@@ -6,6 +6,7 @@ import type {
 } from "@smart-sport/contracts";
 import { type ReactNode, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router";
+import { useAcademicSelection } from "../../shared/hooks/use-academic-selection";
 import { usePreferences } from "../../shared/stores/preferences";
 import {
   pathAfterClosingTab,
@@ -35,6 +36,7 @@ export function ModuleLayout({
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const { sidebarOpen, setSidebarOpen } = usePreferences();
+  const academic = useAcademicSelection(identity.id);
   const scope = `${identity.id}:${module.code}`;
   const home = `/m/${module.code}/workbench`;
   const tabs = useWorkspaceTabs((state) => state.tabs[scope]);
@@ -78,6 +80,7 @@ export function ModuleLayout({
           moduleName={module.name}
           pageName={pageName}
           identity={identity}
+          academic={academic}
         />
       }
     >
