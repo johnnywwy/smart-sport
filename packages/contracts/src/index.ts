@@ -5,6 +5,8 @@ export * from "./auth.js";
 export * from "./common.js";
 export * from "./department-scopes.js";
 export * from "./departments.js";
+export * from "./dict-definitions.js";
+export * from "./dicts.js";
 export * from "./errors.js";
 export * from "./identities.js";
 export * from "./identity-scope-details.js";

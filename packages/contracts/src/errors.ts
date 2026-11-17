@@ -57,6 +57,14 @@ export const numberErrors = {
   30003: { status: 503, message: "系统时间早于编号年度，请联系管理员检查" },
 } as const;
 
+export const dictErrors = {
+  30010: { status: 403, message: "系统内置字典选项只读" },
+  30011: { status: 403, message: "该字典不允许新增自定义选项" },
+  30012: { status: 409, message: "选项已被使用，只能停用，不能删除" },
+  30013: { status: 409, message: "该字典下已存在同名选项" },
+  30014: { status: 409, message: "字典选项已停用，不能用于新业务" },
+} as const;
+
 export const apiErrors = {
   ...systemErrors,
   ...authErrors,
@@ -65,6 +73,7 @@ export const apiErrors = {
   ...organizationErrors,
   ...academicErrors,
   ...numberErrors,
+  ...dictErrors,
   12008: { status: 409, message: "账号信息已存在，请使用追加身份" },
   12009: { status: 409, message: "该账号已拥有此组织身份" },
 } as const;
