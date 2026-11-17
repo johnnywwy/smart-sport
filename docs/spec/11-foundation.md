@@ -62,16 +62,24 @@
 
 **sys_params**：key、value jsonb、value_schema（Zod 描述）、remark。
 
-| 参数示例                  | 默认 |
-| ------------------------- | ---- |
-| `password.min_length`     | 8    |
-| `password.expire_days`    | 0    |
-| `login.lock_threshold`    | 10   |
-| `subscription.trial_days` | 30   |
-| `subscription.grace_days` | 30   |
-| `recycle.retention_days`  | 30   |
-| `import.undo_hours`       | 24   |
-| `rollover.undo_days`      | 7    |
+| 参数                      | 默认 | 允许的整数范围         |
+| ------------------------- | ---- | ---------------------- |
+| `password.min_length`     | 8    | 8～64                  |
+| `password.expire_days`    | 0    | 0～365，0 表示不过期   |
+| `login.lock_threshold`    | 10   | 5～100                 |
+| `subscription.trial_days` | 30   | 1～365                 |
+| `subscription.grace_days` | 30   | 0～365，0 表示无宽限期 |
+| `recycle.retention_days`  | 30   | 1～365                 |
+| `import.undo_hours`       | 24   | 1～168                 |
+| `rollover.undo_days`      | 7    | 1～30                  |
+
+实施约定（T-116，用户已确认）：
+
+- 八个参数由 contracts 代码声明并幂等初始化，只补缺失项、不覆盖已修改值；名称、说明和整数校验描述随代码维护，不从数据库执行 Zod 或脚本。管理端仅改值，不允许新增、删除、改键或改校验规则。
+- `GET /system-params` 分页查询（keyword、name/updatedAt 排序）；`GET /system-params/:id` 详情；`PATCH /system-params/:id` 提交整数 value、version 和必填修改原因 reason（1～500 字）。查询和修改只限公司身份的 `system:param:view/update`，行返回 allowedActions；非法值返回90001及value字段错误，旧版本90002，不存在90004。
+- 写事务在权限修订屏障内重读权限，更新与修改前后值、原因审计一起提交或回滚。读取真实数据库，不使用进程内参数缓存，跨实例修改后后续读取立即采用新值。更新不提供新增接口，不需要创建幂等键。
+- 密码最少长度用于生产环境后续改密，开发/测试仍允许默认密码；不追溯拒绝现有短密码登录。有效期依据 password_changed_at 在登录时判断，启用非零后过期或无改密时间的账号必须先改密；0不启用，既有首次改密标志仍生效。
+- 登录锁定阈值仅提供配置，T-022仍按用户要求暂缓。试用、宽限、回收站、导入撤销、学年升级撤回随对应业务任务接入，不虚报消费功能完成；后续业务在生成服务期或撤销截止时间时读取，不改写已有截止时间。
 
 ## 7. 编号规则
 
