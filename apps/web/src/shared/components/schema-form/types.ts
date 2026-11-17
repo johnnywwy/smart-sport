@@ -46,7 +46,7 @@ export type FormField = FieldBase &
       }
     | {
         type: "select";
-        options: readonly { value: string | number; label: string }[];
+        options: readonly { value: string | number | boolean; label: string }[];
       }
   );
 export type FormSubmissionContext = {

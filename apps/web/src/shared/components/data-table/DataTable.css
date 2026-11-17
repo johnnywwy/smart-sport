@@ -91,3 +91,19 @@
   --table-selected: #1b304a;
   --table-danger: #ff9ca5;
 }
+
+.data-table-workspace {
+  display: grid;
+  grid-template-columns: minmax(160px, 180px) minmax(0, 1fr);
+  align-items: start;
+  gap: 16px;
+  min-width: 0;
+}
+.data-table-workspace > .data-table-grid {
+  min-width: 0;
+}
+@media (max-width: 760px) {
+  .data-table-workspace {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

@@ -24,7 +24,7 @@ export function TableGrid<T extends TableRecord>({
 }) {
   const unavailable = Boolean(status?.loading || status?.error);
   const rows = unavailable ? [] : data.items;
-  const hasActions = Boolean(config.rowActions?.length);
+  const hasActions = Boolean(config.rowDetails || config.rowActions?.length);
   return (
     <Table className="data-table-grid">
       <Table.ScrollContainer className="data-table-scroll">
@@ -115,7 +115,12 @@ export function TableGrid<T extends TableRecord>({
           </Table.Header>
           <Table.Body
             items={rows}
-            dependencies={[columns, config.rowActions, selection.enabled]}
+            dependencies={[
+              columns,
+              config.rowActions,
+              config.rowDetails,
+              selection.enabled,
+            ]}
             renderEmptyState={() => <TableListState {...status} />}
           >
             {(item) => (
@@ -146,6 +151,7 @@ export function TableGrid<T extends TableRecord>({
                     <TableRowActions
                       item={item}
                       actions={config.rowActions ?? []}
+                      details={config.rowDetails}
                       disabled={unavailable}
                     />
                   </Table.Cell>

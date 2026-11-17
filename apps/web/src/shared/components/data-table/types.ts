@@ -50,6 +50,8 @@ export type TableConfig<T> = {
   permissions: readonly PermissionCode[];
   actions?: readonly TableAction[];
   rowActions?: readonly TableRowAction<T>[];
+  /** 只查看列表已返回内容，不赋予任何写操作。 */
+  rowDetails?: { label: string; onPress: (item: T) => void };
   batchActions?: readonly {
     id: string;
     label: string;
@@ -72,6 +74,7 @@ export type DataTableProps<T extends TableRecord> = {
   /** 身份 id；学校数据还需包含学校 id。改变后重置勾选与列设置。 */
   scopeKey: string;
   config: TableConfig<T>;
+  sidebar?: ReactNode;
   data: TablePage<T>;
   query: TableQuery;
   onQueryChange: (query: TableQuery) => void;

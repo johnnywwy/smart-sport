@@ -99,7 +99,7 @@ export function FormField({
           <ListBox>
             {field.options.map((option) => (
               <ListBox.Item
-                key={option.value}
+                key={String(option.value)}
                 id={String(option.value)}
                 textValue={option.label}
               >

@@ -158,3 +158,27 @@ describe("列表分页布局", () => {
     expect(previous).toBeGreaterThan(pageSize);
   });
 });
+
+it("侧栏布局保留统一标题筛选及分页，只读详情不会增加行写权限", () => {
+  const markup = renderToStaticMarkup(
+    <DataTable
+      {...props}
+      sidebar={<aside aria-label="字典分类">分类内容</aside>}
+      config={{
+        ...props.config,
+        recycleBin: false,
+        rowDetails: { label: "查看详情", onPress: () => {} },
+      }}
+      data={{
+        ...props.data,
+        items: [{ id: "builtin", name: "内置选项", allowedActions: [] }],
+        total: 1,
+      }}
+    />,
+  );
+  expect(markup).toContain("data-table-workspace");
+  expect(markup).toContain("分类内容");
+  expect(markup).toContain("查看详情");
+  expect(markup).not.toContain("批量删除");
+  expect(markup).not.toContain("确认删除");
+});

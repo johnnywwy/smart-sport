@@ -6,14 +6,27 @@ import "./TableRowActions.css";
 export function TableRowActions<T extends TableRecord>({
   item,
   actions,
+  details,
   disabled,
 }: {
   item: T;
   actions: readonly TableRowAction<T>[];
   disabled: boolean;
+  details?: { label: string; onPress: (item: T) => void } | undefined;
 }) {
   return (
     <div className="data-table-row-actions">
+      {details && (
+        <Button
+          variant="ghost"
+          size="sm"
+          className="data-table-row-action"
+          isDisabled={disabled}
+          onPress={() => details.onPress(item)}
+        >
+          {details.label}
+        </Button>
+      )}
       {actions
         .filter(({ action }) => item.allowedActions.includes(action))
         .map((action) =>

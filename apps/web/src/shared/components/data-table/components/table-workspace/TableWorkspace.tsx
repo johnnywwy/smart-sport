@@ -21,6 +21,7 @@ export function TableWorkspace<T extends TableRecord>({
   query,
   onQueryChange,
   status,
+  sidebar,
 }: DataTableProps<T>) {
   const [visible, setVisible] = useState(
     () => new Set(config.columns.map((column) => column.id)),
@@ -58,6 +59,22 @@ export function TableWorkspace<T extends TableRecord>({
   const selectable = !query.deleted && requiredActions.length > 0;
   const change = (patch: Partial<TableQuery>) =>
     onQueryChange(changeTableQuery(query, patch));
+  const grid = (
+    <TableGrid
+      config={config}
+      data={data}
+      query={query}
+      {...(status ? { status } : {})}
+      columns={visibleTableColumns(config.columns, visible)}
+      selection={{
+        enabled: selectable,
+        requiredActions,
+        keys,
+        onChange: (next) => setSelected({ scope: selectionScope, keys: next }),
+      }}
+      onChange={onQueryChange}
+    />
+  );
   return (
     <section className="data-table" aria-label={`${config.title}列表`}>
       <header className="data-table-heading">
@@ -136,21 +153,14 @@ export function TableWorkspace<T extends TableRecord>({
             </div>
           </Can>
         )}
-        <TableGrid
-          config={config}
-          data={data}
-          query={query}
-          {...(status ? { status } : {})}
-          columns={visibleTableColumns(config.columns, visible)}
-          selection={{
-            enabled: selectable,
-            requiredActions,
-            keys,
-            onChange: (next) =>
-              setSelected({ scope: selectionScope, keys: next }),
-          }}
-          onChange={onQueryChange}
-        />
+        {sidebar ? (
+          <div className="data-table-workspace">
+            {sidebar}
+            {grid}
+          </div>
+        ) : (
+          grid
+        )}
         <TablePagination
           query={query}
           total={data.total}
