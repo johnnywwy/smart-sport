@@ -46,12 +46,18 @@ export const organizationErrors = {
   12007: { status: 403, message: "预置部门不可删除" },
 } as const;
 
+export const academicErrors = {
+  20001: { status: 409, message: "学年已存在" },
+  20002: { status: 409, message: "学年已关闭，不能修改" },
+} as const;
+
 export const apiErrors = {
   ...systemErrors,
   ...authErrors,
   ...identityErrors,
   ...permissionErrors,
   ...organizationErrors,
+  ...academicErrors,
   12008: { status: 409, message: "账号信息已存在，请使用追加身份" },
   12009: { status: 409, message: "该账号已拥有此组织身份" },
 } as const;
