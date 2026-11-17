@@ -1,0 +1,10 @@
+.system-param-value {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.system-param-description {
+  display: inline-block;
+  min-width: 180px;
+  max-width: 420px;
+  overflow-wrap: anywhere;
+}

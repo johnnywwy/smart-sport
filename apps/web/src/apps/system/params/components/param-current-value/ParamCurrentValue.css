@@ -1,0 +1,19 @@
+.param-current-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.param-current-field .label {
+  font-size: 14px;
+  font-weight: 500;
+}
+.param-current-value {
+  display: flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 8px 14px;
+  border-radius: 12px;
+  background: var(--surface-secondary);
+  color: var(--muted);
+  font-size: 14px;
+}
