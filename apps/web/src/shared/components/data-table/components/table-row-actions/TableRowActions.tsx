@@ -30,7 +30,10 @@ export function TableRowActions<T extends TableRecord>({
       {actions
         .filter(({ action }) => item.allowedActions.includes(action))
         .map((action) =>
-          action.action === "delete" || action.danger || action.confirmation ? (
+          !action.opensDialog &&
+          (action.action === "delete" ||
+            action.danger ||
+            action.confirmation) ? (
             <TableConfirmAction
               key={action.action}
               label={action.label}

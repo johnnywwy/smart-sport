@@ -11,6 +11,7 @@ import {
 } from "../../apps/organization/scopes";
 import { SchoolProfilePage } from "../../apps/school/profiles";
 import { AcademicYearsPage } from "../../apps/system/academic";
+import { DictionariesPage } from "../../apps/system/dicts";
 import { NumberRulesPage } from "../../apps/system/numbers";
 import { PresetRolesPage } from "../../apps/system/preset-roles";
 import { ModuleLayout } from "../../layouts/module-layout/ModuleLayout";
@@ -91,6 +92,7 @@ export function WorkbenchPage() {
         selected?.key === "preset-roles" ||
         selected?.key === "academic" ||
         selected?.key === "number-rules" ||
+        selected?.key === "dictionaries" ||
         selected?.key === "roles" ||
         selected?.key === "departments" ||
         selected?.key === "members" ||
@@ -150,6 +152,9 @@ export function WorkbenchPage() {
         />
       ) : selected?.key === "academic" && module.code === "platform-admin" ? (
         <AcademicYearsPage key={identity.id} identityId={identity.id} />
+      ) : selected?.key === "dictionaries" &&
+        module.code === "platform-admin" ? (
+        <DictionariesPage key={identity.id} identityId={identity.id} />
       ) : selected?.key === "number-rules" &&
         module.code === "platform-admin" ? (
         <NumberRulesPage key={identity.id} identityId={identity.id} />

@@ -1,0 +1,31 @@
+.dict-type-panel {
+  min-width: 0;
+  padding: 8px;
+  border-radius: 16px;
+  background: var(--table-surface);
+}
+.dict-type-panel h2 {
+  margin: 0;
+  padding: 6px 10px;
+  color: var(--table-muted);
+  font-size: 12px;
+  font-weight: 500;
+}
+.dict-type-list {
+  width: 100%;
+  padding: 0;
+  gap: 2px;
+}
+.dict-type-list .list-box-item {
+  height: 36px;
+  min-height: 36px;
+  padding: 0 10px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 400;
+}
+.dict-type-list .list-box-item[data-selected="true"] {
+  background: var(--table-background);
+  color: var(--table-foreground);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 8%);
+}

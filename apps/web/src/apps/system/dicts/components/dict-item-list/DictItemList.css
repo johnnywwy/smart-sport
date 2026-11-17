@@ -1,0 +1,23 @@
+.dict-item-description {
+  display: inline-block;
+  min-width: 150px;
+  max-width: 300px;
+  overflow-wrap: anywhere;
+}
+.dict-item-source.chip,
+.dict-item-status.chip {
+  height: 24px;
+  padding-inline: 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+}
+.dict-item-source.chip,
+.dict-item-disabled.chip {
+  background: var(--table-secondary);
+  color: var(--table-muted);
+}
+.dict-item-enabled.chip {
+  background: var(--success-soft);
+  color: var(--success-soft-foreground);
+}

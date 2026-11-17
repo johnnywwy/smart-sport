@@ -1,0 +1,7 @@
+.dict-delete-dialog .schema-form-rule {
+  color: var(--danger);
+}
+.dict-delete-dialog .schema-form-submit {
+  background: var(--danger);
+  color: var(--danger-foreground);
+}

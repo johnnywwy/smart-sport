@@ -38,6 +38,8 @@ export type TableRowAction<T> = {
   action: string;
   label: string;
   danger?: boolean;
+  /** 调用方打开自己的确认弹窗，避免再套一层通用确认。 */
+  opensDialog?: boolean;
   confirmation?: string;
   onPress: (item: T) => void;
 };
