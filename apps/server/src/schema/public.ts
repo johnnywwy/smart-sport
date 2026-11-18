@@ -602,3 +602,5 @@ export const tenantRegistryRevision = pgTable(
     check("tenant_registry_revision_version_check", sql`${t.version}>=0`),
   ],
 );
+
+export { outboxConsumptions, outboxEvents } from "./outbox.js";

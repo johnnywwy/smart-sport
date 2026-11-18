@@ -19,6 +19,11 @@ export class DataSourceRegistry {
     }
   }
 
+  /** 配置键不含连接串，供逐数据源迁移和投递。 */
+  keys() {
+    return [...this.sources.keys()];
+  }
+
   get(key = "default") {
     if (this.closing) throw new Error("数据源已关闭");
     const existing = this.connections.get(key);
