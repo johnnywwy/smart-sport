@@ -13,6 +13,9 @@ import {
 export class NavigationRepository {
   constructor(@Inject(DRIZZLE) private readonly db: NodePgDatabase) {}
 
+  overrides() {
+    return this.db.select().from(menuOverrides);
+  }
   apps() {
     return this.db
       .select()

@@ -11,12 +11,15 @@ import {
 import { ClsService } from "nestjs-cls";
 import { ApiException } from "../../../api-response.js";
 import type { IdentityContext } from "../identity-context/index.js";
+import { NavigationRepository } from "./navigation.repository.js";
 import { NavigationService } from "./navigation.service.js";
 
 @Injectable()
 export class ModuleNavigationService {
   constructor(
     @Inject(NavigationService) private readonly navigation: NavigationService,
+    @Inject(NavigationRepository)
+    private readonly repository: NavigationRepository,
     @Inject(ClsService) private readonly cls: ClsService,
   ) {}
 
@@ -69,6 +72,7 @@ export class ModuleNavigationService {
         ),
       ),
     );
+    const overrides = await this.repository.overrides();
     const groups = module.groups
       .map((group, groupIndex) => ({
         key: group.key,
@@ -96,31 +100,33 @@ export class ModuleNavigationService {
                 });
             });
             if (!candidates.length) return [];
-            const overridden = candidates.find(
-              ({ source, original }) =>
-                source.name !== original?.name ||
-                source.icon !== original?.icon ||
-                source.sort !== original?.sort,
-            );
+            const configured = menu.features.flatMap((ref) => {
+              const declared = appDefinitions.find(
+                (app) => app.code === ref.app,
+              );
+              return overrides.filter(
+                (override) =>
+                  override.appCode === ref.app &&
+                  declared?.menus.some(
+                    (source) =>
+                      source.key === override.menuKey &&
+                      source.feature === ref.feature,
+                  ),
+              );
+            });
             return [
               {
                 key: menu.key,
                 name:
-                  overridden &&
-                  overridden.source.name !== overridden.original?.name
-                    ? overridden.source.name
-                    : menu.name,
+                  configured.find((row) => row.displayName !== null)
+                    ?.displayName ?? menu.name,
                 path: menu.path,
                 icon:
-                  overridden &&
-                  overridden.source.icon !== overridden.original?.icon
-                    ? overridden.source.icon
-                    : menu.icon,
+                  configured.find((row) => row.icon !== null)?.icon ??
+                  menu.icon,
                 sort:
-                  overridden &&
-                  overridden.source.sort !== overridden.original?.sort
-                    ? overridden.source.sort
-                    : (menuIndex + 1) * 10,
+                  configured.find((row) => row.sort !== null)?.sort ??
+                  (menuIndex + 1) * 10,
               },
             ];
           })

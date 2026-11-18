@@ -78,6 +78,15 @@ import {
   MembersService,
 } from "../../src/modules/platform/members/index.js";
 import {
+  MenuManagementController,
+  MenuManagementRepository,
+  MenuManagementService,
+  ModuleNavigationService,
+  NavigationController,
+  NavigationRepository,
+  NavigationService,
+} from "../../src/modules/platform/navigation/index.js";
+import {
   CompanyOrganizationGuard,
   OrganizationsController,
   OrganizationsRepository,
@@ -152,6 +161,8 @@ export async function roleManagementFixture(withAuth = false) {
   const module = await Test.createTestingModule({
     imports: [ClsModule.forRoot({ global: true })],
     controllers: [
+      MenuManagementController,
+      NavigationController,
       RegionManagementController,
       ParamsController,
       DictsController,
@@ -170,6 +181,11 @@ export async function roleManagementFixture(withAuth = false) {
       ScopeQueryController,
     ],
     providers: [
+      MenuManagementRepository,
+      MenuManagementService,
+      ModuleNavigationService,
+      NavigationRepository,
+      NavigationService,
       ParamsRepository,
       ParamsService,
       RegionManagementService,

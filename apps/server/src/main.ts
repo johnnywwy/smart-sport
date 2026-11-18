@@ -81,6 +81,9 @@ import {
   MembersService,
 } from "./modules/platform/members/index.js";
 import {
+  MenuManagementController,
+  MenuManagementRepository,
+  MenuManagementService,
   ModuleNavigationService,
   NavigationController,
   NavigationRepository,
@@ -179,6 +182,7 @@ const databaseConfig = loadDatabaseConfig();
     }),
   ],
   controllers: [
+    MenuManagementController,
     ParamsController,
     DictsController,
     NumberRulesController,
@@ -201,6 +205,8 @@ const databaseConfig = loadDatabaseConfig();
     ScopeQueryController,
   ],
   providers: [
+    MenuManagementRepository,
+    MenuManagementService,
     ParamsRepository,
     ParamsService,
     RegionManagementService,

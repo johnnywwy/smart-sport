@@ -340,6 +340,7 @@ export const menuOverrides = pgTable(
     sort: integer("sort"),
     icon: varchar("icon", { length: 64 }),
     hidden: boolean("hidden"),
+    version: integer("version").notNull().default(0),
     updatedAt: timestamp("updated_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
