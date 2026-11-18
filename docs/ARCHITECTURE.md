@@ -112,7 +112,7 @@ smart-sport/
 │  │     ├─ core/        守卫 · 装饰器 · 审计装饰器
 │  │     ├─ database/    数据源 · 迁移执行
 │  │     ├─ schema/      Drizzle 表定义（public）
-│  │     ├─ infra/       audit · auth · crypto · storage（tenant、redis、queue 未独立成目录）
+│  │     ├─ infra/       audit · auth · crypto · storage · tenant（redis、queue 未独立成目录）
 │  │     └─ modules/
 │  │        ├─ platform/   auth identities identity-context organizations departments members
 │  │        │              roles role-management preset-roles catalog navigation scope
