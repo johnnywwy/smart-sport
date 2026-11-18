@@ -1,4 +1,5 @@
 import { loadDatabaseConfig } from "@smart-sport/config/env";
+import { TenantMigrator, TenantRepository } from "../infra/tenant/index.js";
 import { MigrationError, migratePublic } from "./migrate.js";
 import { DataSourceRegistry } from "./registry.js";
 
@@ -11,6 +12,19 @@ async function main() {
         ? `已执行 public 迁移：${applied.join(", ")}`
         : "public 迁移已是最新",
     );
+    const migrator = new TenantMigrator(
+      registry,
+      new TenantRepository(registry.get().db),
+    );
+    const schools = await migrator.migrateAll();
+    const failures = schools.filter((school) => school.status === "failed");
+    console.log(`学校迁移：共${schools.length}所，失败${failures.length}所`);
+    for (const failure of failures) {
+      console.error(
+        `学校${failure.schoolId}：${failure.error}；失败状态${failure.failureRecorded ? "已记录" : "未记录"}`,
+      );
+    }
+    if (failures.length) process.exitCode = 1;
   } finally {
     await registry.onApplicationShutdown();
   }
@@ -22,7 +36,7 @@ try {
   console.error(
     error instanceof MigrationError
       ? error.message
-      : "public 迁移失败，请检查数据库连接、配置及权限",
+      : "数据库迁移失败，请检查数据库连接、配置及权限",
   );
   process.exitCode = 1;
 }
