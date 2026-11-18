@@ -56,7 +56,7 @@
 
 ## 本地图标与统计历史
 
-`assets/`提供Smart Sport跑道、Gann分析、Longbridge桥梁三款SVG图标。服务器已安装PyYAML，运行`sudo python3 deploy/host/install-casaos-icons.py`可备份并更新三项目图标配置，资源保存在CasaOS本机`/var/lib/casaos/www/img/`，不依赖应用是否启动或外部图床。CasaOS升级若替换静态目录，应重新安装这些图标。
+`assets/`提供Smart Sport跑道、Gann分析两款SVG图标及长桥官方PNG标识。服务器已安装PyYAML，运行`sudo python3 deploy/host/install-casaos-icons.py`可备份并更新三项目图标配置，资源保存在CasaOS本机`/var/lib/casaos/www/img/`，不依赖应用是否启动或外部图床。CasaOS升级若替换静态目录，应重新安装这些图标。长桥标识取自其官方网站`https://longbridge.com`声明的图标`https://assets.wbrks.com/assets/logo/logo1.png`，保持官方原图。
 
 Statistics保存`/var/lib/casaos/stats/app_management/*.ring`历史，容器删除后仍可展示。2026-11-18已在停用统计采集服务期间，精准归档不存在容器和退役数据库项目对应的记录，保留现有容器和主机统计、告警配置，再恢复管理服务。不能清空整个CasaOS数据库或Docker数据目录。
 

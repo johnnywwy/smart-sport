@@ -11,7 +11,7 @@ assets = pathlib.Path(__file__).resolve().parent / 'assets'
 edits = {
     '/var/lib/casaos/apps/smart-sport-m1/docker-compose.yml': 'smart-sport.svg',
     '/mnt/data/appdata/stacks/gann-v2/compose.yaml': 'gann-v2.svg',
-    '/mnt/data/appdata/stacks/longbridge/compose.yaml': 'longbridge.svg',
+    '/mnt/data/appdata/stacks/longbridge/compose.yaml': 'longbridge.png',
 }
 backup = pathlib.Path('/mnt/data/smart-sport-m1/backups') / ('casaos-icons-' + datetime.datetime.now(datetime.timezone.utc).strftime('%Y%m%dT%H%M%SZ'))
 configs = [(pathlib.Path(p), yaml.safe_load(pathlib.Path(p).read_text()), icon) for p, icon in edits.items()]
