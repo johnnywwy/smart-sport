@@ -58,3 +58,62 @@ jobs:
 
       - name: 构建
         run: pnpm build
+
+  integration:
+    name: 后端集成测试
+    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      CI: "true"
+      HUSKY: "0"
+      TURBO_TELEMETRY_DISABLED: "1"
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 安装 pnpm（版本来自 packageManager）
+        uses: pnpm/action-setup@v4
+
+      - name: 安装 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: pnpm
+
+      - name: 只安装后端及其依赖包
+        run: pnpm --filter '@smart-sport/server...' install --frozen-lockfile
+
+      - name: 构建后端及其依赖包
+        run: pnpm exec turbo run build --filter=@smart-sport/server...
+
+      - name: 读取开发和测试使用的镜像
+        id: images
+        run: node scripts/ci-integration-images.mjs "$GITHUB_OUTPUT"
+
+      - name: 恢复测试镜像缓存
+        id: image-cache
+        uses: actions/cache@v4
+        with:
+          path: .cache/integration-images.tar
+          key: integration-images-v1-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('deploy/compose.dev.yaml', 'deploy/minio/Dockerfile', 'apps/server/tests/helpers/postgres-image.ts', 'scripts/ci-integration-images.mjs') }}
+
+      - name: 加载已缓存的镜像
+        if: steps.image-cache.outputs.cache-hit == 'true'
+        run: docker load --input .cache/integration-images.tar
+
+      - name: 准备并缓存测试镜像
+        if: steps.image-cache.outputs.cache-hit != 'true'
+        env:
+          POSTGRES_IMAGE: ${{ steps.images.outputs.postgres }}
+          REDIS_IMAGE: ${{ steps.images.outputs.redis }}
+          MINIO_IMAGE: ${{ steps.images.outputs.minio }}
+        run: |
+          docker pull "$POSTGRES_IMAGE"
+          docker pull "$REDIS_IMAGE"
+          docker build --tag "$MINIO_IMAGE" deploy/minio
+          mkdir -p .cache
+          docker save --output .cache/integration-images.tar "$POSTGRES_IMAGE" "$REDIS_IMAGE" "$MINIO_IMAGE"
+
+      - name: 真实 PostgreSQL、Redis、MinIO 集成测试
+        run: pnpm --filter @smart-sport/server test:integration
