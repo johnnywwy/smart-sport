@@ -13,6 +13,7 @@ export * from "./identity-scope-details.js";
 export * from "./identity-scopes.js";
 export * from "./member-options.js";
 export * from "./members.js";
+export * from "./menu-overrides.js";
 export * from "./modules.js";
 export * from "./navigation.js";
 export * from "./numbers.js";
