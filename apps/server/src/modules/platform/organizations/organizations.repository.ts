@@ -2,12 +2,8 @@ import { Inject, Injectable } from "@nestjs/common";
 import { and, asc, count, eq, ilike, isNull, or, sql } from "drizzle-orm";
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 import { DRIZZLE } from "../../../database/registry.js";
-import {
-  auditLogs,
-  identities,
-  organizations,
-  regions,
-} from "../../../schema/public.js";
+import { auditWriter } from "../../../infra/audit/audit-writer.js";
+import { identities, organizations, regions } from "../../../schema/public.js";
 
 export type OrganizationsTransaction = Parameters<
   Parameters<NodePgDatabase["transaction"]>[0]
@@ -165,7 +161,7 @@ export class OrganizationsRepository {
       userAgent: string;
     },
   ) {
-    return tx.insert(auditLogs).values({
+    return auditWriter.write(tx, {
       userId: input.actor.userId,
       identityId: input.actor.identityId,
       orgId: input.actor.orgId,

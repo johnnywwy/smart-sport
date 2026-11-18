@@ -1,5 +1,6 @@
 import { Inject, Injectable } from "@nestjs/common";
 import {
+  type MenuOverrideChange,
   type MenuOverrideQuery,
   menuOverrideDefinitions,
   type UpdateMenuOverrides,
@@ -11,6 +12,10 @@ import {
 } from "../identity-context/index.js";
 import { managedMenus } from "./menu-management.mapper.js";
 import { MenuManagementRepository } from "./menu-management.repository.js";
+
+function displayFields(row: MenuOverrideChange) {
+  return { displayName: row.displayName, sort: row.sort, hidden: row.hidden };
+}
 
 type Metadata = { traceId: string; ip: string; userAgent: string };
 @Injectable()
@@ -72,7 +77,10 @@ export class MenuManagementService {
         const definition = menuOverrideDefinitions.find(
           (row) => row.module === change.module && row.key === change.key,
         );
-        if (!definition) throw new ApiException(90004);
+        const previous = before.find(
+          (row) => row.module === change.module && row.key === change.key,
+        );
+        if (!definition || !previous) throw new ApiException(90004);
         for (const source of definition.sources)
           await this.repository.save(tx, source, change);
         await this.repository.audit(tx, {
@@ -82,10 +90,10 @@ export class MenuManagementService {
           action: "system.menu.update",
           targetType: "menu",
           changes: {
-            before: before.find(
-              (row) => row.module === change.module && row.key === change.key,
-            ),
-            after: change,
+            module: change.module,
+            key: change.key,
+            before: displayFields(previous),
+            after: displayFields(change),
           },
           ...metadata,
           createdAt: new Date(),

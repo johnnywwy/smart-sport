@@ -8,7 +8,8 @@ import { and, asc, count, desc, eq, ilike, isNull, or, sql } from "drizzle-orm";
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 import { DRIZZLE } from "../../../database/registry.js";
 import { Repository } from "../../../database/repository.js";
-import { auditLogs, systemParams } from "../../../schema/public.js";
+import { auditWriter } from "../../../infra/audit/audit-writer.js";
+import { type auditLogs, systemParams } from "../../../schema/public.js";
 export type ParamTransaction = Parameters<
   Parameters<NodePgDatabase["transaction"]>[0]
 >[0];
@@ -113,6 +114,6 @@ export class ParamsRepository extends Repository<typeof systemParams> {
     );
   }
   audit(tx: ParamTransaction, input: typeof auditLogs.$inferInsert) {
-    return tx.insert(auditLogs).values(input);
+    return auditWriter.write(tx, input);
   }
 }

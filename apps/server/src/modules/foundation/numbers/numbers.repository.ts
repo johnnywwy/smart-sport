@@ -8,8 +8,9 @@ import { and, asc, eq, isNull, sql } from "drizzle-orm";
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 import { DRIZZLE } from "../../../database/registry.js";
 import { Repository } from "../../../database/repository.js";
+import { auditWriter } from "../../../infra/audit/audit-writer.js";
 import {
-  auditLogs,
+  type auditLogs,
   numberIssues,
   numberRules,
 } from "../../../schema/public.js";
@@ -148,6 +149,6 @@ export class NumbersRepository extends Repository<typeof numberRules> {
     );
   }
   audit(tx: NumberTransaction, input: typeof auditLogs.$inferInsert) {
-    return tx.insert(auditLogs).values(input);
+    return auditWriter.write(tx, input);
   }
 }

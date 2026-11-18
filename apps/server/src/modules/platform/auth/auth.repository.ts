@@ -2,8 +2,8 @@ import { Inject, Injectable } from "@nestjs/common";
 import { and, eq, isNull, notInArray, or, sql } from "drizzle-orm";
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 import { DRIZZLE } from "../../../database/registry.js";
+import { auditWriter } from "../../../infra/audit/audit-writer.js";
 import {
-  auditLogs,
   identities,
   loginLogs,
   passwordHistory,
@@ -106,7 +106,7 @@ export class AuthRepository {
       userAgent: data.metadata.userAgent,
       createdAt: data.date,
     });
-    await tx.insert(auditLogs).values({
+    await auditWriter.write(tx, {
       userId: data.userId,
       action: "auth.login",
       targetType: "user",
@@ -205,15 +205,16 @@ export class AuthRepository {
     return identity;
   }
 
-  recordLogout(
+  async recordLogout(
     tx: AuthTransaction,
     userId: string,
     sessionId: string,
     metadata: LoginMetadata,
     date: Date,
   ) {
-    return tx.insert(auditLogs).values({
+    return auditWriter.write(tx, {
       userId,
+      ...(await this.sessionActor(tx, userId, sessionId)),
       action: "auth.logout",
       targetType: "session",
       targetId: sessionId,
@@ -305,8 +306,9 @@ export class AuthRepository {
           isNull(refreshTokens.consumedAt),
         ),
       );
-    await tx.insert(auditLogs).values({
+    await auditWriter.write(tx, {
       userId: data.userId,
+      ...(await this.sessionActor(tx, data.userId, data.sessionId)),
       action: "auth.password.change",
       targetType: "user",
       targetId: data.userId,
@@ -316,5 +318,26 @@ export class AuthRepository {
       traceId: data.metadata.traceId,
       createdAt: data.date,
     });
+  }
+  private async sessionActor(
+    tx: AuthTransaction,
+    userId: string,
+    sessionId: string,
+  ) {
+    const [actor] = await tx
+      .select({ identityId: identities.id, orgId: identities.orgId })
+      .from(userSessions)
+      .leftJoin(
+        identities,
+        and(
+          eq(identities.id, userSessions.identityId),
+          eq(identities.userId, userId),
+        ),
+      )
+      .where(
+        and(eq(userSessions.id, sessionId), eq(userSessions.userId, userId)),
+      );
+    // 退出/改密必须保留会话当时的身份，不因该身份被停用而抹去归属。
+    return actor ?? { identityId: null, orgId: null };
   }
 }

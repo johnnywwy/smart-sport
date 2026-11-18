@@ -2,8 +2,9 @@ import { Inject, Injectable } from "@nestjs/common";
 import { and, asc, eq, inArray, isNull, sql } from "drizzle-orm";
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 import { DRIZZLE } from "../../../database/registry.js";
+import { auditWriter } from "../../../infra/audit/audit-writer.js";
 import {
-  auditLogs,
+  type auditLogs,
   departments,
   identities,
   organizations,
@@ -184,6 +185,6 @@ export class DepartmentsRepository {
       .returning({ id: departments.id });
   }
   audit(tx: DepartmentTransaction, input: typeof auditLogs.$inferInsert) {
-    return tx.insert(auditLogs).values(input);
+    return auditWriter.write(tx, input);
   }
 }

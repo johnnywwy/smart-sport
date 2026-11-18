@@ -3,7 +3,12 @@ import { and, asc, desc, eq, isNull, sql } from "drizzle-orm";
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 import { DRIZZLE } from "../../../database/registry.js";
 import { Repository } from "../../../database/repository.js";
-import { academicYears, auditLogs, semesters } from "../../../schema/public.js";
+import { auditWriter } from "../../../infra/audit/audit-writer.js";
+import {
+  academicYears,
+  type auditLogs,
+  semesters,
+} from "../../../schema/public.js";
 
 export type AcademicTransaction = Parameters<
   Parameters<NodePgDatabase["transaction"]>[0]
@@ -81,6 +86,6 @@ export class AcademicRepository extends Repository<typeof academicYears> {
     );
   }
   audit(tx: AcademicTransaction, input: typeof auditLogs.$inferInsert) {
-    return tx.insert(auditLogs).values(input);
+    return auditWriter.write(tx, input);
   }
 }

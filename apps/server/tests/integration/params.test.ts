@@ -134,8 +134,7 @@ it("修改值、原因和审计同事务提交，另一个服务实例立即读�
   ).rows[0];
   expect(audit.changes).toMatchObject({
     key: r.key,
-    before: { value: 30 },
-    after: { value: 60 },
+    value: [30, 60],
     reason: "新服务试用期调整",
   });
   expect(audit.identity_id).toBe(f.admin.identityId);

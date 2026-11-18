@@ -3,7 +3,12 @@ import type { MenuOverrideChange } from "@smart-sport/contracts";
 import { and, eq, sql } from "drizzle-orm";
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 import { DRIZZLE } from "../../../database/registry.js";
-import { auditLogs, menuOverrides, menus } from "../../../schema/public.js";
+import { auditWriter } from "../../../infra/audit/audit-writer.js";
+import {
+  type auditLogs,
+  menuOverrides,
+  menus,
+} from "../../../schema/public.js";
 export type MenuTransaction = Parameters<
   Parameters<NodePgDatabase["transaction"]>[0]
 >[0];
@@ -60,6 +65,6 @@ export class MenuManagementRepository {
       });
   }
   audit(tx: MenuTransaction, input: typeof auditLogs.$inferInsert) {
-    return tx.insert(auditLogs).values(input);
+    return auditWriter.write(tx, input);
   }
 }

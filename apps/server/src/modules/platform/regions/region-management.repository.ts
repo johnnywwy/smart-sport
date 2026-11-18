@@ -2,7 +2,8 @@ import { Inject, Injectable } from "@nestjs/common";
 import { sql } from "drizzle-orm";
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 import { DRIZZLE } from "../../../database/registry.js";
-import { auditLogs, regions } from "../../../schema/public.js";
+import { auditWriter } from "../../../infra/audit/audit-writer.js";
+import { type auditLogs, regions } from "../../../schema/public.js";
 import type { RegionReference, StoredRegion } from "./region-sync-plan.js";
 export type RegionTx = Parameters<
   Parameters<NodePgDatabase["transaction"]>[0]
@@ -71,6 +72,6 @@ export class RegionManagementRepository {
     );
   }
   audit(tx: RegionTx, input: typeof auditLogs.$inferInsert) {
-    return tx.insert(auditLogs).values(input);
+    return auditWriter.write(tx, input);
   }
 }

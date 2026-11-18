@@ -2,8 +2,8 @@ import { Inject, Injectable } from "@nestjs/common";
 import { and, asc, eq, inArray, isNull, sql } from "drizzle-orm";
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 import { DRIZZLE } from "../../../database/registry.js";
+import { auditWriter } from "../../../infra/audit/audit-writer.js";
 import {
-  auditLogs,
   identities,
   identityRoles,
   organizations,
@@ -142,7 +142,7 @@ export class IdentitiesRepository {
         version: sql`${users.version} + 1`,
       })
       .where(eq(users.id, input.userId));
-    await tx.insert(auditLogs).values({
+    await auditWriter.write(tx, {
       userId: input.userId,
       identityId: input.identityId,
       orgId: input.orgId,

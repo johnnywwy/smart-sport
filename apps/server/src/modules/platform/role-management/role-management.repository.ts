@@ -2,8 +2,9 @@ import { Inject, Injectable } from "@nestjs/common";
 import { and, eq, inArray, isNull, or, sql } from "drizzle-orm";
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 import { DRIZZLE } from "../../../database/registry.js";
+import { auditWriter } from "../../../infra/audit/audit-writer.js";
 import {
-  auditLogs,
+  type auditLogs,
   identities,
   identityRoles,
   presetRoleOverrides,
@@ -126,7 +127,7 @@ export class RoleManagementRepository {
       );
   }
   audit(tx: RoleTransaction, value: typeof auditLogs.$inferInsert) {
-    return tx.insert(auditLogs).values(value);
+    return auditWriter.write(tx, value);
   }
   private visible(actor: RoleActor) {
     return and(

@@ -384,10 +384,12 @@ describe("refresh 轮换与退出", () => {
     expect(response.headers.get("set-cookie")).toContain("Max-Age=0");
     const body = apiResponseSchema.parse(await response.json());
     const audit = await pool.query(
-      "SELECT action FROM public.audit_logs WHERE trace_id=$1",
+      "SELECT action, identity_id, org_id FROM public.audit_logs WHERE trace_id=$1",
       [body.traceId],
     );
-    expect(audit.rows).toEqual([{ action: "auth.logout" }]);
+    expect(audit.rows).toEqual([
+      { action: "auth.logout", identity_id: null, org_id: null },
+    ]);
     expect((await sessionRequest("refresh", initial)).status).toBe(401);
     expect((await sessionRequest("logout", initial)).status).toBe(200);
   });

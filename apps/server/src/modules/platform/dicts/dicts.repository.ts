@@ -10,7 +10,12 @@ import { and, asc, count, desc, eq, ilike, isNull, sql } from "drizzle-orm";
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 import { DRIZZLE } from "../../../database/registry.js";
 import { Repository } from "../../../database/repository.js";
-import { auditLogs, dictItems, dictTypes } from "../../../schema/public.js";
+import { auditWriter } from "../../../infra/audit/audit-writer.js";
+import {
+  type auditLogs,
+  dictItems,
+  dictTypes,
+} from "../../../schema/public.js";
 export type DictTransaction = Parameters<
   Parameters<NodePgDatabase["transaction"]>[0]
 >[0];
@@ -200,6 +205,6 @@ export class DictsRepository extends Repository<typeof dictItems> {
       .where(and(eq(dictItems.id, row.id), isNull(dictItems.usedAt)));
   }
   audit(tx: DictTransaction, input: typeof auditLogs.$inferInsert) {
-    return tx.insert(auditLogs).values(input);
+    return auditWriter.write(tx, input);
   }
 }

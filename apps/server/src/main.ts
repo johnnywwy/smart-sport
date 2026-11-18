@@ -36,6 +36,10 @@ import {
   AcademicRepository,
   AcademicService,
 } from "./modules/platform/academic/index.js";
+import {
+  AuditPartitionsRepository,
+  AuditPartitionsService,
+} from "./modules/platform/audit/index.js";
 import { AuthController } from "./modules/platform/auth/auth.controller.js";
 import { AuthRepository } from "./modules/platform/auth/auth.repository.js";
 import { AuthService } from "./modules/platform/auth/auth.service.js";
@@ -205,6 +209,8 @@ const databaseConfig = loadDatabaseConfig();
     ScopeQueryController,
   ],
   providers: [
+    AuditPartitionsRepository,
+    AuditPartitionsService,
     MenuManagementRepository,
     MenuManagementService,
     ParamsRepository,

@@ -597,7 +597,7 @@ describe("T-029 全局鉴权与身份上下文", () => {
   );
 
   it("真实退出接口吊销会话后原access令牌不能继续使用", async () => {
-    await seedAccount("guard-logout", [
+    const seeded = await seedAccount("guard-logout", [
       { type: "company", orgType: "company", orgName: "退出测试" },
     ]);
     const { response, body } = await login("guard-logout");
@@ -608,6 +608,25 @@ describe("T-029 全局鉴权与身份上下文", () => {
       headers: { Cookie: cookie ?? "" },
     });
     expect(logout.status).toBe(200);
+    const trace = apiResponseSchema.parse(await logout.json()).traceId;
+    const expected = (
+      await pool.query("SELECT org_id FROM public.identities WHERE id=$1", [
+        seeded.identityIds[0],
+      ])
+    ).rows[0];
+    const audit = (
+      await pool.query(
+        "SELECT user_id,identity_id,org_id FROM public.audit_logs WHERE trace_id=$1 AND action='auth.logout'",
+        [trace],
+      )
+    ).rows;
+    expect(audit).toEqual([
+      {
+        user_id: seeded.userId,
+        identity_id: seeded.identityIds[0],
+        org_id: expected.org_id,
+      },
+    ]);
     const denied = await authRequest("context-probe", body.data.accessToken);
     expect(denied.status).toBe(401);
     expect(apiResponseSchema.parse(await denied.json()).code).toBe(10005);
