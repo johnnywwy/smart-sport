@@ -105,6 +105,9 @@ import {
   TemplateReader,
 } from "./modules/platform/preset-roles/index.js";
 import {
+  RegionManagementController,
+  RegionManagementRepository,
+  RegionManagementService,
   RegionsController,
   RegionsRepository,
   RegionsService,
@@ -185,6 +188,7 @@ const databaseConfig = loadDatabaseConfig();
     MembersController,
     HealthController,
     AuthController,
+    RegionManagementController,
     RegionsController,
     OrganizationsController,
     IdentitiesController,
@@ -199,6 +203,8 @@ const databaseConfig = loadDatabaseConfig();
   providers: [
     ParamsRepository,
     ParamsService,
+    RegionManagementService,
+    RegionManagementRepository,
     ParamManagementService,
     DictsRepository,
     DictsService,

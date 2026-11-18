@@ -96,6 +96,11 @@ import {
   TemplateReader,
 } from "../../src/modules/platform/preset-roles/index.js";
 import {
+  RegionManagementController,
+  RegionManagementRepository,
+  RegionManagementService,
+} from "../../src/modules/platform/regions/index.js";
+import {
   RoleManagementController,
   RoleManagementRepository,
   RoleManagementService,
@@ -147,6 +152,7 @@ export async function roleManagementFixture(withAuth = false) {
   const module = await Test.createTestingModule({
     imports: [ClsModule.forRoot({ global: true })],
     controllers: [
+      RegionManagementController,
       ParamsController,
       DictsController,
       NumberRulesController,
@@ -166,6 +172,8 @@ export async function roleManagementFixture(withAuth = false) {
     providers: [
       ParamsRepository,
       ParamsService,
+      RegionManagementService,
+      RegionManagementRepository,
       ParamManagementService,
       DictsRepository,
       DictsService,

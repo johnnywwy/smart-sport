@@ -1,10 +1,14 @@
 import { readFile } from "node:fs/promises";
+import type { Region } from "@smart-sport/contracts";
+import { drizzle } from "drizzle-orm/node-postgres";
 import type pg from "pg";
+import { RegionManagementRepository } from "./region-management.repository.js";
+import { regionSyncPlan } from "./region-sync-plan.js";
 
 type RegionSeed = {
   code: string;
   name: string;
-  level: number;
+  level: Region["level"];
   parentCode: string | null;
   path: string;
   status: number;
@@ -13,7 +17,10 @@ type RegionSeed = {
 const header = "code,name,level,parent_code,path,status";
 
 export async function readRegionSeeds(file: string | URL) {
-  const lines = (await readFile(file, "utf8")).trimEnd().split(/\r?\n/);
+  return parseRegionSeeds(await readFile(file, "utf8"));
+}
+export function parseRegionSeeds(text: string) {
+  const lines = text.trimEnd().split(/\r?\n/);
   if (lines.shift() !== header) throw new Error("区划 CSV 表头不正确");
   const seeds = lines.map((line, index) => parseLine(line, index + 2));
   validateTree(seeds);
@@ -42,7 +49,14 @@ function parseLine(line: string, lineNumber: number): RegionSeed {
   ) {
     throw new Error(`区划 CSV 第 ${lineNumber} 行内容错误`);
   }
-  return { code, name, level, parentCode: parent || null, path, status };
+  return {
+    code,
+    name,
+    level: level as Region["level"],
+    parentCode: parent || null,
+    path,
+    status,
+  };
 }
 
 function validateTree(seeds: RegionSeed[]) {
@@ -60,6 +74,7 @@ function validateTree(seeds: RegionSeed[]) {
       const parent = seed.parentCode && byCode.get(seed.parentCode);
       if (
         !parent ||
+        (seed.status === 1 && parent.status !== 1) ||
         parent.level !== seed.level - 1 ||
         !seed.path.startsWith(`${parent.path}.`)
       ) {
@@ -71,47 +86,13 @@ function validateTree(seeds: RegionSeed[]) {
 
 export async function importRegions(pool: pg.Pool, file: string | URL) {
   const seeds = await readRegionSeeds(file);
-  const client = await pool.connect();
-  try {
-    await client.query("BEGIN");
-    await client.query("SELECT pg_advisory_xact_lock(1936749167, 30)");
-    await client.query("UPDATE public.regions SET status = 0");
-    for (const level of [1, 2, 3]) {
-      for (const batch of chunks(
-        seeds.filter((seed) => seed.level === level),
-        300,
-      )) {
-        const values: unknown[] = [];
-        const tuples = batch.map((seed, index) => {
-          const offset = index * 6;
-          values.push(
-            seed.code,
-            seed.name,
-            seed.level,
-            seed.parentCode,
-            seed.path,
-            seed.status,
-          );
-          return `($${offset + 1},$${offset + 2},$${offset + 3},$${offset + 4},$${offset + 5},$${offset + 6})`;
-        });
-        await client.query(
-          `INSERT INTO public.regions (code,name,level,parent_code,path,status) VALUES ${tuples.join(",")} ON CONFLICT (code) DO UPDATE SET name=EXCLUDED.name, level=EXCLUDED.level, parent_code=EXCLUDED.parent_code, path=EXCLUDED.path, status=EXCLUDED.status`,
-          values,
-        );
-      }
-    }
-    await client.query("COMMIT");
+  const repository = new RegionManagementRepository(drizzle(pool));
+  return repository.transaction(async (tx) => {
+    await repository.lock(tx);
+    const snapshot = await repository.snapshot(tx);
+    if (regionSyncPlan(snapshot.rows, seeds, snapshot.references).blocked)
+      throw new Error("区划变更影响现有组织或负责范围，请先处理关联");
+    await repository.apply(tx, seeds);
     return seeds.length;
-  } catch (error) {
-    await client.query("ROLLBACK");
-    throw error;
-  } finally {
-    client.release();
-  }
-}
-
-function chunks<T>(items: T[], size: number) {
-  return Array.from({ length: Math.ceil(items.length / size) }, (_, index) =>
-    items.slice(index * size, (index + 1) * size),
-  );
+  });
 }
