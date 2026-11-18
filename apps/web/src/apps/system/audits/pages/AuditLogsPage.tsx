@@ -20,7 +20,7 @@ export function AuditLogsPage({
     <div className="audit-logs-page">
       {query.filters.userId && (
         <div className="audit-current-operator">
-          <span>当前操作人：{query.filters.operatorName ?? "原账号"}</span>
+          <span>当前操作人：{query.filters.operatorLabel ?? "原账号"}</span>
           <Button
             size="sm"
             variant="secondary"
@@ -28,7 +28,7 @@ export function AuditLogsPage({
               setQuery((current) => ({
                 ...current,
                 page: 1,
-                filters: { ...current.filters, userId: "", operatorName: "" },
+                filters: { ...current.filters, userId: "", operatorLabel: "" },
               }))
             }
           >

@@ -84,7 +84,7 @@ export function AuditList({
                       filters: {
                         ...query.filters,
                         userId: row.userId ?? "",
-                        operatorName: row.operatorName ?? "原账号",
+                        operatorLabel: row.operatorName ?? "原账号",
                       },
                     })
                   }

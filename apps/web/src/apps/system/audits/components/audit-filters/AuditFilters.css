@@ -3,9 +3,10 @@
   flex: 1 1 580px;
   flex-wrap: wrap;
   align-items: flex-start;
-  gap: 8px;
+  gap: 28px 8px;
   min-height: 60px;
 }
+.audit-name-filter,
 .audit-action-filter {
   width: 180px;
 }
@@ -19,6 +20,7 @@
   font-size: 11px;
   color: var(--muted);
 }
+.audit-name-filter .input,
 .audit-date-filter .input,
 .audit-action-filter .select__trigger {
   min-height: 36px;

@@ -23,6 +23,12 @@ export function auditQueryString(scope: AuditScope, query: TableQuery) {
         ? "createdAt:asc"
         : "createdAt:desc",
     ...(query.filters.action ? { action: query.filters.action } : {}),
+    ...(query.filters.operatorName?.trim()
+      ? { operatorName: query.filters.operatorName.trim() }
+      : {}),
+    ...(query.filters.organizationName?.trim()
+      ? { organizationName: query.filters.organizationName.trim() }
+      : {}),
     ...(query.filters.userId ? { userId: query.filters.userId } : {}),
     ...(query.filters.from
       ? { from: `${dateSchema.parse(query.filters.from)}T00:00:00+08:00` }

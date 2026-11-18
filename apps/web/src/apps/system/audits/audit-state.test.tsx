@@ -40,7 +40,7 @@ const row = auditLogSchema.parse({
   traceId: null,
   allowedActions: [],
 });
-it("共享契约编码身份范围和独立分页，按上海日期包含整天，不提交姓名或无关条件", () => {
+it("共享契约编码身份范围和独立分页，按上海日期包含整天，提交名称且忽略展示标签与无关条件", () => {
   const result = Object.fromEntries(
     new URLSearchParams(
       auditQueryString("platform", {
@@ -51,7 +51,9 @@ it("共享契约编码身份范围和独立分页，按上海日期包含整天�
         filters: {
           action: "system.param.update",
           userId: id,
-          operatorName: "测试管理员",
+          operatorName: " 测试管理员 ",
+          organizationName: " 示例公司 ",
+          operatorLabel: "只供展示",
           from: "2026-11-18",
           to: "2026-11-19",
           organizationId: id,
@@ -66,6 +68,8 @@ it("共享契约编码身份范围和独立分页，按上海日期包含整天�
     sort: "createdAt:desc",
     action: "system.param.update",
     userId: id,
+    operatorName: "测试管理员",
+    organizationName: "示例公司",
     from: "2026-11-18T00:00:00+08:00",
     to: "2026-11-19T23:59:59.999+08:00",
   });
@@ -164,6 +168,8 @@ it("七列和只读详情按设计结构渲染，不出现技术标识、修改�
     "导出",
   ])
     expect(text).not.toContain(forbidden);
+  expect(html).toContain('aria-label="所在组织"');
+  expect(html).toContain('placeholder="操作人姓名"');
   expect(html).not.toMatch(/<button[^>]*>删除<\/button>/);
   const details = renderToStaticMarkup(
     <AuditChanges changes={row.changes} />,
@@ -171,4 +177,29 @@ it("七列和只读详情按设计结构渲染，不出现技术标识、修改�
   for (const forbidden of [id, "passwordHash", "subscription.trial_days"])
     expect(details).not.toContain(forbidden);
   expect(details).toContain("参数值");
+});
+
+it("名称空白不构成查询，超过契约长度拒绝，展示标签不作为姓名搜索", () => {
+  const params = new URLSearchParams(
+    auditQueryString("platform", {
+      ...initialAuditQuery,
+      filters: {
+        operatorName: " ",
+        organizationName: " ",
+        userId: id,
+        operatorLabel: "原账号",
+      },
+    }),
+  );
+  expect(params.has("operatorName")).toBe(false);
+  expect(params.has("organizationName")).toBe(false);
+  expect(params.has("operatorLabel")).toBe(false);
+  expect(params.get("userId")).toBe(id);
+  for (const key of ["operatorName", "organizationName"])
+    expect(() =>
+      auditQueryString("platform", {
+        ...initialAuditQuery,
+        filters: { [key]: "字".repeat(101) },
+      }),
+    ).toThrow();
 });

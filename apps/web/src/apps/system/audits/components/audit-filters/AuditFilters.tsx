@@ -42,6 +42,24 @@ export function AuditFilters({
         onChange({ ...query, page: 1, filters });
       }}
     >
+      {(
+        [
+          ["operatorName", "操作人", "操作人姓名"],
+          ["organizationName", "所在组织", "所在组织名称"],
+        ] as const
+      ).map(([name, label, placeholder]) => (
+        <TextField
+          key={name}
+          aria-label={label}
+          value={filters[name] ?? ""}
+          onChange={(value) => change(name, value)}
+          isDisabled={disabled}
+          maxLength={100}
+          className="audit-name-filter"
+        >
+          <Input placeholder={placeholder} />
+        </TextField>
+      ))}
       <Select
         aria-label="操作类型"
         placeholder="操作类型"

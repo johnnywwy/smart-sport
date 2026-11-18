@@ -53,3 +53,21 @@ it("撤权403不会重试或复用其他范围缓存，查询失败保留原始�
   ).toBeUndefined();
   client.clear();
 });
+
+it("姓名和组织名称各自参与缓存键，组合条件编码进入请求", async () => {
+  const client = new QueryClient();
+  request.mockResolvedValue({ items: [], total: 0, page: 1, pageSize: 20 });
+  for (const filters of [
+    { operatorName: "张三" },
+    { operatorName: "李四" },
+    { operatorName: "李四", organizationName: "学校%_\\" },
+  ])
+    await client.fetchQuery(
+      auditOptions("actor", "platform", { ...initialAuditQuery, filters }),
+    );
+  expect(request).toHaveBeenCalledTimes(3);
+  const params = new URLSearchParams(request.mock.calls[2]?.[0].split("?")[1]);
+  expect(params.get("operatorName")).toBe("李四");
+  expect(params.get("organizationName")).toBe("学校%_\\");
+  client.clear();
+});
