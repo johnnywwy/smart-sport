@@ -82,10 +82,10 @@ jobs:
           cache: pnpm
 
       - name: 只安装后端及其依赖包
-        run: pnpm --filter '@smart-sport/server...' install --frozen-lockfile
+        run: pnpm --filter '@smart-sport/server...' --filter '@smart-sport/worker...' install --frozen-lockfile
 
       - name: 构建后端及其依赖包
-        run: pnpm exec turbo run build --filter=@smart-sport/server...
+        run: pnpm exec turbo run build --filter=@smart-sport/server... --filter=@smart-sport/worker...
 
       - name: 读取开发和测试使用的镜像
         id: images

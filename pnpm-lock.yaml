@@ -298,6 +298,9 @@ importers:
       '@smart-sport/config':
         specifier: workspace:*
         version: link:../../packages/config
+      '@smart-sport/server':
+        specifier: workspace:*
+        version: link:../server
       bullmq:
         specifier: 6.7.2
         version: 6.7.2(ioredis@6.0.0)(pg@8.23.1)

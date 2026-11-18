@@ -37,6 +37,28 @@ const databaseSchema = z.object({
 
 export type DatabaseConfig = z.infer<typeof databaseSchema>;
 
+const provisionCommandSchema = databaseSchema.extend({
+  NODE_ENV: z.enum(["development", "test"]),
+  REDIS_URL: url(["redis:", "rediss:"]),
+  WORKER_QUEUE_PREFIX: z
+    .string()
+    .regex(/^[a-z0-9][a-z0-9_-]{0,63}$/)
+    .default("smart-sport"),
+});
+
+/** 开发开通命令先校验环境，生产或未声明环境均拒绝，不建立任何连接。 */
+export function loadProvisionCommandConfig(
+  env: NodeJS.ProcessEnv = process.env,
+) {
+  const result = provisionCommandSchema.safeParse(env);
+  if (!result.success) {
+    throw new Error(
+      "学校开通命令仅限开发、测试环境，且必须提供有效数据库与队列配置",
+    );
+  }
+  return result.data;
+}
+
 export function loadDatabaseConfig(
   env: NodeJS.ProcessEnv = process.env,
 ): DatabaseConfig {

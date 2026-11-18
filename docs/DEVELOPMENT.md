@@ -111,3 +111,25 @@ Redis 的 `session:{sessionId}` 保存不含 refresh 哈希的会话摘要，TTL
 工作区接入 HeroUI Pro 侧栏、分组菜单、底部模块切换、组织身份下拉、用户退出、面包屑与页签；工作台不可关闭，其他页签支持关闭与关闭其他。页签和最近访问按身份与模块隔离，身份变化后清空。各组件和页面独立管理 CSS。
 
 当前仍不算 T-155 / T-156 全部完成：真实 KPI、待办、学年学期和当前学校选择依赖后续业务接口；个人资料与登录设备待对应任务。菜单业务页面尚未实现时显示明确状态，不填充虚假列表。刷新后身份恢复仍待补齐，当前令牌与身份仅保存在内存。
+
+## 学校库开发开通（T-062）
+
+先完成平台迁移并启动worker，再执行单校开通或存量补开通：
+
+```sh
+pnpm db:migrate
+pnpm exec turbo run build --filter=@smart-sport/worker
+pnpm --filter @smart-sport/worker start
+# 在另一个终端执行：
+pnpm tenant:provision <学校UUID>
+pnpm tenant:provision <学校UUID> --datasource ds_hz
+pnpm tenant:backfill
+```
+
+命令只接受development/test环境，通过队列等待实际开通结果，生产禁用。
+学校登记已有数据源时沿用原登记；补开通不会恢复暂停、归档或销毁的学校。
+当前仅有迁移元数据表，业务表待T-090；不要将此能力理解为学校开通向导已完成。
+
+HeroUI Pro组件由安装器生成在依赖目录中，普通pnpm重装不能恢复这些文件。
+重建依赖目录前必须检查并保护现有本地组件和同版本安装缓存；恢复后运行
+Web类型、单元及构建检查，不应清理`~/.heroui/cache`。远端安装与CI仍需有效密钥。

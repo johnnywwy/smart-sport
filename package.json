@@ -29,7 +29,9 @@
     "test:deps": "node --test scripts/dependency-rules.test.mjs",
     "regions:import": "turbo run build --filter=@smart-sport/server && pnpm --filter @smart-sport/server regions:import",
     "seed:admin-identity": "turbo run build --filter=@smart-sport/server && pnpm --filter @smart-sport/server seed:admin-identity",
-    "catalog:sync": "turbo run build --filter=@smart-sport/server && pnpm --filter @smart-sport/server catalog:sync"
+    "catalog:sync": "turbo run build --filter=@smart-sport/server && pnpm --filter @smart-sport/server catalog:sync",
+    "tenant:provision": "turbo run build --filter=@smart-sport/worker && pnpm --filter @smart-sport/worker tenant:provision",
+    "tenant:backfill": "turbo run build --filter=@smart-sport/worker && pnpm --filter @smart-sport/worker tenant:backfill"
   },
   "devDependencies": {
     "@biomejs/biome": "2.6.6",
