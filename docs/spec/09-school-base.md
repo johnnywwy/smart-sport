@@ -17,8 +17,23 @@
 | `teaching_class_students`  | teaching_class_id、student_id                                                                                                           | 学生可来自多个行政班                                                              |
 | `students`                 | student_no、name、gender、birthday、id_type、id_card_enc、id_card_hash、class_id、status（在读 · 转出 · 毕业 · 休学）、student_index_id | 学号校内唯一                                                                      |
 | `student_enrollments`      | (student_id, academic_year_id)、class_id                                                                                                | 学年学籍                                                                          |
-| `teacher_profiles`         | identity_id、user_id、name、gender、phone_enc                                                                                           | 本校教师档案，与平台身份一一对应                                                  |
+| `teacher_profiles`         | identity_id、user_id、name、gender、phone_enc、phone_hash                                                                               | 本校教师档案，与平台身份一一对应                                                  |
 | `teacher_assignments` 任课 | teacher_profile_id、class_kind（admin · teaching）、class_id、academic_year_id、semester_id（教学班）、subject（默认 pe）、is_head      |                                                                                   |
+
+### 2.1 迁移 v1 与类型约定（T-090）
+
+学校迁移 `0001_create_school_base.sql` 一次创建上述九表，表对象通过
+`TenantService.forSchool(schoolId)` 返回。每张表带 spec 00 的公共字段；UUID v7
+由应用生成，时间列均为 `timestamptz`，唯一索引只约束未软删除记录。
+
+- 学院、专业与班级名称为 `text`。学院排序为整数，默认 0。行政班学段为 1–4，入学年份为 1–9998，班号为正整数；行政班名称可空。行政班、教学班状态沿用启用 1 / 停用 0，默认启用。
+- 行政班的大学学段必须同时填写学院和专业，其他学段两者为空；本校复合外键保证专业属于所填学院。班级四元组唯一，专业为空的中小学同样不可重复；用有专业、无专业两个部分唯一索引表达空值去重。
+- 学生性别为 1 男 / 2 女，出生日期存时间戳，按上海时区解释日期。状态为 `studying` / `transferred_out` / `graduated` / `suspended`，默认在读；学号校内唯一，学生与学年组合唯一，教学班与学生组合唯一。
+- 学生证件只存 `id_card_enc` 密文和 `varchar(64)` 小写十六进制 HMAC；教师手机号按 spec 12 同样保存 `phone_enc`、`phone_hash`，可同时为空，有值时必须成对。教师平台身份在本校唯一。
+- 学院、专业、行政班、学生、教学班与教师档案之间的固定关联建本校外键。学年、学期、平台账号、身份和学生索引只存 UUID，不向 public 建外键，允许学校库位于独立数据源。
+- 任课的 `class_kind` 为 `admin` / `teaching`，行政班学期为空、教学班学期必填；教师、班型、班级、学年、学期、科目组合唯一，空学期同样去重。科目默认 `pe`，班主任标记默认 false。多态 `class_id` 不能直接外键引用两张班表，任课接口须按班型校验本校班级存在及学年学期匹配。
+
+T-090 只提供存储约束；学校类型、在读状态、数据范围、平台标识有效性与任课多态关联等跨表业务校验，分别随 T-091–T-095、T-100 实现，不能仅凭可取得表对象绕过权限校验。
 
 ## 3. 接口（均为 `/schools/:schoolId/...`，`@SchoolScoped()`）
 
