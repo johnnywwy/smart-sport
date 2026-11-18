@@ -71,6 +71,12 @@ export type TableConfig<T> = {
   };
   recycleBin?: boolean;
   rowLabel: (item: T) => string;
+  reorder?: {
+    requiredAction: string;
+    disabled?: boolean;
+    canDrop: (source: T, target: T) => boolean;
+    onReorder: (source: T, target: T, position: "before" | "after") => void;
+  };
 };
 export type DataTableProps<T extends TableRecord> = {
   /** 身份 id；学校数据还需包含学校 id。改变后重置勾选与列设置。 */

@@ -68,3 +68,31 @@
 .data-table-grid .table__cell:first-child:has(.checkbox) {
   width: 44px;
 }
+
+.data-table-drag-heading {
+  font-size: 12px;
+}
+.data-table-grid .table__column:has(.data-table-drag-heading),
+.data-table-grid .table__cell:has(.data-table-drag-handle) {
+  width: 44px;
+  padding-inline: 6px;
+}
+.data-table-drag-handle {
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
+  min-height: 28px;
+  border-radius: 8px;
+  color: var(--table-muted);
+  cursor: grab;
+}
+.data-table-drag-handle:active {
+  cursor: grabbing;
+}
+.data-table-grid .table__row[data-dragging] .table__cell {
+  opacity: 0.5;
+}
+.data-table-grid .react-aria-DropIndicator[data-drop-target] {
+  outline: 2px solid var(--table-accent);
+  outline-offset: -1px;
+}

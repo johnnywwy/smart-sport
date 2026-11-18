@@ -1,4 +1,5 @@
-import { Checkbox, Table } from "@heroui/react";
+import { Button, Checkbox, Table } from "@heroui/react";
+import { useTableReorder } from "../../hooks/use-table-reorder";
 import type { DataTableProps, TableColumn, TableRecord } from "../../types";
 import { TableListState } from "../table-list-state/TableListState";
 import { TableRowActions } from "../table-row-actions/TableRowActions";
@@ -24,17 +25,19 @@ export function TableGrid<T extends TableRecord>({
 }) {
   const unavailable = Boolean(status?.loading || status?.error);
   const rows = unavailable ? [] : data.items;
+  const reorder = useTableReorder(rows, config, unavailable);
   const hasActions = Boolean(config.rowDetails || config.rowActions?.length);
   return (
     <Table className="data-table-grid">
       <Table.ScrollContainer className="data-table-scroll">
         <Table.Content
+          dragAndDropHooks={reorder.dragAndDropHooks}
           aria-label={config.title}
           aria-busy={Boolean(status?.loading)}
           selectionMode={selection.enabled ? "multiple" : "none"}
           selectionBehavior="toggle"
           selectedKeys={selection.keys}
-          disabledKeys={rows
+          disabledKeys={(selection.enabled ? rows : [])
             .filter(
               (item) =>
                 !selection.requiredActions.some((action) =>
@@ -71,6 +74,11 @@ export function TableGrid<T extends TableRecord>({
           }
         >
           <Table.Header>
+            {reorder.enabled && (
+              <Table.Column id="$drag" textValue="拖动排序">
+                <span className="data-table-drag-heading">排序</span>
+              </Table.Column>
+            )}
             {selection.enabled && (
               <Table.Column id="$selection" textValue="选择">
                 <Checkbox
@@ -120,6 +128,8 @@ export function TableGrid<T extends TableRecord>({
               config.rowActions,
               config.rowDetails,
               selection.enabled,
+              reorder.enabled,
+              config.reorder,
             ]}
             renderEmptyState={() => <TableListState {...status} />}
           >
@@ -129,6 +139,40 @@ export function TableGrid<T extends TableRecord>({
                 textValue={config.rowLabel(item)}
                 data-active={config.activeRowId === item.id || undefined}
               >
+                {reorder.enabled && (
+                  <Table.Cell>
+                    <Button
+                      slot="drag"
+                      isIconOnly
+                      size="sm"
+                      variant="ghost"
+                      className="data-table-drag-handle"
+                      aria-label={`拖动排序${config.rowLabel(item)}`}
+                      isDisabled={
+                        unavailable ||
+                        config.reorder?.disabled === true ||
+                        !item.allowedActions.includes(
+                          config.reorder?.requiredAction ?? "",
+                        )
+                      }
+                    >
+                      <svg
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="currentColor"
+                        aria-hidden="true"
+                      >
+                        <circle cx="8" cy="5" r="1.5" />
+                        <circle cx="16" cy="5" r="1.5" />
+                        <circle cx="8" cy="12" r="1.5" />
+                        <circle cx="16" cy="12" r="1.5" />
+                        <circle cx="8" cy="19" r="1.5" />
+                        <circle cx="16" cy="19" r="1.5" />
+                      </svg>
+                    </Button>
+                  </Table.Cell>
+                )}
                 {selection.enabled && (
                   <Table.Cell>
                     <Checkbox
@@ -152,7 +196,9 @@ export function TableGrid<T extends TableRecord>({
                       item={item}
                       actions={config.rowActions ?? []}
                       details={config.rowDetails}
-                      disabled={unavailable}
+                      disabled={
+                        unavailable || config.reorder?.disabled === true
+                      }
                     />
                   </Table.Cell>
                 )}

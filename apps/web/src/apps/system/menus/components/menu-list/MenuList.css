@@ -1,0 +1,6 @@
+.menu-identity-types {
+  display: inline-block;
+  max-width: 260px;
+  color: var(--table-muted);
+  line-height: 1.6;
+}

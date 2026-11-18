@@ -1,0 +1,9 @@
+.menus-page {
+  min-width: 0;
+}
+.menus-page-note {
+  margin: 16px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.7;
+}

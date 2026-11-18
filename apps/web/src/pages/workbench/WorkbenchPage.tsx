@@ -12,6 +12,7 @@ import {
 import { SchoolProfilePage } from "../../apps/school/profiles";
 import { AcademicYearsPage } from "../../apps/system/academic";
 import { DictionariesPage } from "../../apps/system/dicts";
+import { MenusPage } from "../../apps/system/menus";
 import { NumberRulesPage } from "../../apps/system/numbers";
 import { SystemParamsPage } from "../../apps/system/params";
 import { PresetRolesPage } from "../../apps/system/preset-roles";
@@ -157,6 +158,8 @@ export function WorkbenchPage() {
       ) : selected?.key === "dictionaries" &&
         module.code === "platform-admin" ? (
         <DictionariesPage key={identity.id} identityId={identity.id} />
+      ) : selected?.key === "menus" && module.code === "platform-admin" ? (
+        <MenusPage key={identity.id} identityId={identity.id} />
       ) : selected?.key === "regions" && module.code === "platform-admin" ? (
         <RegionsPage key={identity.id} identityId={identity.id} />
       ) : selected?.key === "parameters" && module.code === "platform-admin" ? (

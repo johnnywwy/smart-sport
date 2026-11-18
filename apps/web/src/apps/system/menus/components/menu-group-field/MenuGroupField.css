@@ -1,0 +1,19 @@
+.menu-group-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.menu-group-field .label {
+  font-size: 14px;
+  font-weight: 500;
+}
+.menu-group-value {
+  display: flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 8px 14px;
+  border-radius: 12px;
+  background: var(--form-surface);
+  color: var(--form-muted);
+  font-size: 14px;
+}
