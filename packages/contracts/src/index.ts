@@ -1,6 +1,7 @@
 export * from "./academic.js";
 export * from "./academic-options.js";
 export * from "./apps/index.js";
+export * from "./audit-logs.js";
 export * from "./auth.js";
 export * from "./common.js";
 export * from "./department-scopes.js";
