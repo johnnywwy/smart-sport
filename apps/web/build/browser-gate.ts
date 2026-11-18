@@ -2,12 +2,14 @@ import type { Plugin } from "vite";
 import {
   browserMinimumVersions,
   browserRequirements,
+  detectBrowserFeatures,
   isSupportedBrowser,
 } from "../src/shared/browser/browser-support";
 
 export function createBrowserGateScript() {
   return `(function () {
-    var supported = (${isSupportedBrowser.toString()})(navigator.userAgent, ${JSON.stringify(browserMinimumVersions)});
+    var features = (${detectBrowserFeatures.toString()})(window);
+    var supported = features === null ? (${isSupportedBrowser.toString()})(navigator.userAgent, ${JSON.stringify(browserMinimumVersions)}) : features;
     window.__SMART_SPORT_BROWSER_SUPPORTED__ = supported;
     if (supported) return;
     if (window.location.pathname !== "/upgrade-browser" && window.location.pathname !== "/upgrade-browser/") {

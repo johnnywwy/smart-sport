@@ -2,11 +2,17 @@ import { runInNewContext } from "node:vm";
 import { describe, expect, it, vi } from "vitest";
 import { createBrowserGateScript } from "./browser-gate";
 
-function runGate(userAgent: string, pathname: string, readyState = "complete") {
+function runGate(
+  userAgent: string,
+  pathname: string,
+  readyState = "complete",
+  capabilities: Record<string, unknown> = {},
+) {
   const removeAttribute = vi.fn();
   const replace = vi.fn();
   const listeners: (() => void)[] = [];
   const window = {
+    ...capabilities,
     location: { pathname, replace },
     addEventListener: (_event: string, listener: () => void) =>
       listeners.push(listener),
@@ -56,5 +62,47 @@ describe("经典入口检测脚本", () => {
     expect(result.removeAttribute).not.toHaveBeenCalled();
     result.listeners[0]?.();
     expect(result.removeAttribute).toHaveBeenCalledExactlyOnceWith("hidden");
+  });
+});
+
+const observerStub = () => undefined;
+
+const modernCapabilities = () => ({
+  CSS: { supports: () => true, registerProperty: () => undefined },
+  Promise,
+  fetch: () => undefined,
+  URL,
+  AbortController,
+  ResizeObserver: observerStub,
+});
+
+describe("内置浏览器实际能力检测", () => {
+  it.each([
+    "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 Mobile/15E148 MicroMessenger/8.0.63",
+    "Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 Chrome/110.0.0.0 Mobile MicroMessenger/8.0.63",
+    "UnknownEmbeddedBrowser/1.0",
+  ])("有完整运行能力时放行，UA不决定结果：%s", (ua) => {
+    const result = runGate(ua, "/login", "complete", modernCapabilities());
+    expect(result.window.__SMART_SPORT_BROWSER_SUPPORTED__).toBe(true);
+    expect(result.replace).not.toHaveBeenCalled();
+  });
+  it("声称版本很新但缺少实际CSS能力仍拦截", () => {
+    const capabilities = modernCapabilities();
+    capabilities.CSS.supports = () => false;
+    const result = runGate(
+      "Chrome/999.0.0.0",
+      "/login",
+      "complete",
+      capabilities,
+    );
+    expect(result.replace).toHaveBeenCalledExactlyOnceWith("/upgrade-browser");
+  });
+  it("Firefox旧内核缺少注册CSS属性时仍拦截", () => {
+    const capabilities = {
+      ...modernCapabilities(),
+      CSS: { supports: () => true },
+    };
+    const result = runGate("Firefox/127.0", "/login", "complete", capabilities);
+    expect(result.window.__SMART_SPORT_BROWSER_SUPPORTED__).toBe(false);
   });
 });

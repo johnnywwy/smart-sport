@@ -23,7 +23,7 @@
 
 ## 浏览器基线
 
-支持 Chrome / Edge 111+、Firefox 128+、Safari 16.4+。入口经典脚本先识别浏览器；未达到基线或无法识别的浏览器跳转到 `/upgrade-browser`，不加载 React / HeroUI 主包。
+支持 Chrome / Edge 111+、Firefox 128+、Safari 16.4+。入口经典脚本优先检测实际CSS与JavaScript能力，能力足够的微信、WebView等内置浏览器可进入。无法检测时回退到版本识别，iOS微信等按系统16.4基线识别。缺少能力时跳转到 `/upgrade-browser`，不加载 React / HeroUI 主包。
 
 旧浏览器提示只包含语义化文字和非交互布局，不使用原生交互控件，也不依赖现代 CSS 或模块脚本。新版浏览器直接访问升级页时，展示 HeroUI 卡片与官方更新链接。版本配置由 `src/shared/browser/browser-support.ts` 统一维护，构建目标也按此基线设置。
 

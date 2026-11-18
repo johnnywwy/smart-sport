@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { browserMinimumVersions, isSupportedBrowser } from "./browser-support";
+import {
+  browserMinimumVersions,
+  detectBrowserFeatures,
+  isSupportedBrowser,
+} from "./browser-support";
+
+const observerStub = () => undefined;
 
 const chrome = (version: number) =>
   `Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko) Chrome/${version}.0.0.0 Safari/537.36`;
@@ -43,5 +49,84 @@ describe("文档规定的浏览器版本基线", () => {
     expect(isSupportedBrowser(userAgent, browserMinimumVersions)).toBe(
       expected,
     );
+  });
+});
+
+const wechatIos = (os: string) =>
+  `Mozilla/5.0 (iPhone; CPU iPhone OS ${os} like Mac OS X) AppleWebKit/605.1.15 Mobile/15E148 MicroMessenger/8.0.63`;
+
+describe("iOS WebKit版本兜底", () => {
+  it.each([
+    ["16_3", false],
+    ["16_4", true],
+    ["18_0", true],
+  ])("微信 iOS %s → %s", (version, supported) => {
+    expect(
+      isSupportedBrowser(wechatIos(version as string), browserMinimumVersions),
+    ).toBe(supported);
+  });
+  it("iPad内置浏览器按iPadOS识别", () => {
+    expect(
+      isSupportedBrowser(
+        "Mozilla/5.0 (iPad; CPU OS 17_6 like Mac OS X) AppleWebKit/605.1.15 Mobile/15E148 MicroMessenger/8.0.63",
+        browserMinimumVersions,
+      ),
+    ).toBe(true);
+  });
+  it("不按微信客户端版本放行Android旧内核", () => {
+    expect(
+      isSupportedBrowser(
+        `${chrome(109)} MicroMessenger/99.0`,
+        browserMinimumVersions,
+      ),
+    ).toBe(false);
+  });
+});
+
+describe("浏览器实际运行能力", () => {
+  function environment() {
+    return {
+      CSS: {
+        supports: (condition: string, value?: string) =>
+          [
+            "color:oklch(0.5 0.1 120)",
+            "color:color-mix(in oklab, black, white)",
+            "container-type:inline-size",
+            "selector(:has(*))",
+          ].includes(value === undefined ? condition : `${condition}:${value}`),
+        registerProperty: () => undefined,
+      },
+      Promise,
+      URL,
+      AbortController,
+      fetch: () => undefined,
+      ResizeObserver: observerStub,
+    };
+  }
+  it("完整能力支持，无法探测时由版本兜底", () => {
+    expect(detectBrowserFeatures(environment())).toBe(true);
+    expect(detectBrowserFeatures({})).toBe(null);
+  });
+  it.each([
+    "color:color-mix(in oklab, black, white)",
+    "container-type:inline-size",
+    "selector(:has(*))",
+  ])("缺少%s时拒绝", (missing) => {
+    const env = environment();
+    const supports = env.CSS.supports;
+    env.CSS.supports = (condition, value) =>
+      (value === undefined ? condition : `${condition}:${value}`) !== missing &&
+      supports(condition, value);
+    expect(detectBrowserFeatures(env)).toBe(false);
+  });
+  it("缺少必要JS API或探测抛错时拒绝", () => {
+    expect(detectBrowserFeatures({ ...environment(), fetch: undefined })).toBe(
+      false,
+    );
+    const env = environment();
+    env.CSS.supports = () => {
+      throw new Error("unsupported probe");
+    };
+    expect(detectBrowserFeatures(env)).toBe(false);
   });
 });

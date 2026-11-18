@@ -8,7 +8,9 @@ export function UpgradeBrowserPage() {
       <UpgradeIntroduction />
       <BrowserOptions browsers={browserRequirements} />
       <p className="text-sm text-muted">
-        Safari 随系统更新。若电脑由单位统一管理，请联系管理员协助更新浏览器。
+        iPhone / iPad 的微信内置浏览器随系统更新，请使用 iOS / iPadOS 16.4
+        或更新版本。Android
+        微信请先更新微信；仍无法打开时，可在右上角菜单选择在新版系统浏览器中打开。
       </p>
     </main>
   );
