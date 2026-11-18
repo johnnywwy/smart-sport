@@ -1,4 +1,5 @@
 import { POSTGRES_IMAGE } from "../helpers/postgres-image.js";
+import { seedSchoolService } from "../helpers/school-service.js";
 import "reflect-metadata";
 import { generateKeyPairSync } from "node:crypto";
 import type { INestApplication } from "@nestjs/common";
@@ -82,6 +83,7 @@ async function seed(
       type === "teacher" ? "990000" : null,
     ],
   );
+  if (type === "teacher") await seedSchoolService(pool, orgId);
   await pool.query(
     "INSERT INTO public.identities (id,user_id,org_id,type) VALUES ($1,$2,$3,$4)",
     [identityId, userId, orgId, type],

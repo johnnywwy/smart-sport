@@ -6,7 +6,10 @@ import {
   AUTH_CONTEXT_LOADER,
   AuthenticatedGuard,
 } from "../../src/core/authenticated.guard.js";
-import { PermissionGuard } from "../../src/core/permission.guard.js";
+import {
+  PermissionGuard,
+  SCHOOL_SERVICE_POLICY,
+} from "../../src/core/permission.guard.js";
 import { AccessTokenSigner } from "../../src/infra/auth/access-token-signer.js";
 import {
   AuthContextService,
@@ -19,6 +22,10 @@ import {
   RolesRepository,
   RolesService,
 } from "../../src/modules/platform/roles/index.js";
+import {
+  SubscriptionRepository,
+  SubscriptionStateService,
+} from "../../src/modules/platform/subscription/index.js";
 
 /** 集成测试沿用生产鉴权装配，不跳过会话和权限上下文校验。 */
 export async function authentication(config: ServerConfig) {
@@ -33,6 +40,9 @@ export async function authentication(config: ServerConfig) {
     config: configured,
     stop: () => redis.stop(),
     providers: [
+      SubscriptionRepository,
+      SubscriptionStateService,
+      { provide: SCHOOL_SERVICE_POLICY, useExisting: SubscriptionStateService },
       { provide: APP_GUARD, useClass: AuthenticatedGuard },
       { provide: APP_GUARD, useClass: PermissionGuard },
       { provide: ACCESS_TOKEN_VERIFIER, useExisting: AccessTokenSigner },

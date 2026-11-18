@@ -35,22 +35,10 @@
   gap: 2px;
   overflow-wrap: anywhere;
 }
-.school-profile-information dt,
-.school-profile-service span {
+.school-profile-information dt {
   color: var(--profile-muted);
   font-size: 13px;
 }
 .school-profile-information dd {
   margin: 0;
-}
-.school-profile-service {
-  flex: 1 1 280px;
-  gap: 12px;
-}
-.school-profile-service p {
-  margin: 0;
-  font-size: 14px;
-}
-.school-profile-service span {
-  line-height: 1.5;
 }

@@ -95,6 +95,7 @@ describe("用户表 PostgreSQL 18.6 迁移与约束", () => {
       "0033_create_files.sql",
       "0034_create_tasks.sql",
       "0035_create_school_tenants.sql",
+      "0036_create_school_subscriptions.sql",
     ]);
     expect(await migratePublic(pool)).toEqual([]);
   });

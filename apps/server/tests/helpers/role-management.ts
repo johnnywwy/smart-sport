@@ -1,4 +1,10 @@
+import {
+  SchoolAppsController,
+  SubscriptionsController,
+  SubscriptionsService,
+} from "../../src/modules/platform/subscription/index.js";
 import { POSTGRES_IMAGE } from "./postgres-image.js";
+import { seedSchoolService } from "./school-service.js";
 import "reflect-metadata";
 import { generateKeyPairSync, randomBytes } from "node:crypto";
 import { APP_FILTER, APP_INTERCEPTOR } from "@nestjs/core";
@@ -192,6 +198,8 @@ export async function roleManagementFixture(
     imports: [ClsModule.forRoot({ global: true })],
     controllers: [
       TasksController,
+      SubscriptionsController,
+      SchoolAppsController,
       ...(storage ? [FilesController, SchoolFilesController] : []),
       AuditQueryController,
       MenuManagementController,
@@ -215,6 +223,7 @@ export async function roleManagementFixture(
     ],
     providers: [
       TasksRepository,
+      SubscriptionsService,
       TasksService,
       TaskExecutionService,
       ...(storage
@@ -318,6 +327,7 @@ export async function roleManagementFixture(
           type === "school" || type === "bureau" ? "990000" : null,
         ],
       );
+    if (type === "school") await seedSchoolService(pool, orgId);
     await pool.query(
       "INSERT INTO public.users(id,username,real_name,password_hash,must_change_password) VALUES($1,$2,'角色测试','test',false)",
       [userId, userId],

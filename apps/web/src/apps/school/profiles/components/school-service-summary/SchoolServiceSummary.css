@@ -1,0 +1,37 @@
+.school-service-summary {
+  flex: 1 1 280px;
+  gap: 12px;
+}
+.school-service-summary p {
+  margin: 0;
+  font-size: 14px;
+}
+.school-service-summary > span,
+.school-service-modules > span {
+  color: var(--profile-muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+.school-service-status,
+.school-service-modules > div {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.school-service-status .chip {
+  font-size: 12px;
+  font-weight: 500;
+}
+.school-service-modules {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.school-service-modules > div {
+  gap: 6px;
+}
+.school-service-module {
+  background: var(--surface);
+  font-size: 12px;
+}

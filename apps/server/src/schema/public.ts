@@ -18,6 +18,7 @@ import {
 } from "drizzle-orm/pg-core";
 import { v7 } from "uuid";
 import { commonColumns } from "../database/common-columns.js";
+import { createSubscriptionTables } from "./subscriptions.js";
 
 export { academicYears, semesters } from "./academic.js";
 export { dictItems, dictTypes } from "./dicts.js";
@@ -604,3 +605,10 @@ export const tenantRegistryRevision = pgTable(
 );
 
 export { outboxConsumptions, outboxEvents } from "./outbox.js";
+
+export const { schoolSubscriptions, schoolApps, schoolSubscriptionLogs } =
+  createSubscriptionTables({
+    school: organizations.id,
+    identity: identities.id,
+    application: applications.code,
+  });

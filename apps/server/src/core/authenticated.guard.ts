@@ -4,11 +4,16 @@ import {
   type ExecutionContext,
   Inject,
   Injectable,
+  Optional,
   UnauthorizedException,
 } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
 import { ClsService } from "nestjs-cls";
 import { AUTH_POLICY } from "./auth-policy.js";
+import {
+  SCHOOL_SERVICE_POLICY,
+  type SchoolServicePolicy,
+} from "./permission.guard.js";
 
 export type AuthenticatedClaims = {
   userId: string;
@@ -42,6 +47,9 @@ export class AuthenticatedGuard implements CanActivate {
     @Inject(ClsService) private readonly cls: ClsService,
     @Inject(Reflector) private readonly reflector: Reflector,
     @Inject(AUTH_CONTEXT_LOADER) private readonly contexts: AuthContextLoader,
+    @Optional()
+    @Inject(SCHOOL_SERVICE_POLICY)
+    private readonly services?: SchoolServicePolicy,
   ) {}
 
   async canActivate(context: ExecutionContext) {
@@ -63,6 +71,12 @@ export class AuthenticatedGuard implements CanActivate {
     if (identity) {
       this.cls.set("identityId", identity.identityId);
       this.cls.set("identityContext", identity);
+      if (policy !== "account" && this.services)
+        await this.services.requireEntry(
+          this.cls.get<Parameters<SchoolServicePolicy["ownError"]>[0]>(
+            "identityContext",
+          ),
+        );
     }
     return true;
   }

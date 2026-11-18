@@ -6,6 +6,7 @@ import {
   IdentityContextService,
 } from "../identity-context/index.js";
 import { ScopeService } from "../scope/index.js";
+import { SubscriptionStateService } from "../subscription/index.js";
 
 type ProfilePermission = Extract<
   DeclaredPermissionCode,
@@ -17,6 +18,8 @@ export class SchoolProfilePolicy {
     @Inject(IdentityContextService)
     private readonly contexts: IdentityContextService,
     @Inject(ScopeService) private readonly scopes: ScopeService,
+    @Inject(SubscriptionStateService)
+    private readonly subscriptions: SubscriptionStateService,
   ) {}
   async actor(actor: IdentityContext, permission: ProfilePermission) {
     const fresh = await this.contexts.load(actor.identityId, actor.client);
@@ -28,7 +31,7 @@ export class SchoolProfilePolicy {
     if (!fresh.permissions.has(permission)) throw new ApiException(11101);
     return fresh;
   }
-  async allows(
+  private async visible(
     actor: IdentityContext,
     schoolId: string,
     permission: ProfilePermission,
@@ -51,12 +54,31 @@ export class SchoolProfilePolicy {
       option === "all"
     );
   }
+  async allows(
+    actor: IdentityContext,
+    schoolId: string,
+    permission: ProfilePermission,
+  ) {
+    if (!(await this.visible(actor, schoolId, permission))) return false;
+    try {
+      await this.subscriptions.requireAccess(schoolId, permission, actor);
+      return true;
+    } catch (error) {
+      if (
+        error instanceof ApiException &&
+        [13001, 13002, 13003].includes(error.code)
+      )
+        return false;
+      throw error;
+    }
+  }
   async require(
     actor: IdentityContext,
     schoolId: string,
     permission: ProfilePermission,
   ) {
-    if (!(await this.allows(actor, schoolId, permission)))
+    if (!(await this.visible(actor, schoolId, permission)))
       throw new ApiException(90004);
+    await this.subscriptions.requireAccess(schoolId, permission, actor);
   }
 }

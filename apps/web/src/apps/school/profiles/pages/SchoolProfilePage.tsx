@@ -4,7 +4,9 @@ import { ApiError } from "../../../../shared/errors/api-error";
 import { ProfileDialog } from "../components/profile-dialog/ProfileDialog";
 import { ProfileState } from "../components/profile-state/ProfileState";
 import { ProfileSummary } from "../components/profile-summary/ProfileSummary";
+import { SchoolServiceSummary } from "../components/school-service-summary/SchoolServiceSummary";
 import { useSchoolProfile } from "../hooks/use-school-profile";
+import { useSchoolService } from "../hooks/use-school-service";
 import "./SchoolProfilePage.css";
 
 export function SchoolProfilePage({
@@ -21,6 +23,15 @@ export function SchoolProfilePage({
   onBack?: (() => void) | undefined;
 }) {
   const { profile, save, reload } = useSchoolProfile(identityId, schoolId);
+  const service = useSchoolService(identityId, schoolId);
+  const serviceCard = (
+    <SchoolServiceSummary
+      service={service.data}
+      loading={service.isPending}
+      error={service.isError}
+      onRetry={() => void service.refetch()}
+    />
+  );
   const [editing, setEditing] = useState(false);
   const unavailable =
     profile.error instanceof ApiError &&
@@ -37,19 +48,27 @@ export function SchoolProfilePage({
             </Button>
           )}
         </div>
-        {data?.allowedActions.includes("update") && (
-          <Button onPress={() => setEditing(true)}>编辑档案</Button>
-        )}
+        {data?.allowedActions.includes("update") &&
+          service.data?.accessMode === "full" && (
+            <Button onPress={() => setEditing(true)}>编辑档案</Button>
+          )}
       </header>
       {!data ? (
-        <ProfileState
-          loading={profile.isPending}
-          error={profile.error}
-          onRetry={() => void profile.refetch()}
-        />
+        <>
+          <ProfileState
+            loading={profile.isPending}
+            error={profile.error}
+            onRetry={() => void profile.refetch()}
+          />
+          <div className="school-profile-panels">{serviceCard}</div>
+        </>
       ) : (
         <>
-          <ProfileSummary profile={data} regionName={regionName} />
+          <ProfileSummary
+            profile={data}
+            regionName={regionName}
+            service={serviceCard}
+          />
           {editing && (
             <ProfileDialog
               identityId={identityId}
