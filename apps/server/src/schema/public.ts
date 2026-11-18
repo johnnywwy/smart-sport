@@ -1,5 +1,6 @@
 import { sql } from "drizzle-orm";
 import {
+  bigint,
   boolean,
   check,
   foreignKey,
@@ -540,3 +541,64 @@ export const schoolProfiles = pgTable(
 export { files } from "./files.js";
 export { systemParams } from "./params.js";
 export { tasks } from "./tasks.js";
+
+export const schoolTenants = pgTable(
+  "school_tenants",
+  {
+    schoolId: uuid("school_id")
+      .primaryKey()
+      .references(() => organizations.id),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    createdBy: uuid("created_by"),
+    updatedBy: uuid("updated_by"),
+    deletedAt: timestamp("deleted_at", { withTimezone: true }),
+    version: integer("version").notNull().default(0),
+    schemaName: varchar("schema_name", { length: 39 }).notNull().unique(),
+    datasource: text("datasource").notNull().default("default"),
+    schemaVersion: integer("schema_version").notNull().default(0),
+    status: text("status", {
+      enum: [
+        "provisioning",
+        "active",
+        "failed",
+        "suspended",
+        "archived",
+        "destroyed",
+      ],
+    })
+      .notNull()
+      .default("provisioning"),
+    lastError: text("last_error"),
+  },
+  (t) => [
+    check(
+      "school_tenants_schema_check",
+      sql`${t.schemaName} ~ '^school_[0-9a-f]{32}$' AND ${t.schemaName} = 'school_' || replace(${t.schoolId}::text,'-','')`,
+    ),
+    check(
+      "school_tenants_datasource_check",
+      sql`${t.datasource} ~ '^[a-z][a-z0-9_]*$'`,
+    ),
+    check(
+      "school_tenants_values_check",
+      sql`${t.schemaVersion}>=0 AND ${t.version}>=0 AND ${t.status} IN ('provisioning','active','failed','suspended','archived','destroyed')`,
+    ),
+  ],
+);
+
+export const tenantRegistryRevision = pgTable(
+  "tenant_registry_revision",
+  {
+    singleton: boolean("singleton").primaryKey().notNull().default(true),
+    version: bigint("version", { mode: "bigint" }).notNull().default(0n),
+  },
+  (t) => [
+    check("tenant_registry_revision_singleton_check", sql`${t.singleton}`),
+    check("tenant_registry_revision_version_check", sql`${t.version}>=0`),
+  ],
+);

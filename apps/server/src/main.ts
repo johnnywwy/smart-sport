@@ -26,6 +26,7 @@ import { AccessTokenSigner } from "./infra/auth/access-token-signer.js";
 import { MemberCredentials } from "./infra/crypto/member-credentials.js";
 import { PasswordHasher } from "./infra/crypto/password-hasher.js";
 import { ObjectStorage } from "./infra/storage/object-storage.js";
+import { TenantRepository, TenantService } from "./infra/tenant/index.js";
 import {
   FileAccessService,
   FileBoundaryGuard,
@@ -231,6 +232,8 @@ const databaseConfig = loadDatabaseConfig();
     ScopeQueryController,
   ],
   providers: [
+    TenantRepository,
+    TenantService,
     TasksRepository,
     TasksService,
     TaskExecutionService,
