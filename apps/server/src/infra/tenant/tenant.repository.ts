@@ -1,5 +1,5 @@
 import { Inject, Injectable } from "@nestjs/common";
-import { and, eq, isNull } from "drizzle-orm";
+import { and, asc, eq, inArray, isNull } from "drizzle-orm";
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 import { DRIZZLE } from "../../database/registry.js";
 import {
@@ -11,6 +11,24 @@ import {
 @Injectable()
 export class TenantRepository {
   constructor(@Inject(DRIZZLE) private readonly db: NodePgDatabase) {}
+
+  async migrationCandidates() {
+    const rows = await this.db
+      .select({ schoolId: schoolTenants.schoolId })
+      .from(schoolTenants)
+      .innerJoin(organizations, eq(organizations.id, schoolTenants.schoolId))
+      .where(
+        and(
+          inArray(schoolTenants.status, ["active", "failed"]),
+          isNull(schoolTenants.deletedAt),
+          eq(organizations.type, "school"),
+          eq(organizations.status, 1),
+          isNull(organizations.deletedAt),
+        ),
+      )
+      .orderBy(asc(schoolTenants.schoolId));
+    return rows.map((row) => row.schoolId);
+  }
 
   async revision() {
     const [row] = await this.db
