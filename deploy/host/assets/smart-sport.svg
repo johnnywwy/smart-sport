@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" fill="none">
+  <title>智慧体育云</title>
+  <rect width="256" height="256" rx="56" fill="#1263E8"/>
+  <rect x="24" y="62" width="208" height="132" rx="66" stroke="white" stroke-width="6"/>
+  <rect x="36" y="74" width="184" height="108" rx="54" stroke="white" stroke-width="4"/>
+  <rect x="48" y="86" width="160" height="84" rx="42" stroke="white" stroke-width="4"/>
+  <rect x="61" y="99" width="134" height="58" rx="29" fill="white"/>
+  <path d="M128 104V152M91 108V148M165 108V148" stroke="#1263E8" stroke-width="3"/>
+  <circle cx="128" cy="128" r="17" fill="white" stroke="#1263E8" stroke-width="3"/>
+</svg>

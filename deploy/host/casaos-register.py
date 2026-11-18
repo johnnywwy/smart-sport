@@ -27,6 +27,7 @@ config['x-casaos'] = {
     'description': {'en_US': 'Redis and private MinIO for Smart Sport M1.',
                     'zh_CN': '智慧体育云的 Redis 与私有 MinIO。前后端通过物理机 systemd 管理。'},
     'tagline': {'en_US': 'Smart Sport infrastructure', 'zh_CN': '智慧体育云基础服务'},
+    'icon': '/img/smart-sport.svg',
     'author': 'johnny', 'category': 'Developer', 'main': 'minio',
     'scheme': 'https', 'hostname': 'sport.johnnywwy.com', 'port_map': '443',
     'index': '/', 'is_uncontrolled': False,

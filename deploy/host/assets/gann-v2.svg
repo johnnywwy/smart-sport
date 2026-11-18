@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" fill="none">
+  <title>江恩金融分析</title>
+  <defs><linearGradient id="bg" x1="24" y1="8" x2="236" y2="256" gradientUnits="userSpaceOnUse"><stop stop-color="#173D3B"/><stop offset="1" stop-color="#092726"/></linearGradient></defs>
+  <rect width="256" height="256" rx="56" fill="url(#bg)"/>
+  <path d="M54 58V202H202M54 106H202M54 154H202M102 58V202M150 58V202M198 58V202" stroke="#53827A" stroke-width="2" opacity=".52"/>
+  <path d="M54 202L198 58M54 202L198 106M54 202L150 58" stroke="#78D9B2" stroke-width="3" opacity=".4"/>
+  <path d="M54 172L91 141L123 153L164 103L198 78" stroke="#8DF5C6" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M175 77L201 74L198 101" stroke="#8DF5C6" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="54" cy="202" r="6" fill="#F6C66D"/>
+</svg>

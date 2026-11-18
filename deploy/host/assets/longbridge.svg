@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" fill="none">
+  <title>长桥行情服务</title>
+  <defs><linearGradient id="bg" x1="20" y1="10" x2="236" y2="250" gradientUnits="userSpaceOnUse"><stop stop-color="#152E55"/><stop offset="1" stop-color="#0A1831"/></linearGradient><linearGradient id="bridge" x1="44" y1="92" x2="214" y2="162" gradientUnits="userSpaceOnUse"><stop stop-color="#62D6F7"/><stop offset="1" stop-color="#80A9FF"/></linearGradient></defs>
+  <rect width="256" height="256" rx="56" fill="url(#bg)"/>
+  <path d="M42 166H214M78 83V181M178 83V181" stroke="url(#bridge)" stroke-width="10" stroke-linecap="round"/>
+  <path d="M42 145C58 138 71 118 78 94C91 135 108 150 128 150C148 150 165 135 178 94C185 118 198 138 214 145" stroke="url(#bridge)" stroke-width="7" stroke-linecap="round"/>
+  <path d="M102 133V164M128 151V164M154 133V164" stroke="#85BFF3" stroke-width="5" stroke-linecap="round"/>
+  <path d="M103 83L129 61L150 70L181 44" stroke="#FFBE73" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M164 43H183V62" stroke="#FFBE73" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

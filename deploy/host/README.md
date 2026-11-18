@@ -54,7 +54,9 @@
 
 停止Redis后Worker可能等待正在关闭的队列连接，由systemd既有40秒上限兜底，因此整组关停可能需要几十秒。CasaOS卡片状态反映容器，不能作为API全部业务正常的证明；应用可用性仍查`/health/ready`。维护时先停止timer，完成后恢复。
 
-## 统计历史
+## 本地图标与统计历史
+
+`assets/`提供Smart Sport跑道、Gann分析、Longbridge桥梁三款SVG图标。服务器已安装PyYAML，运行`sudo python3 deploy/host/install-casaos-icons.py`可备份并更新三项目图标配置，资源保存在CasaOS本机`/var/lib/casaos/www/img/`，不依赖应用是否启动或外部图床。CasaOS升级若替换静态目录，应重新安装这些图标。
 
 Statistics保存`/var/lib/casaos/stats/app_management/*.ring`历史，容器删除后仍可展示。2026-11-18已在停用统计采集服务期间，精准归档不存在容器和退役数据库项目对应的记录，保留现有容器和主机统计、告警配置，再恢复管理服务。不能清空整个CasaOS数据库或Docker数据目录。
 
