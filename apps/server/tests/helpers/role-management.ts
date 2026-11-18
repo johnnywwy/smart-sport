@@ -37,6 +37,11 @@ import {
   AcademicRepository,
   AcademicService,
 } from "../../src/modules/platform/academic/index.js";
+import {
+  AuditQueryController,
+  AuditQueryRepository,
+  AuditQueryService,
+} from "../../src/modules/platform/audit/index.js";
 import { AuthController } from "../../src/modules/platform/auth/auth.controller.js";
 import { AuthRepository } from "../../src/modules/platform/auth/auth.repository.js";
 import { AuthService } from "../../src/modules/platform/auth/index.js";
@@ -161,6 +166,7 @@ export async function roleManagementFixture(withAuth = false) {
   const module = await Test.createTestingModule({
     imports: [ClsModule.forRoot({ global: true })],
     controllers: [
+      AuditQueryController,
       MenuManagementController,
       NavigationController,
       RegionManagementController,
@@ -181,6 +187,8 @@ export async function roleManagementFixture(withAuth = false) {
       ScopeQueryController,
     ],
     providers: [
+      AuditQueryRepository,
+      AuditQueryService,
       MenuManagementRepository,
       MenuManagementService,
       ModuleNavigationService,

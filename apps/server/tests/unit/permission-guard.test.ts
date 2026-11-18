@@ -5,6 +5,7 @@ import { ClsModule, ClsService } from "nestjs-cls";
 import { beforeAll, describe, expect, it } from "vitest";
 import {
   PermissionGuard,
+  RequireAnyPermissions,
   RequirePermissions,
 } from "../../src/core/permission.guard.js";
 
@@ -13,6 +14,12 @@ class ProtectedController {
   @RequirePermissions("platform:org:create", "platform:org:update")
   write() {}
   list() {}
+}
+@RequirePermissions("platform:org:view")
+@RequireAnyPermissions("org:audit:view", "system:audit:view")
+class AlternativeController {
+  @RequireAnyPermissions("org:role:view", "system:preset-role:view")
+  read() {}
 }
 class GlobalController {
   read() {}
@@ -28,7 +35,10 @@ beforeAll(async () => {
   cls = module.get(ClsService);
 });
 const route = (
-  controller: typeof ProtectedController | typeof GlobalController,
+  controller:
+    | typeof ProtectedController
+    | typeof GlobalController
+    | typeof AlternativeController,
   handler: () => void,
 ) =>
   ({
@@ -87,4 +97,29 @@ describe("功能权限守卫", () => {
       expect(guard.canActivate(write)).toBe(true),
     );
   });
+});
+
+it("任一权限组可择一满足，类与方法各组和固定权限都不能被绕过", () => {
+  const target = route(
+    AlternativeController,
+    AlternativeController.prototype.read,
+  );
+  for (const granted of [
+    ["platform:org:view", "org:audit:view", "org:role:view"],
+    ["platform:org:view", "system:audit:view", "system:preset-role:view"],
+  ])
+    cls.runWith(context(...granted), () =>
+      expect(guard.canActivate(target)).toBe(true),
+    );
+  for (const granted of [
+    [],
+    ["org:audit:view", "org:role:view"],
+    ["platform:org:view", "org:audit:view"],
+    ["platform:org:view", "org:role:view"],
+  ])
+    cls.runWith(context(...granted), () =>
+      expect(() => guard.canActivate(target)).toThrow(
+        expect.objectContaining({ code: 11101 }),
+      ),
+    );
 });

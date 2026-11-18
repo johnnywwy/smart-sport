@@ -39,6 +39,9 @@ import {
 import {
   AuditPartitionsRepository,
   AuditPartitionsService,
+  AuditQueryController,
+  AuditQueryRepository,
+  AuditQueryService,
 } from "./modules/platform/audit/index.js";
 import { AuthController } from "./modules/platform/auth/auth.controller.js";
 import { AuthRepository } from "./modules/platform/auth/auth.repository.js";
@@ -186,6 +189,7 @@ const databaseConfig = loadDatabaseConfig();
     }),
   ],
   controllers: [
+    AuditQueryController,
     MenuManagementController,
     ParamsController,
     DictsController,
@@ -209,6 +213,8 @@ const databaseConfig = loadDatabaseConfig();
     ScopeQueryController,
   ],
   providers: [
+    AuditQueryRepository,
+    AuditQueryService,
     AuditPartitionsRepository,
     AuditPartitionsService,
     MenuManagementRepository,
