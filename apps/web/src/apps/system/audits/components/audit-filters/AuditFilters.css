@@ -1,0 +1,39 @@
+.audit-filters {
+  display: flex;
+  flex: 1 1 580px;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 8px;
+  min-height: 60px;
+}
+.audit-action-filter {
+  width: 180px;
+}
+.audit-date-filter {
+  width: 180px;
+  position: relative;
+}
+.audit-date-filter .label {
+  position: absolute;
+  top: -18px;
+  font-size: 11px;
+  color: var(--muted);
+}
+.audit-date-filter .input,
+.audit-action-filter .select__trigger {
+  min-height: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 10px;
+  background: var(--table-surface);
+  box-shadow: none;
+  font-size: 14px;
+}
+.audit-date-filter .field-error {
+  position: absolute;
+  top: 40px;
+  left: 0;
+  width: 340px;
+  max-width: none;
+  font-size: 12px;
+}

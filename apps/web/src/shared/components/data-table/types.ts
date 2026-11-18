@@ -83,6 +83,8 @@ export type DataTableProps<T extends TableRecord> = {
   scopeKey: string;
   config: TableConfig<T>;
   sidebar?: ReactNode;
+  /** 复杂查询区替换默认筛选，分页、列设置与表格仍由通用组件管理。 */
+  filterBar?: ReactNode;
   data: TablePage<T>;
   query: TableQuery;
   onQueryChange: (query: TableQuery) => void;

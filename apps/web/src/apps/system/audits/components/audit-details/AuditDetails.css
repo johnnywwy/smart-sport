@@ -1,0 +1,60 @@
+.audit-details {
+  width: 100%;
+  max-width: 680px;
+  padding: 24px;
+  border-radius: 24px;
+  background: var(--surface);
+  color: var(--foreground);
+}
+.audit-details-header {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 0 20px;
+}
+.audit-details-header .modal__heading {
+  font-size: 18px;
+  font-weight: 600;
+}
+.audit-details-header .button {
+  width: 36px;
+  min-width: 36px;
+  height: 36px;
+  border-radius: 999px;
+}
+.audit-details-body {
+  padding: 0;
+}
+.audit-details-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin: 0;
+}
+.audit-details-fields dt {
+  margin-bottom: 6px;
+  font-size: 14px;
+  font-weight: 500;
+}
+.audit-details-fields dd {
+  min-height: 40px;
+  margin: 0;
+  padding: 10px 12px;
+  background: var(--default);
+  border-radius: 12px;
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+.audit-details-note {
+  margin: 16px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.7;
+}
+@media (max-width: 640px) {
+  .audit-details-fields {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

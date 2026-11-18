@@ -11,6 +11,7 @@ import {
 } from "../../apps/organization/scopes";
 import { SchoolProfilePage } from "../../apps/school/profiles";
 import { AcademicYearsPage } from "../../apps/system/academic";
+import { AuditLogsPage } from "../../apps/system/audits";
 import { DictionariesPage } from "../../apps/system/dicts";
 import { MenusPage } from "../../apps/system/menus";
 import { NumberRulesPage } from "../../apps/system/numbers";
@@ -152,6 +153,12 @@ export function WorkbenchPage() {
           identityId={identity.id}
           name={selected?.name ?? "学校业务"}
           permissions={schoolPermission}
+        />
+      ) : selected?.key === "audits" ? (
+        <AuditLogsPage
+          key={`${identity.id}:${module.code}`}
+          identityId={identity.id}
+          scope={module.code === "platform-admin" ? "platform" : "organization"}
         />
       ) : selected?.key === "academic" && module.code === "platform-admin" ? (
         <AcademicYearsPage key={identity.id} identityId={identity.id} />

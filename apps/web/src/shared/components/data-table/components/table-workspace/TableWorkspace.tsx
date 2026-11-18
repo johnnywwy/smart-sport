@@ -22,6 +22,7 @@ export function TableWorkspace<T extends TableRecord>({
   onQueryChange,
   status,
   sidebar,
+  filterBar,
 }: DataTableProps<T>) {
   const [visible, setVisible] = useState(
     () => new Set(config.columns.map((column) => column.id)),
@@ -90,13 +91,19 @@ export function TableWorkspace<T extends TableRecord>({
         onChange={(deleted) => change({ deleted })}
       >
         <div className="data-table-query-row">
-          <TableFilters
-            key={JSON.stringify([query.keyword, query.filters, query.deleted])}
-            config={config}
-            query={query}
-            onChange={change}
-            disabled={Boolean(status?.loading)}
-          />
+          {filterBar ?? (
+            <TableFilters
+              key={JSON.stringify([
+                query.keyword,
+                query.filters,
+                query.deleted,
+              ])}
+              config={config}
+              query={query}
+              onChange={change}
+              disabled={Boolean(status?.loading)}
+            />
+          )}
           <TableColumns
             columns={config.columns}
             selected={visible}

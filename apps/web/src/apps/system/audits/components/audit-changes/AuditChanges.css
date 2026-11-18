@@ -1,0 +1,49 @@
+.audit-changes {
+  margin-top: 24px;
+}
+.audit-changes h3 {
+  margin: 0 0 12px;
+  font-size: 14px;
+  font-weight: 600;
+}
+.audit-changes dl {
+  margin: 0;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+}
+.audit-changes dl > div {
+  display: grid;
+  grid-template-columns: 110px 1fr;
+  border-bottom: 1px solid var(--border);
+}
+.audit-changes dl > div:last-child {
+  border-bottom: none;
+}
+.audit-changes dt {
+  padding: 12px;
+  background: var(--default);
+  color: var(--muted);
+  font-size: 13px;
+}
+.audit-changes dd {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 12px;
+  overflow-wrap: anywhere;
+  font-size: 13px;
+}
+.audit-before {
+  color: var(--muted);
+}
+.audit-change-arrow {
+  color: var(--muted);
+}
+.audit-changes p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+}

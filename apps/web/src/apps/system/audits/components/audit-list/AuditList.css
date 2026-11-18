@@ -1,0 +1,38 @@
+.audit-operator.button {
+  height: auto;
+  min-height: 0;
+  min-width: 0;
+  padding: 0;
+  color: var(--foreground);
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 4px;
+}
+.audit-operator.button:hover {
+  color: var(--accent);
+  background: transparent;
+  text-decoration: underline;
+}
+.audit-identity {
+  display: inline-block;
+  max-width: 240px;
+  white-space: normal;
+  line-height: 1.6;
+}
+.audit-result {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 3px 10px;
+  font-size: 12px;
+  background: var(--default);
+  color: var(--muted);
+}
+.audit-result-success {
+  background: var(--success-soft);
+  color: var(--success-soft-foreground);
+}
+.audit-result-danger {
+  background: var(--danger-soft);
+  color: var(--danger-soft-foreground);
+}
