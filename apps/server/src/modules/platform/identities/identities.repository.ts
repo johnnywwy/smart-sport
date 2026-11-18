@@ -1,5 +1,5 @@
 import { Inject, Injectable } from "@nestjs/common";
-import { and, asc, eq, inArray, isNull, sql } from "drizzle-orm";
+import { and, asc, eq, inArray, isNull, or, sql } from "drizzle-orm";
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 import { DRIZZLE } from "../../../database/registry.js";
 import { auditWriter } from "../../../infra/audit/audit-writer.js";
@@ -7,6 +7,7 @@ import {
   identities,
   identityRoles,
   organizations,
+  roles,
   userSessions,
   users,
 } from "../../../schema/public.js";
@@ -76,7 +77,17 @@ export class IdentitiesRepository {
         roleId: identityRoles.roleId,
       })
       .from(identityRoles)
-      .where(inArray(identityRoles.identityId, identityIds));
+      .innerJoin(identities, eq(identities.id, identityRoles.identityId))
+      .innerJoin(roles, eq(roles.id, identityRoles.roleId))
+      .where(
+        and(
+          inArray(identityRoles.identityId, identityIds),
+          eq(roles.status, 1),
+          isNull(roles.deletedAt),
+          eq(roles.identityType, identities.type),
+          or(eq(roles.kind, "preset"), eq(roles.orgId, identities.orgId)),
+        ),
+      );
     const result = new Map<string, string[]>();
     for (const row of rows) {
       const roles = result.get(row.identityId) ?? [];

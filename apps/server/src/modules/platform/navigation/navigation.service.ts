@@ -10,6 +10,7 @@ import { buildMenuTree } from "@smart-sport/domain";
 import { ClsService } from "nestjs-cls";
 import { ApiException } from "../../../api-response.js";
 import type { IdentityContext } from "../identity-context/index.js";
+import { SubscriptionStateService } from "../subscription/index.js";
 import { NavigationRepository } from "./navigation.repository.js";
 
 @Injectable()
@@ -18,11 +19,15 @@ export class NavigationService {
     @Inject(NavigationRepository)
     private readonly repository: NavigationRepository,
     @Inject(ClsService) private readonly cls: ClsService,
+    @Inject(SubscriptionStateService)
+    private readonly subscriptions: SubscriptionStateService,
   ) {}
 
   /** 当前身份至少有一个启用功能的查看权限时，门户才展示该应用。 */
   async available() {
     const context = this.context();
+    const { permissions, exportOnly } =
+      await this.subscriptions.ownPermissions(context);
     const [apps, features] = await Promise.all([
       this.repository.apps(),
       this.repository.features(),
@@ -41,7 +46,9 @@ export class NavigationService {
                 feature.appCode === app.code &&
                 declared.features[feature.code]?.actions.includes("view") &&
                 feature.actions.includes("view") &&
-                context.permissions.has(`${app.code}:${feature.code}:view`),
+                (permissions.has(`${app.code}:${feature.code}:view`) ||
+                  (exportOnly &&
+                    permissions.has(`${app.code}:${feature.code}:export`))),
             )
           );
         })
@@ -54,6 +61,8 @@ export class NavigationService {
     if (!(await this.available()).some(({ code }) => code === query.app))
       return [];
     const context = this.context();
+    const { permissions, exportOnly } =
+      await this.subscriptions.ownPermissions(context);
     const declared: AppDefinition | undefined = appDefinitions.find(
       ({ code }) => code === query.app,
     );
@@ -64,7 +73,9 @@ export class NavigationService {
         declared?.menus.some(
           (item) => item.key === menu.key && item.feature === menu.featureCode,
         ) &&
-        context.permissions.has(`${query.app}:${menu.featureCode}:view`),
+        (permissions.has(`${query.app}:${menu.featureCode}:view`) ||
+          (exportOnly &&
+            permissions.has(`${query.app}:${menu.featureCode}:export`))),
     );
     return currentMenusSchema.parse(
       buildMenuTree(

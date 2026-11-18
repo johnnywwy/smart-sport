@@ -5,6 +5,7 @@ import { loadConfig, loadDatabaseConfig } from "@smart-sport/config/env";
 import { OutboxPublisherWorker } from "./outbox-publisher-worker.js";
 import { QueueWorker, WORKER_CONFIG } from "./queue-worker.js";
 import { SchoolProvisionWorker } from "./school-provision-worker.js";
+import { SubscriptionStatusWorker } from "./subscription-status-worker.js";
 
 const config = loadConfig("worker");
 const database = loadDatabaseConfig();
@@ -12,6 +13,10 @@ const database = loadDatabaseConfig();
 @Module({
   providers: [
     QueueWorker,
+    {
+      provide: SubscriptionStatusWorker,
+      useFactory: () => new SubscriptionStatusWorker(config, database),
+    },
     {
       provide: OutboxPublisherWorker,
       useFactory: () => new OutboxPublisherWorker(config, database),
@@ -32,6 +37,7 @@ try {
   await app.get(QueueWorker).start();
   await app.get(SchoolProvisionWorker).start();
   await app.get(OutboxPublisherWorker).start();
+  await app.get(SubscriptionStatusWorker).start();
 } catch {
   console.error("worker 启动失败，请检查 Redis 与 BullMQ 配置");
   process.exitCode = 1;

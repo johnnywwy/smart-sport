@@ -1,4 +1,14 @@
+import { syncCatalog } from "../../src/modules/platform/catalog/catalog-sync.js";
+import {
+  RolesRepository,
+  RolesService,
+} from "../../src/modules/platform/roles/index.js";
+import {
+  SubscriptionRepository,
+  SubscriptionStateService,
+} from "../../src/modules/platform/subscription/index.js";
 import { POSTGRES_IMAGE } from "../helpers/postgres-image.js";
+import { seedSchoolService } from "../helpers/school-service.js";
 import "reflect-metadata";
 import {
   createCipheriv,
@@ -81,6 +91,7 @@ beforeAll(async () => {
   pool = new pg.Pool({ connectionString: container.getConnectionUri() });
   await migratePublic(pool);
   await importRegions(pool, seedFile);
+  await syncCatalog(pool);
   await drizzle(pool)
     .insert(users)
     .values({
@@ -98,6 +109,7 @@ beforeAll(async () => {
     code: "ORG_LOGIN_TEST_SCHOOL",
     regionCode: "330106",
   });
+  await seedSchoolService(pool, schoolOrgId);
   await drizzle(pool)
     .insert(identities)
     .values(
@@ -116,6 +128,10 @@ beforeAll(async () => {
       AuthService,
       AuthRepository,
       IdentitiesService,
+      SubscriptionRepository,
+      SubscriptionStateService,
+      RolesRepository,
+      RolesService,
       IdentitiesRepository,
       PasswordHasher,
       AccessTokenSigner,

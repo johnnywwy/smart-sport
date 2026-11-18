@@ -8,6 +8,8 @@ import type {
 import { ApiException } from "../../../api-response.js";
 import type { AuthenticatedClaims } from "../../../core/authenticated.guard.js";
 import { AccessTokenSigner } from "../../../infra/auth/access-token-signer.js";
+import { RolesService } from "../roles/index.js";
+import { SubscriptionStateService } from "../subscription/index.js";
 import {
   IdentitiesRepository,
   type IdentitiesTransaction,
@@ -26,6 +28,9 @@ export class IdentitiesService {
     @Inject(IdentitiesRepository)
     private readonly identities: IdentitiesRepository,
     @Inject(AccessTokenSigner) private readonly signer: AccessTokenSigner,
+    @Inject(SubscriptionStateService)
+    private readonly subscriptions: SubscriptionStateService,
+    @Inject(RolesService) private readonly roles: RolesService,
   ) {}
 
   list(claims: AuthenticatedClaims): Promise<IdentityList> {
@@ -84,6 +89,13 @@ export class IdentitiesService {
         row.id,
       );
       if (!identity.available) throw new ApiException(11004);
+      if (row.orgType === "school")
+        await this.subscriptions.requireEntry({
+          orgId: row.orgId,
+          orgType: row.orgType,
+          identityType: identity.type,
+          permissions: await this.roles.permissions(identity.roleIds, tx),
+        });
       const date = new Date();
       await this.identities.selectIdentity(tx, {
         userId: claims.userId,
@@ -177,8 +189,33 @@ export class IdentitiesService {
       tx,
       rows.map((row) => row.id),
     );
-    return rows.map((row) =>
-      presentIdentity(row, roles.get(row.id) ?? [], lastIdentityId),
+    return Promise.all(
+      rows.map(async (row) => {
+        const item = presentIdentity(
+          row,
+          roles.get(row.id) ?? [],
+          lastIdentityId,
+        );
+        if (item.available && row.orgType === "school") {
+          try {
+            await this.subscriptions.requireEntry({
+              orgId: row.orgId,
+              orgType: row.orgType,
+              identityType: item.type,
+              permissions: await this.roles.permissions(item.roleIds, tx),
+            });
+          } catch (error) {
+            if (!(error instanceof ApiException && error.code === 13003))
+              throw error;
+            return {
+              ...item,
+              available: false,
+              unavailableReason: "学校服务未开通或已停用",
+            };
+          }
+        }
+        return item;
+      }),
     );
   }
 

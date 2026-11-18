@@ -1,6 +1,7 @@
 import type { DataScopeOption } from "@smart-sport/contracts";
 import { v7 } from "uuid";
 import { roleManagementFixture } from "./role-management.js";
+import { seedSchoolService } from "./school-service.js";
 
 export async function scopeFixture() {
   const f = await roleManagementFixture();
@@ -16,6 +17,7 @@ export async function scopeFixture() {
       "INSERT INTO public.orgs(id,type,name,code,region_code) VALUES($1,'school','范围测试学校',$1::uuid::text,$2)",
       [id, region],
     );
+    await seedSchoolService(f.pool, id);
     return id;
   };
   const department = async (

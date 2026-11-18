@@ -1,4 +1,6 @@
+import { eq } from "drizzle-orm";
 import { POSTGRES_IMAGE } from "../helpers/postgres-image.js";
+import { seedSchoolService } from "../helpers/school-service.js";
 import "reflect-metadata";
 import { generateKeyPairSync } from "node:crypto";
 import { Controller, Get, type INestApplication, Inject } from "@nestjs/common";
@@ -172,6 +174,7 @@ async function seedAccount(
           : "330106",
       status: item.orgStatus ?? 1,
     });
+    if (item.orgType === "school") await seedSchoolService(pool, orgId);
     await db.insert(identities).values({
       id: identityId,
       userId,
@@ -337,6 +340,7 @@ describe("身份列表、自动选择与切换", () => {
     const [role] = await drizzle(pool)
       .select({ id: roles.id })
       .from(roles)
+      .where(eq(roles.code, "agent-admin"))
       .limit(1);
     const roleId = role?.id ?? "";
     await drizzle(pool)
@@ -658,4 +662,45 @@ describe("T-029 全局鉴权与身份上下文", () => {
     });
     expect((await authRequest("context-probe", missing)).status).toBe(401);
   });
+});
+it("停用学校教师不再可选择，学校管理员仍可进入，原教师令牌立即拒绝业务请求", async () => {
+  for (const type of ["teacher", "school"] as const) {
+    const name = `expired-${type}`;
+    const seeded = await seedAccount(name, [
+      { type, orgType: "school", orgName: "到期学校" },
+    ]);
+    const identityId = seeded.identityIds[0];
+    if (!identityId) throw new Error("缺少测试身份");
+    await pool.query(
+      "INSERT INTO public.identity_roles SELECT $1,id FROM public.roles WHERE code=$2",
+      [identityId, type === "teacher" ? "teacher-pe" : "school-admin"],
+    );
+    const initial = await login(name);
+    expect(initial.body.data.selectedIdentity?.id).toBe(identityId);
+    await pool.query(
+      "UPDATE public.school_subscriptions SET service_start=now()-interval '60 days',service_end=now()-interval '31 days',grace_days=30 WHERE school_id=(SELECT org_id FROM public.identities WHERE id=$1)",
+      [identityId],
+    );
+    const response = await authRequest(
+      "context-probe",
+      initial.body.data.accessToken,
+    );
+    expect(response.status).toBe(type === "teacher" ? 403 : 200);
+    const next = await login(name);
+    expect(next.body.data.identityCount).toBe(type === "teacher" ? 0 : 1);
+    const list = await authRequest("identities", next.body.data.accessToken);
+    const data = successResponseSchema(identityListSchema).parse(
+      await list.json(),
+    ).data;
+    expect(data.groups[0]?.items[0]?.available).toBe(type === "school");
+    if (type === "teacher") {
+      const denied = await authRequest(
+        "select-identity",
+        next.body.data.accessToken,
+        { method: "POST", body: JSON.stringify({ identityId }) },
+      );
+      expect(denied.status).toBe(403);
+      expect(apiResponseSchema.parse(await denied.json()).code).toBe(13003);
+    }
+  }
 });

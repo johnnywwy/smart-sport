@@ -18,7 +18,10 @@ import {
   AUTH_CONTEXT_LOADER,
   AuthenticatedGuard,
 } from "./core/authenticated.guard.js";
-import { PermissionGuard } from "./core/permission.guard.js";
+import {
+  PermissionGuard,
+  SCHOOL_SERVICE_POLICY,
+} from "./core/permission.guard.js";
 import { DataSourceRegistry, DRIZZLE } from "./database/registry.js";
 import { HealthController } from "./health.js";
 import { IdempotencyInterceptor } from "./idempotency.js";
@@ -173,6 +176,14 @@ import {
   ScopeCandidatesService,
   ScopeOptionsRepository,
 } from "./modules/platform/scope-candidates/index.js";
+import {
+  SchoolAppsController,
+  SubscriptionLifecycleService,
+  SubscriptionRepository,
+  SubscriptionStateService,
+  SubscriptionsController,
+  SubscriptionsService,
+} from "./modules/platform/subscription/index.js";
 import { RateLimitGuard } from "./rate-limit.js";
 import { requestContextMiddleware } from "./request-context.js";
 import { SERVER_CONFIG } from "./server-config.js";
@@ -223,6 +234,8 @@ const databaseConfig = loadDatabaseConfig();
     IdentityScopesController,
     MembersController,
     HealthController,
+    SubscriptionsController,
+    SchoolAppsController,
     AuthController,
     RegionManagementController,
     RegionsController,
@@ -238,6 +251,11 @@ const databaseConfig = loadDatabaseConfig();
   ],
   providers: [
     ...outboxProviders,
+    SubscriptionRepository,
+    SubscriptionStateService,
+    SubscriptionLifecycleService,
+    SubscriptionsService,
+    { provide: SCHOOL_SERVICE_POLICY, useExisting: SubscriptionStateService },
     TenantRepository,
     TenantService,
     TenantMigrator,

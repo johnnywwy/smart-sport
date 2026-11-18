@@ -22,3 +22,5 @@ export {
   outboxJobId,
   outboxQueue,
 } from "./modules/foundation/outbox/index.js";
+
+export { createSubscriptionLifecycle } from "./modules/platform/subscription/index.js";
