@@ -1,12 +1,13 @@
 # 智慧体育云平台 · 架构说明
 
-| 项         | 内容                                   |
-| ---------- | -------------------------------------- |
-| 版本       | v1.0（地基 M1）                        |
-| 日期       | 2026-11-09                             |
-| 对应架构图 | `docs/architecture-diagram.html` v0.19 |
-| 详细规格   | `docs/spec/`（按功能拆分，共 16 份）   |
-| 开发任务   | `docs/TASKS.md`                        |
+| 项         | 内容                                         |
+| ---------- | -------------------------------------------- |
+| 版本       | v1.0（地基 M1）                              |
+| 日期       | 2026-11-09（2026-11-18 按代码现状校对）      |
+| 对应架构图 | `docs/architecture-diagram.html` v0.19       |
+| 详细规格   | `docs/spec/`（按功能拆分，共 18 份）         |
+| 开发任务   | `docs/TASKS.md`；进度记录 `docs/PROGRESS.md` |
+| 待确认问题 | `docs/REVIEW_2026-11-18.md`                  |
 
 本文回答两个问题：**系统整体怎么组织**，以及**关键决策为什么这样定**。字段、接口、规则等细节以 `docs/spec/` 为准；本文与规格冲突时，以规格为准并回头修正本文。
 
@@ -53,7 +54,7 @@
 | 运行时 | Node.js 当前 LTS（≥ 24），pnpm 10，Turborepo                                                                                                   |
 | 后端   | NestJS 12（ESM），Zod 4（路由校验），Drizzle ORM，nestjs-cls，jose（JWT），argon2id，BullMQ，pino                                              |
 | 前端   | React 19，Vite 7，HeroUI 3 + HeroUI Pro（布局、侧栏、KPI），Tailwind CSS 4，React Router 7，TanStack Query 5，zustand 5，react-hook-form + Zod |
-| 数据   | PostgreSQL 17，Redis 8，MinIO（S3 接口）                                                                                                       |
+| 数据   | PostgreSQL 18.6（2026-11-18 确认，开发、测试、生产统一；开发容器的切换见 T-185），Redis 8，MinIO（S3 接口）                                    |
 | 质量   | Biome 2，Vitest，Playwright，Testcontainers                                                                                                    |
 | 提交   | git cz（commitizen + cz-git），commitlint，husky                                                                                               |
 | 部署   | Docker Compose，Nginx                                                                                                                          |
@@ -99,32 +100,48 @@ flowchart TB
 
 ## 5. 仓库结构
 
+仓库名 `smart-sport`（文档里旧称 `sports-cloud`，指同一个项目）。下面按 2026-11-18 的代码现状画出，标“（未建）”的目录是规划位置。
+
 ```
-sports-cloud/
+smart-sport/
 ├─ apps/
 │  ├─ server/            NestJS API
+│  │  ├─ migrations/public/   手写 SQL，0001–0034
+│  │  │  （school/ 学校库迁移，未建，T-061）
 │  │  └─ src/
-│  │     ├─ core/        guards · decorators · cls · filters · interceptors
-│  │     ├─ infra/       database · tenant · redis · queue · storage · crypto
+│  │     ├─ core/        守卫 · 装饰器 · 审计装饰器
+│  │     ├─ database/    数据源 · 迁移执行
+│  │     ├─ schema/      Drizzle 表定义（public）
+│  │     ├─ infra/       audit · auth · crypto · storage（tenant、redis、queue 未独立成目录）
 │  │     └─ modules/
-│  │        ├─ platform/ auth identity org permission scope subscription academic dict audit
-│  │        ├─ school/   school-base student-index
-│  │        └─ foundation/ import-export task file todo notify outbox recycle number
-│  ├─ worker/            BullMQ 消费者
-│  └─ web/               React 19 + HeroUI 3
-│     └─ src/
-│        ├─ app/         providers · router
-│        ├─ pages/       login · select-org · portal · 403 · 404 · upgrade-browser
-│        ├─ layouts/     AppLayout（模块工作区）
-│        ├─ apps/        按应用组织：system/ org-permission/ school-base/ school-ops/ org-admin/
-│        └─ shared/      api · stores · hooks · <Can> · DataTable · SchemaForm · ScopePicker
+│  │        ├─ platform/   auth identities identity-context organizations departments members
+│  │        │              roles role-management preset-roles catalog navigation scope
+│  │        │              scope-candidates regions school-profiles academic dicts params audit
+│  │        ├─ foundation/ files numbers tasks（outbox、todo、notify、import-export、recycle 未建）
+│  │        └─ school/     （未建：tenant、school-base、student-index）
+│  ├─ worker/            BullMQ 消费者（目前只有测试队列）
+│  ├─ web/               React 19 + HeroUI 3 + HeroUI Pro
+│  │  └─ src/
+│  │     ├─ app/         providers · router
+│  │     ├─ pages/       login · change-password · select-org · modules · workbench · portal · not-found · upgrade-browser
+│  │     ├─ layouts/     admin-layout · module-layout · portal-layout
+│  │     ├─ apps/        按业务组织：system/ organization/ school/ ops/
+│  │     ├─ shared/      api · stores · hooks · components（Can、DataTable、SchemaForm、FormDialog、ScopePicker 等）
+│  │     └─ mocks/       MSW
+│  └─ h5/                （M2，未建，见 spec 17）
 ├─ packages/
-│  ├─ contracts/         Zod schema · 枚举 · 权限码 · 应用与功能模块声明 · 错误码
-│  ├─ domain/            纯函数：年级计算 · 权限匹配 · 数据范围合并 · 评分换算
-│  └─ config/            tsconfig · biome · vitest 预设
-├─ deploy/               docker-compose.yml · nginx.conf · Dockerfile
-└─ docs/                 ARCHITECTURE.md · spec/ · TASKS.md · architecture-diagram.html
+│  ├─ contracts/         Zod schema · 权限码 · 应用、模块与菜单声明 · 错误码 · 示例数据
+│  ├─ domain/            纯函数：年级计算 · 权限匹配 · 数据范围合并 · 导航 · 任务状态（评分换算随运动业务加入）
+│  └─ config/            环境变量校验
+├─ deploy/
+│  ├─ compose.dev.yaml   本地开发：PostgreSQL、Redis、MinIO
+│  ├─ host/              试运行服务器（systemd + Nginx）脚本，见第 11 节
+│  └─ seed/              行政区划数据
+├─ scripts/              跨平台工程脚本：UI 控件检查、依赖规则、环境初始化
+└─ docs/                 ARCHITECTURE · spec/ · TASKS · PROGRESS · DEVELOPMENT · LOCAL_INFRA · 设计稿
 ```
+
+`spec 16` 规定的依赖方向和四层组件以 `.dependency-cruiser.cjs` 为准，目录名变化时同步修改本节。
 
 ---
 
@@ -200,6 +217,7 @@ sports-cloud/
   - 开工前需书面确认授权条款覆盖“自有 SaaS 产品服务多所学校”以及“私有化部署交付给教育局”两种场景。
   - HeroUI Pro 的 v3 版本发布时间较短，需锁定版本；KPI、图表等组件按子路径导入。
   - 若授权不满足，退回方案：用 HeroUI 3 开源组件按同样布局自行实现，页面结构不变。
+- **现状（2026-11-18）**：已授权（用户确认，T-197 关闭），通过 `hpsetup` 和 `HEROUI_KEY` 安装，在布局、侧栏、FileTree、KPI 等处使用。
 
 ---
 
@@ -311,7 +329,7 @@ flowchart LR
 
 | 服务       | 说明                                                            |
 | ---------- | --------------------------------------------------------------- |
-| postgres   | PostgreSQL 17，数据卷持久化                                     |
+| postgres   | PostgreSQL 18.6，数据卷持久化                                   |
 | redis      | Redis 8                                                         |
 | minio      | 文件存储                                                        |
 | migrate    | 一次性任务：public 迁移 → 菜单与内置角色同步 → 各学校库增量迁移 |
@@ -320,6 +338,8 @@ flowchart LR
 | web        | Nginx：静态资源、`/api` 反代、安全响应头                        |
 
 最低备份：每日全库 `pg_dump`，保留 7 天，存放在数据库服务器以外。
+
+上表是目标形态（T-181 Compose 生产编排）。**当前试运行**（2026-11-18，见 `deploy/host/README.md`）是另一种形态：单台 ARM64 服务器，server、worker、Nginx 由 systemd 运行，Redis 和 MinIO 用容器，PostgreSQL 用服务器上共享的 18.6 实例（与统一后的版本一致），经 Cloudflare Tunnel 对外；备份只在本机，未满足“存放在数据库服务器以外”。正式交付采用哪一种（含教育局私有化部署），见 REVIEW R-04。
 
 ---
 
@@ -339,12 +359,12 @@ flowchart LR
 
 **前后端同步推进**：M1 按 19 个功能切片推进（见 `TASKS.md`“前后端同步推进”）。每个切片先在 contracts 中写好接口契约，再后端实现与前端（基于 Mock）并行，最后联调、跑切片冒烟用例。每个后端原子任务合并后，立即检查对应前端任务能否开始或从 Mock 切换到真实接口。
 
-| 里程碑    | 内容                                      |
-| --------- | ----------------------------------------- |
-| M1 地基   | 本文范围，Web 后台                        |
-| M2 移动端 | 教师端、学生端 H5，学生账号登录           |
-| M3 业务   | 跳绳、跑步等运动应用；赛事；中考体育      |
-| M4 分析   | BI 大屏、跨校汇总、学校独立数据源迁移工具 |
+| 里程碑    | 内容                                                             |
+| --------- | ---------------------------------------------------------------- |
+| M1 地基   | 本文范围，Web 后台                                               |
+| M2 移动端 | 教师端、学生端、家长端 H5，学生账号登录，家长绑定孩子（spec 17） |
+| M3 业务   | 跳绳、跑步等运动应用；赛事；中考体育                             |
+| M4 分析   | BI 大屏、跨校汇总、学校独立数据源迁移工具                        |
 
 ---
 
@@ -363,29 +383,31 @@ flowchart LR
 | Q11 | 工作台的入口                               | 每个模块侧栏的第一项，进入模块后默认打开；登录即可用                                                                         | spec 13 第 2 节            |
 | Q9  | 内置角色能否在界面修改                     | 公司超级管理员可以改默认数据范围和档位，对所有组织生效，可恢复默认；“超级管理员”角色本身不可改                               | spec 04 第 6.1 节          |
 | Q10 | 流程的撤销与到期                           | 导入 24 小时内可撤销本批新增；学年升级 7 天内可撤回；代理商授权必须有到期日且最晚到学年结束                                  | spec 11、08、05            |
+| Q13 | 移动端技术路线                             | 独立 `apps/h5`，HeroUI 3 网页版，不用 HeroUI Native；学生用“学校 + 学号”登录；家长凭绑定码绑定孩子，绑定挂在学生索引上       | spec 17                    |
 
 ---
 
 ## 15. 规格索引
 
-| 编号 | 文件                         | 内容                                                               |
-| ---- | ---------------------------- | ------------------------------------------------------------------ |
-| 00   | `spec/00-conventions.md`     | 接口、错误码、分页、编码与 ID、时间、幂等、版本                    |
-| 01   | `spec/01-auth.md`            | 登录、令牌、锁定、邮箱验证码、密码策略、会话                       |
-| 02   | `spec/02-identity.md`        | 身份、选择组织、切换身份、身份上下文                               |
-| 03   | `spec/03-org.md`             | 组织、学校档案、区划、部门树、部门负责范围                         |
-| 04   | `spec/04-permission.md`      | 应用、功能模块、档位、动作、角色、分级管理、菜单同步               |
-| 05   | `spec/05-data-scope.md`      | 外边界、数据范围计算、代理商授权、缓存                             |
-| 06   | `spec/06-tenant.md`          | 学校库开通、迁移、数据源、生命周期                                 |
-| 07   | `spec/07-subscription.md`    | 学校服务状态、应用开通                                             |
-| 08   | `spec/08-academic.md`        | 学年学期、学段年级编码、学年切换                                   |
-| 09   | `spec/09-school-base.md`     | 院系专业、行政班、教学班、学生、教师任课                           |
-| 10   | `spec/10-student-index.md`   | 身份证查重、升学、转学                                             |
-| 11   | `spec/11-foundation.md`      | 导入导出、任务、文件、字典、参数、编号、消息、outbox、回收站、待办 |
-| 12   | `spec/12-audit-security.md`  | 审计、敏感字段、密钥、安全基线、数据保留                           |
-| 13   | `spec/13-admin-web.md`       | 后台页面流、外壳、通用组件、组织架构页、门户                       |
-| 14   | `spec/14-init-onboarding.md` | 系统初始化、学校开通向导                                           |
-| 15   | `spec/15-engineering.md`     | 仓库、CI、环境、提交规范、部署、备份、发布                         |
-| 16   | `spec/16-code-standards.md`  | 后端三层模块结构、前端四层组件、依赖方向与自动检查                 |
+| 编号 | 文件                         | 内容                                                                     |
+| ---- | ---------------------------- | ------------------------------------------------------------------------ |
+| 00   | `spec/00-conventions.md`     | 接口、错误码、分页、编码与 ID、时间、幂等、版本                          |
+| 01   | `spec/01-auth.md`            | 登录、令牌、锁定、邮箱验证码、密码策略、会话                             |
+| 02   | `spec/02-identity.md`        | 身份、选择组织、切换身份、身份上下文                                     |
+| 03   | `spec/03-org.md`             | 组织、学校档案、区划、部门树、部门负责范围                               |
+| 04   | `spec/04-permission.md`      | 应用、功能模块、档位、动作、角色、分级管理、菜单同步                     |
+| 05   | `spec/05-data-scope.md`      | 外边界、数据范围计算、代理商授权、缓存                                   |
+| 06   | `spec/06-tenant.md`          | 学校库开通、迁移、数据源、生命周期                                       |
+| 07   | `spec/07-subscription.md`    | 学校服务状态、应用开通                                                   |
+| 08   | `spec/08-academic.md`        | 学年学期、学段年级编码、学年切换                                         |
+| 09   | `spec/09-school-base.md`     | 院系专业、行政班、教学班、学生、教师任课                                 |
+| 10   | `spec/10-student-index.md`   | 身份证查重、升学、转学                                                   |
+| 11   | `spec/11-foundation.md`      | 导入导出、任务、文件、字典、参数、编号、消息、outbox、回收站、待办       |
+| 12   | `spec/12-audit-security.md`  | 审计、敏感字段、密钥、安全基线、数据保留                                 |
+| 13   | `spec/13-admin-web.md`       | 后台页面流、外壳、通用组件、组织架构页、门户                             |
+| 14   | `spec/14-init-onboarding.md` | 系统初始化、学校开通向导                                                 |
+| 15   | `spec/15-engineering.md`     | 仓库、CI、环境、提交规范、部署、备份、发布                               |
+| 16   | `spec/16-code-standards.md`  | 后端三层模块结构、前端四层组件、依赖方向与自动检查                       |
+| 17   | `spec/17-mobile-h5.md`       | 移动端 H5（M2）：登录、身份、家长绑定、导航、页面、组件；M1 须遵守的约束 |
 
 当前学校决策 Q12：公司和代理商在学校内菜单的页面标题旁（院系专业仅大学显示）选择学校，不做跨学校的班级、学生总表；教育局不显示这些菜单。候选来自 `/scope/schools`，未选时显示选择提示；切换组织或角色清空，接口仍显式传学校 id。详见 spec 13 第 3 节。
