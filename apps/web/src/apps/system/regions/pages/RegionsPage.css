@@ -1,0 +1,9 @@
+.regions-page {
+  min-width: 0;
+}
+.regions-note {
+  margin: 16px 0 0;
+  color: var(--table-muted);
+  font-size: 13px;
+  line-height: 1.7;
+}

@@ -1,0 +1,51 @@
+.region-sync-summary {
+  min-width: 0;
+}
+.region-sync-summary > p {
+  margin: 0 0 16px;
+  color: var(--muted);
+  font-size: 13px;
+}
+.region-sync-counts {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0 0 20px;
+}
+.region-sync-counts > div {
+  padding: 12px;
+  border-radius: 10px;
+  background: var(--surface-secondary);
+}
+.region-sync-counts dt {
+  color: var(--muted);
+  font-size: 12px;
+}
+.region-sync-counts dd {
+  margin: 6px 0 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+.region-sync-summary .data-table {
+  padding: 0;
+}
+.region-sync-summary .data-table-heading h1 {
+  font-size: 14px;
+}
+.region-sync-blocked {
+  margin-top: 16px;
+  padding: 12px;
+  border-radius: 10px;
+  background: var(--danger-soft);
+  color: var(--danger-soft-foreground);
+  font-size: 13px;
+}
+.region-sync-blocked p {
+  margin: 8px 0;
+}
+.region-sync-blocked ul {
+  max-height: 180px;
+  overflow: auto;
+  margin: 0;
+  padding-left: 20px;
+}

@@ -1,0 +1,27 @@
+.region-details .modal__header {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.region-details .modal__header .button {
+  width: 32px;
+  min-width: 32px;
+  height: 32px;
+  border-radius: 50%;
+}
+.region-details dl {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+.region-details dt,
+.region-details p {
+  color: var(--muted);
+  font-size: 13px;
+}
+.region-details dd {
+  margin: 6px 0 0;
+  font-size: 14px;
+}

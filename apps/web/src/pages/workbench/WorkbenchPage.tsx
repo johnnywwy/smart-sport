@@ -15,6 +15,7 @@ import { DictionariesPage } from "../../apps/system/dicts";
 import { NumberRulesPage } from "../../apps/system/numbers";
 import { SystemParamsPage } from "../../apps/system/params";
 import { PresetRolesPage } from "../../apps/system/preset-roles";
+import { RegionsPage } from "../../apps/system/regions";
 import { ModuleLayout } from "../../layouts/module-layout/ModuleLayout";
 import { NavigationState } from "../../shared/components/navigation-state/NavigationState";
 import { schoolMenuPermissions } from "../../shared/hooks/school-navigation";
@@ -156,6 +157,8 @@ export function WorkbenchPage() {
       ) : selected?.key === "dictionaries" &&
         module.code === "platform-admin" ? (
         <DictionariesPage key={identity.id} identityId={identity.id} />
+      ) : selected?.key === "regions" && module.code === "platform-admin" ? (
+        <RegionsPage key={identity.id} identityId={identity.id} />
       ) : selected?.key === "parameters" && module.code === "platform-admin" ? (
         <SystemParamsPage key={identity.id} identityId={identity.id} />
       ) : selected?.key === "number-rules" &&

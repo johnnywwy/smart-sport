@@ -1,0 +1,29 @@
+.region-list {
+  min-width: 0;
+}
+.region-trail {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 10px;
+  align-items: center;
+}
+.region-trail > span {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  color: var(--table-muted);
+}
+.region-trail .button {
+  min-height: 28px;
+  height: 28px;
+  font-size: 13px;
+  padding-inline: 8px;
+}
+.region-unlinked {
+  color: var(--warning);
+}
+
+.region-list .data-table-actions .data-table-secondary {
+  background: var(--table-foreground);
+  color: var(--table-background);
+}

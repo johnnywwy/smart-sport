@@ -1,0 +1,15 @@
+.region-sync-dialog {
+  width: min(760px, calc(100vw - 32px));
+  max-width: 760px;
+}
+.region-sync-dialog .schema-form-rule {
+  color: var(--danger);
+}
+.region-sync-dialog .schema-form-submit {
+  background: var(--danger);
+  color: var(--danger-foreground);
+}
+
+.region-sync-dialog .schema-form {
+  margin-top: 16px;
+}

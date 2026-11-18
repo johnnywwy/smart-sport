@@ -1,5 +1,5 @@
 import { Button, Modal } from "@heroui/react";
-import { useEffect, useRef, useState } from "react";
+import { type ReactNode, useEffect, useRef, useState } from "react";
 import { SchemaForm } from "../schema-form/SchemaForm";
 import type { SchemaFormProps } from "../schema-form/types";
 import "./FormDialog.css";
@@ -11,6 +11,8 @@ type Props<T> = Omit<
   title: string;
   dialogClassName?: string;
   description?: string;
+  /** 带独立查询表单的预览区放在提交表单外，避免嵌套 form。 */
+  beforeForm?: ReactNode;
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
 };
@@ -18,6 +20,7 @@ export function FormDialog<T>({
   title,
   dialogClassName,
   description = "带 * 的是必填项",
+  beforeForm,
   isOpen,
   onOpenChange,
   ...form
@@ -77,6 +80,7 @@ export function FormDialog<T>({
               </Button>
             </Modal.Header>
             <Modal.Body className="form-dialog-body">
+              {beforeForm}
               {isOpen && (
                 <SchemaForm
                   {...form}
