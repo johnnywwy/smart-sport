@@ -1,6 +1,6 @@
 import { Inject, Injectable } from "@nestjs/common";
 import type { AuditLogQuery } from "@smart-sport/contracts";
-import { and, asc, count, desc, eq, gte, lte } from "drizzle-orm";
+import { and, asc, count, desc, eq, gte, ilike, lte } from "drizzle-orm";
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 import { alias } from "drizzle-orm/pg-core";
 import { DRIZZLE } from "../../../database/registry.js";
@@ -11,6 +11,10 @@ import {
   users,
 } from "../../../schema/public.js";
 
+/** LIKE通配符按用户输入字面匹配，参数仍由Drizzle绑定。 */
+function containsName(value: string) {
+  return `%${value.replace(/[\\%_]/g, "\\$&")}%`;
+}
 const schools = alias(organizations, "audit_school");
 @Injectable()
 export class AuditQueryRepository {
@@ -25,6 +29,12 @@ export class AuditQueryRepository {
           input.action ? eq(auditLogs.action, input.action) : undefined,
           input.userId
             ? eq(auditLogs.userId, input.userId.toLowerCase())
+            : undefined,
+          input.operatorName
+            ? ilike(users.realName, containsName(input.operatorName))
+            : undefined,
+          input.organizationName
+            ? ilike(organizations.name, containsName(input.organizationName))
             : undefined,
           input.targetType
             ? eq(auditLogs.targetType, input.targetType)
@@ -58,6 +68,8 @@ export class AuditQueryRepository {
         const [total] = await tx
           .select({ count: count() })
           .from(auditLogs)
+          .leftJoin(users, eq(users.id, auditLogs.userId))
+          .leftJoin(organizations, eq(organizations.id, auditLogs.orgId))
           .where(condition);
         return {
           items,

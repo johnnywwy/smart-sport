@@ -258,3 +258,70 @@ it("读取期间撤销权限，丢弃已取得的旧结果，不向客户端泄�
     spy.mockRestore();
   }
 });
+
+it("名称包含匹配与组织边界取交集，分页总数一致且特殊字符不扩查", async () => {
+  const name = "审计%_\\MiXeD";
+  const orgName = "组织%_\\Demo";
+  await f.pool.query("UPDATE public.users SET real_name=$1 WHERE id=$2", [
+    name,
+    school.userId,
+  ]);
+  await f.pool.query("UPDATE public.orgs SET name=$1 WHERE id=$2", [
+    orgName,
+    school.orgId,
+  ]);
+  const params = new URLSearchParams({
+    scope: "platform",
+    action: "test.audit.query",
+    operatorName: "  mixed  ",
+    organizationName: "demo",
+    pageSize: "1",
+  });
+  try {
+    const all = await list(params.toString());
+    expect(all.total).toBe(1);
+    expect(all.items.map((r) => r.id)).toEqual([ids[1]]);
+    expect(all.items[0]).toMatchObject({
+      operatorName: name,
+      organizationName: orgName,
+    });
+    params.set("page", "2");
+    const next = await list(params.toString());
+    expect(next.total).toBe(1);
+    expect(next.items).toEqual([]);
+    params.delete("page");
+    params.set("scope", "organization");
+    const outside = await f.seed("school", "school-admin");
+    expect((await list(params.toString(), outside.token)).total).toBe(0);
+    expect((await list(params.toString(), school.token)).total).toBe(1);
+    params.set("scope", "platform");
+    for (const literal of ["%", "_", "\\"]) {
+      params.set("operatorName", literal);
+      params.set("organizationName", literal);
+      expect((await list(params.toString())).total).toBe(1);
+    }
+    for (const key of ["operatorName", "organizationName"]) {
+      params.set(key, "' OR true --");
+      expect((await list(params.toString())).total).toBe(0);
+      params.set(key, "%");
+      for (const invalid of [" ", "字".repeat(101)]) {
+        const bad = new URLSearchParams({ [key]: invalid });
+        expect((await f.request(`/audit-logs?${bad}`)).status).toBe(400);
+      }
+    }
+    const denied = await f.seed("company", null);
+    expect(
+      (await f.request(`/audit-logs?${params}`, "GET", undefined, denied.token))
+        .status,
+    ).toBe(403);
+  } finally {
+    await f.pool.query(
+      "UPDATE public.users SET real_name='角色测试' WHERE id=$1",
+      [school.userId],
+    );
+    await f.pool.query(
+      "UPDATE public.orgs SET name='角色测试组织' WHERE id=$1",
+      [school.orgId],
+    );
+  }
+});
