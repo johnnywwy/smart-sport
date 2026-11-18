@@ -6,14 +6,13 @@ import pg from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { migratePublic } from "../../src/database/migrate.js";
 import { syncCatalog } from "../../src/modules/platform/catalog/catalog-sync.js";
+import { POSTGRES_IMAGE } from "../helpers/postgres-image.js";
 
 let container: StartedPostgreSqlContainer | undefined;
 let pool: pg.Pool;
 
 beforeAll(async () => {
-  container = await new PostgreSqlContainer(
-    "postgres:17.11-alpine3.23",
-  ).start();
+  container = await new PostgreSqlContainer(POSTGRES_IMAGE).start();
   pool = new pg.Pool({ connectionString: container.getConnectionUri() });
   await migratePublic(pool);
 }, 120000);

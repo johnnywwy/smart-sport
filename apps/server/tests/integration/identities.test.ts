@@ -1,3 +1,4 @@
+import { POSTGRES_IMAGE } from "../helpers/postgres-image.js";
 import "reflect-metadata";
 import { generateKeyPairSync } from "node:crypto";
 import { Controller, Get, type INestApplication, Inject } from "@nestjs/common";
@@ -94,9 +95,7 @@ const seedFile = new URL(
 );
 
 beforeAll(async () => {
-  container = await new PostgreSqlContainer(
-    "postgres:17.11-alpine3.23",
-  ).start();
+  container = await new PostgreSqlContainer(POSTGRES_IMAGE).start();
   pool = new pg.Pool({ connectionString: container.getConnectionUri() });
   await migratePublic(pool);
   await syncCatalog(pool);

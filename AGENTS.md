@@ -79,7 +79,7 @@
 | 运行时与工程 | Node.js 当前 LTS，pnpm 10，Turborepo，TypeScript strict，全部 ESM，Biome 2                                    |
 | 后端         | NestJS 12，Zod 4，Drizzle ORM，nestjs-cls，jose，argon2，BullMQ，pino                                         |
 | 前端         | React 19，Vite 7，HeroUI 3，Tailwind CSS 4，React Router 7，TanStack Query 5，zustand 5，react-hook-form，MSW |
-| 数据         | PostgreSQL 18.6（开发、测试、生产同一版本；T-185 完成前开发容器仍是 17.11），Redis 8，MinIO                   |
+| 数据         | PostgreSQL 18.6（开发、测试已统一；生产试运行18.6，本轮未修改生产），Redis 8，MinIO                           |
 | 测试         | Vitest，Testcontainers，Playwright                                                                            |
 
 **重要：这里有几个库的大版本很新，你记忆中的写法可能是旧版本的。** 写代码前先确认实际安装的版本，以该版本的官方文档和包内类型定义为准，不要凭记忆写。已知容易写错的地方：

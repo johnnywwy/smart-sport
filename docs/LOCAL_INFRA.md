@@ -17,7 +17,7 @@ pnpm infra:check
 
 | 服务       | 固定版本                     | 本机端口                     | 数据卷            |
 | ---------- | ---------------------------- | ---------------------------- | ----------------- |
-| PostgreSQL | 17.11-alpine3.23             | 15432                        | postgres-data     |
+| PostgreSQL | 18.6-alpine3.23              | 15432                        | postgres18-data   |
 | Redis      | 8.10.3-alpine3.23            | 16379                        | redis-data（AOF） |
 | MinIO      | RELEASE.2025-10-15T17-29-55Z | 19000（S3）、19001（控制台） | minio-data        |
 
@@ -84,3 +84,9 @@ pnpm build
 worker 使用 `REDIS_URL`，队列前缀由 `WORKER_QUEUE_PREFIX` 设置，默认 `smart-sport`。生产者和消费者需要使用相同的 Redis 数据库和前缀。当前 `probe` 队列消费 `ping` 任务，输入为 `{}` 或带有 0–2000 毫秒整数 `delayMs` 的对象，成功返回 `{ status: "ok" }`。未知任务和无效参数直接失败，成功及失败记录分别保留最近 100 条。
 
 收到 SIGTERM 或 SIGINT 后停止拉取任务，等待正在执行的任务结束，再关闭 Redis 连接。待执行任务仍保存在队列中，供重启后消费。业务消费者随对应任务接入。
+
+## PostgreSQL 18.6 切换（T-185）
+
+开发和测试镜像统一取自 `deploy/compose.dev.yaml`，Testcontainers经 `tests/helpers/postgres-image.ts` 导出常量，不重复声明版本。18容器使用新卷 `postgres18-data` 并挂载 `/var/lib/postgresql`，与官方18镜像的数据目录布局一致。原17卷 `postgres-data`保留，禁止将17的数据目录直接交给18启动，也不要运行 `down -v`。
+
+切换前先停止本项目API和worker写入，使用旧容器的 `pg_dump -Fc` 备份业务库到仓库外受限目录，并保留原 `.env` 密钥；拉取精确镜像后只重建postgres服务，恢复到新空库，再核对迁移版本、数据数量、登录与健康检查。新开发环境可直接初始化空库；已有数据不可仅更换镜像后沿用旧卷。此操作只针对本地开发，不修改共享生产数据库。

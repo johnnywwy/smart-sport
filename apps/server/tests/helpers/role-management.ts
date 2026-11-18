@@ -1,3 +1,4 @@
+import { POSTGRES_IMAGE } from "./postgres-image.js";
 import "reflect-metadata";
 import { generateKeyPairSync, randomBytes } from "node:crypto";
 import { APP_FILTER, APP_INTERCEPTOR } from "@nestjs/core";
@@ -168,9 +169,7 @@ export async function roleManagementFixture(
     | "S3_SECRET_ACCESS_KEY"
   >,
 ) {
-  const postgres = await new PostgreSqlContainer(
-    "postgres:17.11-alpine3.23",
-  ).start();
+  const postgres = await new PostgreSqlContainer(POSTGRES_IMAGE).start();
   const pool = new pg.Pool({ connectionString: postgres.getConnectionUri() });
   await migratePublic(pool);
   await syncCatalog(pool);

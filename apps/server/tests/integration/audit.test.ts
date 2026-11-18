@@ -10,15 +10,14 @@ import { migratePublic } from "../../src/database/migrate.js";
 import { auditWriter } from "../../src/infra/audit/audit-writer.js";
 import { AuditPartitionsRepository } from "../../src/modules/platform/audit/index.js";
 import { users } from "../../src/schema/public.js";
+import { POSTGRES_IMAGE } from "../helpers/postgres-image.js";
 
 let container: StartedPostgreSqlContainer | undefined;
 let pool: pg.Pool;
 let db: NodePgDatabase;
 let partitions: AuditPartitionsRepository;
 beforeAll(async () => {
-  container = await new PostgreSqlContainer(
-    "postgres:17.11-alpine3.23",
-  ).start();
+  container = await new PostgreSqlContainer(POSTGRES_IMAGE).start();
   pool = new pg.Pool({ connectionString: container.getConnectionUri() });
   await migratePublic(pool);
   db = drizzle(pool);

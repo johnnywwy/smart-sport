@@ -8,15 +8,14 @@ import { v7 } from "uuid";
 import { afterAll, beforeAll, expect, it } from "vitest";
 import { migratePublic } from "../../src/database/migrate.js";
 import { identityScopes } from "../../src/schema/public.js";
+import { POSTGRES_IMAGE } from "../helpers/postgres-image.js";
 
 let container: StartedPostgreSqlContainer | undefined;
 let pool: pg.Pool;
 const identityId = v7();
 
 beforeAll(async () => {
-  container = await new PostgreSqlContainer(
-    "postgres:17.11-alpine3.23",
-  ).start();
+  container = await new PostgreSqlContainer(POSTGRES_IMAGE).start();
   pool = new pg.Pool({ connectionString: container.getConnectionUri() });
   await migratePublic(pool);
   const userId = v7();

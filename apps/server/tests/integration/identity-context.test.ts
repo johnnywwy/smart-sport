@@ -24,6 +24,7 @@ import {
   organizations,
   users,
 } from "../../src/schema/public.js";
+import { POSTGRES_IMAGE } from "../helpers/postgres-image.js";
 
 let postgres: StartedPostgreSqlContainer;
 let redis: StartedTestContainer;
@@ -38,7 +39,7 @@ const orgId = v7();
 
 beforeAll(async () => {
   [postgres, redis] = await Promise.all([
-    new PostgreSqlContainer("postgres:17.11-alpine3.23").start(),
+    new PostgreSqlContainer(POSTGRES_IMAGE).start(),
     new GenericContainer("redis:8.10.3-alpine3.23")
       .withExposedPorts(6379)
       .start(),

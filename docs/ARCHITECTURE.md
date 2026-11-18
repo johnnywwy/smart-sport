@@ -54,7 +54,7 @@
 | 运行时 | Node.js 当前 LTS（≥ 24），pnpm 10，Turborepo                                                                                                   |
 | 后端   | NestJS 12（ESM），Zod 4（路由校验），Drizzle ORM，nestjs-cls，jose（JWT），argon2id，BullMQ，pino                                              |
 | 前端   | React 19，Vite 7，HeroUI 3 + HeroUI Pro（布局、侧栏、KPI），Tailwind CSS 4，React Router 7，TanStack Query 5，zustand 5，react-hook-form + Zod |
-| 数据   | PostgreSQL 18.6（2026-11-18 确认，开发、测试、生产统一；开发容器的切换见 T-185），Redis 8，MinIO（S3 接口）                                    |
+| 数据   | PostgreSQL 18.6（2026-11-18 确认，开发、测试、生产统一；T-185已统一开发与测试），Redis 8，MinIO（S3 接口）                                     |
 | 质量   | Biome 2，Vitest，Playwright，Testcontainers                                                                                                    |
 | 提交   | git cz（commitizen + cz-git），commitlint，husky                                                                                               |
 | 部署   | Docker Compose，Nginx                                                                                                                          |

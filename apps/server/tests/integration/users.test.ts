@@ -11,6 +11,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { migratePublic } from "../../src/database/migrate.js";
 import { PasswordHasher } from "../../src/infra/crypto/password-hasher.js";
 import { users } from "../../src/schema/public.js";
+import { POSTGRES_IMAGE } from "../helpers/postgres-image.js";
 
 let container: StartedPostgreSqlContainer | undefined;
 let pool: pg.Pool;
@@ -46,9 +47,7 @@ function insert(overrides: Partial<typeof users.$inferInsert> = {}) {
 }
 
 beforeAll(async () => {
-  container = await new PostgreSqlContainer(
-    "postgres:17.11-alpine3.23",
-  ).start();
+  container = await new PostgreSqlContainer(POSTGRES_IMAGE).start();
   pool = new pg.Pool({ connectionString: container.getConnectionUri() });
   passwordHash = await hasher.hash("123456");
 }, 120000);
@@ -58,7 +57,7 @@ afterAll(async () => {
   await container?.stop();
 }, 30000);
 
-describe("用户表 PostgreSQL 17 迁移与约束", () => {
+describe("用户表 PostgreSQL 18.6 迁移与约束", () => {
   it("首次迁移完成，再次执行不重复应用", async () => {
     expect(await migratePublic(pool)).toEqual([
       "0001_create_users.sql",
