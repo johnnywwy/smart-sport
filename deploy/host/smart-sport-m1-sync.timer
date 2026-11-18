@@ -1,0 +1,9 @@
+[Unit]
+Description=Follow CasaOS Smart Sport application switch
+[Timer]
+OnBootSec=10
+OnUnitInactiveSec=3
+AccuracySec=1
+Unit=smart-sport-m1-sync.service
+[Install]
+WantedBy=timers.target

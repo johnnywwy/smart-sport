@@ -1,6 +1,6 @@
 # ARM64物理机部署（T-181子部分）
 
-本次用户确认的目标：`sport.johnnywwy.com` → 已有Cloudflare Tunnel → `127.0.0.1:18082`。复用服务器已有PostgreSQL 18.6，新建独立库`smart_sport_m1`和用户`smart_sport_m1_app`；只新增Redis/MinIO容器。Node24.22.2与Nginx由物理机systemd运行。不修改已有数据库、Tunnel入口或80/443服务。
+本次用户确认的目标：`sport.johnnywwy.com` → 已有Cloudflare Tunnel → `127.0.0.1:18082`。使用服务器独立共享的PostgreSQL 18.6，新建独立库`smart_sport_m1`和用户`smart_sport_m1_app`；只新增Redis/MinIO容器。Node24.22.2与Nginx由物理机systemd运行。不修改已有数据库、Tunnel入口或80/443服务。
 
 这是当前已实现M1功能的试运行发布，不标记T-181完整容器编排、T-140完整初始化或T-182异地备份完成。T-062等业务依赖未完成，尚未支持的业务仍以页面实际开放范围为准。
 
@@ -34,9 +34,29 @@
 
 首次命令行部署后，CasaOS 会因无法解析外部环境文件显示“Managed elsewhere”。在服务器执行`sudo python3 /mnt/data/smart-sport-m1/current/deploy/host/casaos-register.py`，将解析后的配置保存到`/var/lib/casaos/apps/smart-sport-m1/docker-compose.yml`（root专属0600，含服务凭据，禁止复制到本机或提交）。脚本保留原项目名和两个数据卷，添加“智慧体育云”应用信息；已有配置时拒绝覆盖。
 
-随后短暂停止本项目server/worker，用`sudo docker compose -p smart-sport-m1 -f /var/lib/casaos/apps/smart-sport-m1/docker-compose.yml up -d --no-build --pull never --force-recreate --wait`重建容器，使Docker记录的配置来源指向CasaOS目录，再重启本项目三个systemd服务。不能执行`down -v`。刷新CasaOS后通过同一应用管理两个容器；前后端仍由systemd管理，CasaOS停止该应用只停止Redis/MinIO。
+随后短暂停止本项目server/worker，用`sudo docker compose -p smart-sport-m1 -f /var/lib/casaos/apps/smart-sport-m1/docker-compose.yml up -d --no-build --pull never --force-recreate --wait`重建容器，使Docker记录的配置来源指向CasaOS目录，再重启本项目三个systemd服务。不能执行`down -v`。刷新CasaOS后通过同一应用管理两个容器；前后端仍由systemd管理；安装下方联动定时器后，CasaOS停止该应用也会关停本项目应用服务。
 
 接管后，上述CasaOS目录文件是容器运维入口，不再交替从原`deploy/host/compose.yaml`启动。原文件作为可审核的发布模板保留。容器配置或镜像更新需先备份，在CasaOS配置中维护并保留现有数据卷名，不盲目重跑注册脚本。
+
+## 服务器通用 PostgreSQL 18.6
+
+用户确认数据库应为服务器共享基础服务。最终CasaOS应用与容器均名为`postgresql18`，卡片为`PostgreSQL 18.6`，独立于Smart Sport。配置在`/var/lib/casaos/apps/postgresql18/docker-compose.yml`，root专属0600。镜像`local/postgresql:18.6`与原来已通过验收的18.6镜像内容相同，仅重新命名，不能当作Docker Hub官方镜像自动拉取。后续升级须单独审核扩展和数据兼容性。
+
+迁移沿用`/DATA/AppData/postgresql/data18`→`/var/lib/postgresql`绑定目录与`192.168.2.16:5432`端口；Smart Sport继续用`smart_sport_m1`和其专用账号，其他项目可使用自己的数据库。原`casaos`、`postgres`、`smart_sports`均保留。切换前已在服务器保存全库逻辑备份，旧容器和旧项目网络已清理。旧17.4是另一套独立实例，数据目录为`/DATA/AppData/postgresql/data`，没有自动删除。
+
+首次从旧容器迁出时可用`separate-postgres.py`生成新配置。必须先停止原容器，再启动新容器；禁止两个PostgreSQL进程同时写同一目录。数据库已切换后不要重跑该脚本。
+
+## CasaOS 开关联动
+
+将`smart-sport-m1-sync.service`及`smart-sport-m1-sync.timer`安装至`/etc/systemd/system/`，`daemon-reload`后启用timer。三个应用service保留供调用，但不再独立enable，由timer统一启动。
+
+`sync-casaos.sh`每约3秒检查Redis、MinIO及通用PostgreSQL容器：任一停止则关停本项目API/Worker/网关；三个均健康后启动应用。它不会启动、停止或重启通用PostgreSQL本身，也不控制其他项目。已有应用在容器运行但暂时不健康时交由自身健康检测处理，不因一次探针失败反复重启。
+
+停止Redis后Worker可能等待正在关闭的队列连接，由systemd既有40秒上限兜底，因此整组关停可能需要几十秒。CasaOS卡片状态反映容器，不能作为API全部业务正常的证明；应用可用性仍查`/health/ready`。维护时先停止timer，完成后恢复。
+
+## 统计历史
+
+Statistics保存`/var/lib/casaos/stats/app_management/*.ring`历史，容器删除后仍可展示。2026-11-18已在停用统计采集服务期间，精准归档不存在容器和退役数据库项目对应的记录，保留现有容器和主机统计、告警配置，再恢复管理服务。不能清空整个CasaOS数据库或Docker数据目录。
 
 ## 运维与回滚
 
@@ -54,3 +74,5 @@
 三个systemd服务已启用自启动并经过重启验证；Redis/MinIO健康、原数据卷沿用。通过本机网关实际完成登录、Cookie属性、刷新、会话恢复、退出、SPA直达与ready检查，未改初始管理员密码。公网HTTPS登录页与ready返回200，生产OpenAPI返回404，浏览器渲染与控制台无错误。服务器直接出站到Cloudflare偶有连接超时，因此未声称公网完整认证脚本一次跑通；公网登录、刷新和退出曾单独成功，本机完整链路已验证。
 
 已生成本项目数据库首份备份并通过`pg_restore --list`，保留受限密钥恢复副本；尚未配置定时、异地备份或完整恢复演练。初始密码只保留服务器受限文件，用户自行在SSH中读取并首次改密。
+
+2026-11-18补验：PostgreSQL已独立为服务器共享服务，生产库用户数1、区划3223及其他库均保留，迁移后ready和新备份通过。管理员已改初始密码（must_change_password=false），旧初始凭据验收脚本返回401，未重置用户密码或把本次认证复测报告为通过。CasaOS停止应用后应用进程关停，恢复基础容器后API/Worker/网关重新启动；Worker在Redis先停止时存在上述退出等待。Weibo容器运行且健康，卡片主服务与配置来源已核对，未重启该业务容器。

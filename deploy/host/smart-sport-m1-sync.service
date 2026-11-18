@@ -1,0 +1,8 @@
+[Unit]
+Description=Sync Smart Sport host services with CasaOS containers
+After=docker.service network-online.target
+[Service]
+Type=oneshot
+ExecStart=/bin/sh /mnt/data/smart-sport-m1/current/deploy/host/sync-casaos.sh
+TimeoutStartSec=90
+UMask=0077
