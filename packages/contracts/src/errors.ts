@@ -70,7 +70,15 @@ export const taskErrors = {
   30021: { status: 409, message: "此任务开始执行后不允许取消" },
 } as const;
 
+export const subscriptionErrors = {
+  13001: { status: 403, message: "学校未开通该应用或已到期" },
+  13002: { status: 403, message: "学校服务处于宽限期，仅可查看与导出" },
+  13003: { status: 403, message: "学校服务已停用" },
+  13004: { status: 403, message: "不能审核自己提交的申请" },
+} as const;
+
 export const apiErrors = {
+  ...subscriptionErrors,
   ...taskErrors,
   ...systemErrors,
   ...authErrors,
