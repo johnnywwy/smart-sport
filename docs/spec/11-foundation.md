@@ -39,6 +39,16 @@
 - 接口：`GET /tasks?mine=true&status`、`GET /tasks/:id`、`POST /tasks/:id/cancel`。
 - 顶栏显示进行中的任务数；完成后发站内消息。
 
+### T-112 任务中心实施约定（2026-11-18 用户确认）
+
+- 任务中心是身份级登录即可使用的全局功能。只查看当前身份发起的任务，同一账号的其他身份、同组织其他成员亦不可查看；不存在、越界和软删统一90004。`mine`仅接受true（省略默认true），不开放查看他人或平台全量任务。任务元数据统一放public，school_id仅为关联信息，不在此接口读取学校业务表或授予跨校数据权限。
+- `GET /tasks`使用公共分页，默认创建时间倒序、ID倒序；status为六种状态之一或active（queued/running）。返回items、total、page、pageSize及activeCount；activeCount独立于当前分页和状态筛选，仅统计本身份未删除的queued/running（含取消中）。`GET /tasks/:id`返回同一任务契约。
+- 排队任务可以直接取消；执行中的import/export先记录cancel_requested_at，仍为running，前端据此展示“取消中”，worker到达安全节点并确认停止后才写cancelled。已提交数据不回滚，summary保留实际处理数量；导入撤销走独立撤销功能。provision/rollover/tenant_export执行开始后禁止取消；已结束任务不能取消。列表allowedActions仅在可取消且尚未申请取消时返回cancel。
+- `POST /tasks/:id/cancel`带version做乐观锁，返回更新后的任务。取消是版本化更新，不另要求幂等键；旧版本90002，已结束/重复取消等状态冲突30020，结构变更类运行中取消30021。取消与worker更新争抢同一行锁；worker也带版本，不得覆盖取消请求或将终态重新置为运行中。
+- 新表除规格原字段和公共字段外，补org_id、cancel_requested_at、started_at、finished_at。summary只提供total/processed/succeeded/failed/skipped非负计数，不返回任意业务载荷；error只返回固定失败说明，不把SQL、异常堆栈或隐私回传。result_file_id预留，文件关联权限随T-113/T-114接入，T-112不允许随意关联文件ID。
+- 内部Service提供创建、抢占开始、单调进度上报、成功/部分成功/失败和确认取消。创建与RW编号分配在同一事务，支持加入调用方业务事务；无公开创建、上报、完成或重试接口。运行中进度0–99，成功和部分成功100，失败/取消保留实际进度；终态不可重开。进度和计数不得回退。
+- 此任务实现持久化任务状态和轮询接口；业务worker在T-113/T-114等接入，数据库与Redis可靠投递在T-117实现，不把“已创建queued记录”声称为可靠入队。完成站内消息依赖T-118，在该任务接入；T-112不提前实现消息或完整导入导出。
+
 ## 4. 文件
 
 **files**：object_key（`{schoolId 或 platform}/{yyyy}/{mm}/{uuid}`）、filename、content_type、size、sha256、school_id、purpose、expires_at。

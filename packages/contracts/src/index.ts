@@ -29,3 +29,4 @@ export * from "./role-management.js";
 export * from "./school-profiles.js";
 export * from "./scope.js";
 export * from "./scope-queries.js";
+export * from "./tasks.js";

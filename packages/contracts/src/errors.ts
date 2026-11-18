@@ -65,7 +65,13 @@ export const dictErrors = {
   30014: { status: 409, message: "字典选项已停用，不能用于新业务" },
 } as const;
 
+export const taskErrors = {
+  30020: { status: 409, message: "当前任务状态不允许此操作" },
+  30021: { status: 409, message: "此任务开始执行后不允许取消" },
+} as const;
+
 export const apiErrors = {
+  ...taskErrors,
   ...systemErrors,
   ...authErrors,
   ...identityErrors,
