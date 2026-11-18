@@ -1,0 +1,19 @@
+[Unit]
+Description=Smart Sport M1 Web Gateway
+After=network-online.target smart-sport-m1-server.service
+Wants=network-online.target
+[Service]
+Type=simple
+User=johnny
+Group=johnny
+ExecStartPre=/mnt/data/smart-sport-m1/runtime/nginx/usr/sbin/nginx -t -p /mnt/data/smart-sport-m1/shared/nginx/ -c /mnt/data/smart-sport-m1/current/deploy/host/nginx.conf
+ExecStart=/mnt/data/smart-sport-m1/runtime/nginx/usr/sbin/nginx -p /mnt/data/smart-sport-m1/shared/nginx/ -c /mnt/data/smart-sport-m1/current/deploy/host/nginx.conf -g "daemon off;"
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=on-failure
+RestartSec=5
+KillSignal=SIGQUIT
+NoNewPrivileges=true
+PrivateTmp=true
+UMask=0077
+[Install]
+WantedBy=multi-user.target

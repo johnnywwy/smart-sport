@@ -1,0 +1,19 @@
+[Unit]
+Description=Smart Sport M1 Worker
+After=network-online.target docker.service
+Wants=network-online.target
+[Service]
+Type=simple
+User=johnny
+Group=johnny
+WorkingDirectory=/mnt/data/smart-sport-m1/current/worker
+ExecStart=/mnt/data/smart-sport-m1/runtime/node/bin/node --env-file=/mnt/data/smart-sport-m1/shared/app.env dist/main.js
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=40
+KillSignal=SIGTERM
+NoNewPrivileges=true
+PrivateTmp=true
+UMask=0077
+[Install]
+WantedBy=multi-user.target
