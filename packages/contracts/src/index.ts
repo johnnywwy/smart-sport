@@ -9,6 +9,7 @@ export * from "./departments.js";
 export * from "./dict-definitions.js";
 export * from "./dicts.js";
 export * from "./errors.js";
+export * from "./files.js";
 export * from "./identities.js";
 export * from "./identity-scope-details.js";
 export * from "./identity-scopes.js";
