@@ -108,7 +108,7 @@ it("详情仅显示脱敏电话及真实学制，不编造服务状态或显示�
   );
   expect(markup).toContain("138****5678");
   expect(markup).toContain("小学，6年制；初中，3年制");
-  expect(markup).toContain("服务状态暂未开放查询");
+  expect(markup).not.toContain("服务状态暂未开放查询");
   expect(markup).not.toContain(schoolProfileExample.schoolId);
   expect(markup).not.toContain("服务中");
   expect(stageDescription(schoolProfileExample)).toBe(

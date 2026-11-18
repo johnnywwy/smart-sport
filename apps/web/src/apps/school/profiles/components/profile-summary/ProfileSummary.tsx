@@ -1,13 +1,16 @@
 import type { SchoolProfile } from "@smart-sport/contracts";
+import type { ReactNode } from "react";
 import { stageDescription } from "../../profile-state";
 import "./ProfileSummary.css";
 
 export function ProfileSummary({
   profile,
   regionName,
+  service,
 }: {
   profile: SchoolProfile;
   regionName?: string | undefined;
+  service?: ReactNode;
 }) {
   const items = [
     ["学校名称", profile.schoolName],
@@ -35,12 +38,7 @@ export function ProfileSummary({
           ))}
         </dl>
       </section>
-      <section className="school-profile-card school-profile-service">
-        <h2>平台服务</h2>
-        <p>服务状态暂未开放查询</p>
-        <span>服务期和已开通模块将在平台服务功能接入后显示。</span>
-        <span>需要调整服务，请联系负责的销售。</span>
-      </section>
+      {service}
     </div>
   );
 }
