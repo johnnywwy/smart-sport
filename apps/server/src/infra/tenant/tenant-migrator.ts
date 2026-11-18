@@ -90,9 +90,27 @@ export class TenantMigrator {
     );
   }
 
+  /** 内部开通入口：复用迁移锁、目标历史和跨库提交恢复路径。 */
+  async provisionSchool(
+    schoolId: string,
+    options: { directory?: URL; datasource?: string } = {},
+  ) {
+    try {
+      schoolSchemaName(schoolId);
+    } catch {
+      throw new ApiException(90004);
+    }
+    return this.run(
+      schoolId.toLowerCase(),
+      await readSchoolMigrations(options.directory ?? schoolMigrationDirectory),
+      options,
+    );
+  }
+
   private async run(
     schoolId: string,
     files: SchoolMigrations,
+    provision?: { datasource?: string },
   ): Promise<SchoolMigrationResult> {
     let client: pg.PoolClient | undefined;
     let target: pg.PoolClient | undefined;
@@ -104,7 +122,13 @@ export class TenantMigrator {
       registry = new MigrationRegistry(client);
       await registry.lock(schoolId);
       await client.query("BEGIN ISOLATION LEVEL READ COMMITTED");
-      tenant = await registry.tenant(schoolId);
+      if (provision) {
+        await registry.prepareProvision(schoolId, provision.datasource);
+        // 先持久化登记，后续DDL失败才能保留failed名单；成功状态仍与DDL同事务。
+        await client.query("COMMIT");
+        await client.query("BEGIN ISOLATION LEVEL READ COMMITTED");
+      }
+      tenant = await registry.tenant(schoolId, Boolean(provision));
       if (!tenant) throw new ApiException(90004);
       if (tenant.schema_name !== schoolSchemaName(schoolId)) {
         throw new MigrationError("学校库名称与学校不匹配");
@@ -116,10 +140,21 @@ export class TenantMigrator {
       if (target !== client) {
         await target.query("BEGIN ISOLATION LEVEL READ COMMITTED");
       }
+      if (provision) {
+        // 与增量迁移使用同一目标事务锁；schema名只由UUID生成并验证。
+        const schema = schoolSchemaName(schoolId);
+        await target.query(
+          "SELECT pg_advisory_xact_lock(1936749167, hashtext($1))",
+          [schema],
+        );
+        await target.query(`CREATE SCHEMA IF NOT EXISTS "${schema}"`);
+      }
       const result = await applySchoolMigrations(target, schoolId, files);
       // 非默认库先提交目标DDL，再更新公库；中断后可按目标历史安全重跑。
       if (target !== client) await target.query("COMMIT");
       await registry.success(tenant, result.schemaVersion);
+      if (provision)
+        await registry.provisionAudit(tenant, result.schemaVersion);
       await client.query("COMMIT");
       return { schoolId, status: "active", ...result };
     } catch (error) {
@@ -134,7 +169,9 @@ export class TenantMigrator {
       let failureRecorded = false;
       if (tenant && registry) {
         try {
-          failureRecorded = await registry.failure(tenant, message);
+          failureRecorded = provision
+            ? await registry.provisionFailure(tenant, message)
+            : await registry.failure(tenant, message);
         } catch {
           // 公库故障时明确报告未登记；不把成功提交的目标迁移再执行一遍。
         }
