@@ -25,6 +25,15 @@ import { IdempotencyInterceptor } from "./idempotency.js";
 import { AccessTokenSigner } from "./infra/auth/access-token-signer.js";
 import { MemberCredentials } from "./infra/crypto/member-credentials.js";
 import { PasswordHasher } from "./infra/crypto/password-hasher.js";
+import { ObjectStorage } from "./infra/storage/object-storage.js";
+import {
+  FileAccessService,
+  FileBoundaryGuard,
+  FilesController,
+  FilesRepository,
+  FilesService,
+  SchoolFilesController,
+} from "./modules/foundation/files/index.js";
 import {
   NumberRulesController,
   NumberRulesService,
@@ -189,6 +198,8 @@ const databaseConfig = loadDatabaseConfig();
     }),
   ],
   controllers: [
+    FilesController,
+    SchoolFilesController,
     AuditQueryController,
     MenuManagementController,
     ParamsController,
@@ -213,6 +224,11 @@ const databaseConfig = loadDatabaseConfig();
     ScopeQueryController,
   ],
   providers: [
+    ObjectStorage,
+    FileAccessService,
+    FileBoundaryGuard,
+    FilesRepository,
+    FilesService,
     AuditQueryRepository,
     AuditQueryService,
     AuditPartitionsRepository,

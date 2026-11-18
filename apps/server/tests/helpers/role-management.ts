@@ -26,6 +26,15 @@ import { IdempotencyInterceptor } from "../../src/idempotency.js";
 import { AccessTokenSigner } from "../../src/infra/auth/access-token-signer.js";
 import { MemberCredentials } from "../../src/infra/crypto/member-credentials.js";
 import { PasswordHasher } from "../../src/infra/crypto/password-hasher.js";
+import { ObjectStorage } from "../../src/infra/storage/object-storage.js";
+import {
+  FileAccessService,
+  FileBoundaryGuard,
+  FilesController,
+  FilesRepository,
+  FilesService,
+  SchoolFilesController,
+} from "../../src/modules/foundation/files/index.js";
 import {
   NumberRulesController,
   NumberRulesService,
@@ -142,7 +151,17 @@ import { requestContextMiddleware } from "../../src/request-context.js";
 import { SERVER_CONFIG } from "../../src/server-config.js";
 import { authentication } from "./authentication.js";
 
-export async function roleManagementFixture(withAuth = false) {
+export async function roleManagementFixture(
+  withAuth = false,
+  storage?: Pick<
+    ServerConfig,
+    | "S3_ENDPOINT"
+    | "S3_BUCKET"
+    | "S3_REGION"
+    | "S3_ACCESS_KEY_ID"
+    | "S3_SECRET_ACCESS_KEY"
+  >,
+) {
   const postgres = await new PostgreSqlContainer(
     "postgres:17.11-alpine3.23",
   ).start();
@@ -154,6 +173,7 @@ export async function roleManagementFixture(withAuth = false) {
   );
   const pair = generateKeyPairSync("ed25519");
   const config = {
+    ...storage,
     NODE_ENV: "test",
     FIELD_ENCRYPTION_KEY: randomBytes(32).toString("base64"),
     STUDENT_HMAC_KEY: randomBytes(32).toString("base64"),
@@ -166,6 +186,7 @@ export async function roleManagementFixture(withAuth = false) {
   const module = await Test.createTestingModule({
     imports: [ClsModule.forRoot({ global: true })],
     controllers: [
+      ...(storage ? [FilesController, SchoolFilesController] : []),
       AuditQueryController,
       MenuManagementController,
       NavigationController,
@@ -187,6 +208,15 @@ export async function roleManagementFixture(withAuth = false) {
       ScopeQueryController,
     ],
     providers: [
+      ...(storage
+        ? [
+            ObjectStorage,
+            FileAccessService,
+            FileBoundaryGuard,
+            FilesRepository,
+            FilesService,
+          ]
+        : []),
       AuditQueryRepository,
       AuditQueryService,
       MenuManagementRepository,
