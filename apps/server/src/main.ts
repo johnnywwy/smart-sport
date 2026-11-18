@@ -41,6 +41,12 @@ import {
   NumbersService,
 } from "./modules/foundation/numbers/index.js";
 import {
+  TaskExecutionService,
+  TasksController,
+  TasksRepository,
+  TasksService,
+} from "./modules/foundation/tasks/index.js";
+import {
   AcademicController,
   AcademicRepository,
   AcademicService,
@@ -198,6 +204,7 @@ const databaseConfig = loadDatabaseConfig();
     }),
   ],
   controllers: [
+    TasksController,
     FilesController,
     SchoolFilesController,
     AuditQueryController,
@@ -224,6 +231,9 @@ const databaseConfig = loadDatabaseConfig();
     ScopeQueryController,
   ],
   providers: [
+    TasksRepository,
+    TasksService,
+    TaskExecutionService,
     ObjectStorage,
     FileAccessService,
     FileBoundaryGuard,

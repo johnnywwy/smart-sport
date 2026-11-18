@@ -42,6 +42,12 @@ import {
   NumbersService,
 } from "../../src/modules/foundation/numbers/index.js";
 import {
+  TaskExecutionService,
+  TasksController,
+  TasksRepository,
+  TasksService,
+} from "../../src/modules/foundation/tasks/index.js";
+import {
   AcademicController,
   AcademicRepository,
   AcademicService,
@@ -186,6 +192,7 @@ export async function roleManagementFixture(
   const module = await Test.createTestingModule({
     imports: [ClsModule.forRoot({ global: true })],
     controllers: [
+      TasksController,
       ...(storage ? [FilesController, SchoolFilesController] : []),
       AuditQueryController,
       MenuManagementController,
@@ -208,6 +215,9 @@ export async function roleManagementFixture(
       ScopeQueryController,
     ],
     providers: [
+      TasksRepository,
+      TasksService,
+      TaskExecutionService,
       ...(storage
         ? [
             ObjectStorage,

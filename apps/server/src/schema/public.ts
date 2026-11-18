@@ -539,3 +539,4 @@ export const schoolProfiles = pgTable(
 );
 export { files } from "./files.js";
 export { systemParams } from "./params.js";
+export { tasks } from "./tasks.js";

@@ -94,6 +94,7 @@ describe("用户表 PostgreSQL 17 迁移与约束", () => {
       "0031_create_system_params.sql",
       "0032_menu_override_versions.sql",
       "0033_create_files.sql",
+      "0034_create_tasks.sql",
     ]);
     expect(await migratePublic(pool)).toEqual([]);
   });
