@@ -21,7 +21,7 @@ export const regionManagementRowSchema = regionSchema.extend({
 });
 export const regionManagementListSchema = paginatedSchema(
   regionManagementRowSchema,
-);
+).extend({ allowedActions: z.array(z.literal("import")) });
 export const regionSyncChangeSchema = z.strictObject({
   code: regionCodeSchema,
   kind: z.enum(["added", "renamed", "retired", "moved"]),
