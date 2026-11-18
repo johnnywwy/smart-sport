@@ -68,3 +68,23 @@ test("审计响应保留真实归属、允许账号级空身份，无修改能�
     false,
   );
 });
+
+test("姓名与组织名称筛选去除首尾空白，限制长度且保留字面特殊字符", () => {
+  const parsed = auditLogQuerySchema.parse({
+    operatorName: " 张三%_\\ ",
+    organizationName: " 示例学校 ",
+  });
+  assert.equal(parsed.operatorName, "张三%_\\");
+  assert.equal(parsed.organizationName, "示例学校");
+  for (const key of ["operatorName", "organizationName"]) {
+    for (const value of [" ", "名".repeat(101), 123])
+      assert.equal(
+        auditLogQuerySchema.safeParse({ [key]: value }).success,
+        false,
+      );
+    assert.equal(
+      auditLogQuerySchema.safeParse({ [key]: "名".repeat(100) }).success,
+      true,
+    );
+  }
+});

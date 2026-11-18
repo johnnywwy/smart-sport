@@ -14,6 +14,8 @@ export const auditLogQuerySchema = z
     scope: z.enum(["organization", "platform"]).default("organization"),
     action: z.string().trim().min(1).max(100).optional(),
     userId: idSchema.optional(),
+    operatorName: z.string().trim().min(1).max(100).optional(),
+    organizationName: z.string().trim().min(1).max(100).optional(),
     targetType: z.string().trim().min(1).max(100).optional(),
     targetId: idSchema.optional(),
     from: timestampSchema.optional(),
