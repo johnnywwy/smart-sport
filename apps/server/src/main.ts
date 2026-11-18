@@ -45,6 +45,7 @@ import {
   NumbersRepository,
   NumbersService,
 } from "./modules/foundation/numbers/index.js";
+import { outboxProviders } from "./modules/foundation/outbox/index.js";
 import {
   TaskExecutionService,
   TasksController,
@@ -236,6 +237,7 @@ const databaseConfig = loadDatabaseConfig();
     ScopeQueryController,
   ],
   providers: [
+    ...outboxProviders,
     TenantRepository,
     TenantService,
     TenantMigrator,

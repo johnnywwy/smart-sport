@@ -1,6 +1,7 @@
 import { loadDatabaseConfig } from "@smart-sport/config/env";
 import { TenantMigrator, TenantRepository } from "../infra/tenant/index.js";
 import { MigrationError, migratePublic } from "./migrate.js";
+import { migrateOutbox } from "./migrate-outbox.js";
 import { DataSourceRegistry } from "./registry.js";
 
 async function main() {
@@ -12,6 +13,10 @@ async function main() {
         ? `已执行 public 迁移：${applied.join(", ")}`
         : "public 迁移已是最新",
     );
+    for (const key of registry.keys()) {
+      const files = await migrateOutbox(registry.get(key).pool);
+      console.log(`投递基础设施${key}：新增${files.length}个迁移`);
+    }
     const migrator = new TenantMigrator(
       registry,
       new TenantRepository(registry.get().db),

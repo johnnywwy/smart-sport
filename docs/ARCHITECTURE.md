@@ -117,7 +117,7 @@ smart-sport/
 │  │        ├─ platform/   auth identities identity-context organizations departments members
 │  │        │              roles role-management preset-roles catalog navigation scope
 │  │        │              scope-candidates regions school-profiles academic dicts params audit
-│  │        ├─ foundation/ files numbers tasks（outbox、todo、notify、import-export、recycle 未建）
+│  │        ├─ foundation/ files numbers tasks outbox（todo、notify、import-export、recycle 未建）
 │  │        └─ school/     （未建：tenant、school-base、student-index）
 │  ├─ worker/            BullMQ 消费者（目前只有测试队列）
 │  ├─ web/               React 19 + HeroUI 3 + HeroUI Pro
@@ -203,6 +203,7 @@ smart-sport/
 ### ADR-10 跨库写入用 outbox
 
 - **决定**：同一数据源内的平台库与学校库写入放在一个事务；跨数据源时先写本地并记录 outbox 事件，worker 补齐另一侧。
+- **T-117 用户确认**：每数据源各有一张 public.outbox_events，多校通过 school_id 区分；独立 outbox 迁移不安装平台业务表。目标库 outbox_consumptions 与业务效果同事务去重。入队采用至少一次投递，具体业务处理器随对应功能接入。
 
 ### ADR-11 只支持新版浏览器
 

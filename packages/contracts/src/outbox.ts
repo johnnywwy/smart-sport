@@ -32,10 +32,7 @@ export type OutboxEventInput = z.infer<typeof outboxEventInputSchema>;
 
 /** 队列不复制业务载荷；数据源仅接受服务器已配置的key。 */
 export const outboxReferenceSchema = z.strictObject({
-  datasource: z
-    .string()
-    .regex(/^[a-z][a-z0-9_]*$/)
-    .max(64),
+  datasource: z.string().regex(/^[a-z][a-z0-9_]*$/),
   eventId: idSchema,
 });
 export type OutboxReference = z.infer<typeof outboxReferenceSchema>;
