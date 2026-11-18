@@ -64,7 +64,7 @@ install → biome → typecheck → unit → integration（Testcontainers）→ 
 
 任何一步失败阻断合并。
 
-**当前实际（2026-11-18，`.github/workflows/ci.yml`）**：install → HeroUI Pro 安装 → 依赖声明未被改写检查 → biome 与 UI 控件检查 → 依赖方向 → typecheck → unit → build。集成测试（Testcontainers，目前 34 个文件）、隔离测试、漏洞扫描都还没进 CI，只在开发机上运行。
+**当前实际（2026-11-18，`.github/workflows/ci.yml`）**：install → HeroUI Pro 安装 → 依赖声明未被改写检查 → biome 与 UI 控件检查 → 依赖方向 → typecheck → unit → build。新增独立的后端集成测试任务（Testcontainers，34 个文件），只在 PR 与 main 推送运行；隔离专项套件、漏洞扫描尚未接入。T-186 的远端运行和必需检查设置状态见 PROGRESS。
 
 **集成测试进 CI（T-186，2026-11-18 确认提前）**：
 
@@ -74,7 +74,7 @@ install → biome → typecheck → unit → integration（Testcontainers）→ 
 | 触发         | 只在 PR 和 main 分支运行；普通分支的推送只跑现有的快速检查，节省 Actions 额度                     |
 | 内容         | 构建 config、contracts、domain、server，运行 `pnpm --filter @smart-sport/server test:integration` |
 | 密钥         | 不安装 HeroUI Pro，任务里不出现 `HEROUI_KEY`                                                      |
-| 镜像         | PostgreSQL 18.6（T-185 收成的同一个常量）和 Redis 镜像做缓存                                      |
+| 镜像         | PostgreSQL 18.6（复用 T-185 常量）、Redis 和本地源码构建的 MinIO 镜像做缓存                       |
 | 合并         | 设为必需检查，失败不能合并                                                                        |
 | 不稳定的测试 | 不配置自动重跑；偶发失败要修测试或修代码                                                          |
 
